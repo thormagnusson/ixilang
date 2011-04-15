@@ -1,20 +1,10 @@
 
 /*
 
-// XiiLang.new("project", "key") - "project" stands for the name of the folder where soundfiles are kept. in this folder a _keyMapping.ixi file can be found that maps letters to sounds. if there is no file, then mapping will be random
+// XiiLang.new("project", "key") - "project" stands for the name of the folder where soundfiles are kept. in this folder a _keyMapping.ixi file can be found that maps letters to sounds. if there is no file, then the mapping will be random
 
 TODO: Add parameter effect control
-
-TODO: Check the use of String:drop(1)
-
-// latest changes were:
-" " (removing the addition of " " after a line - this could cause problems, but I can't see them yet)
-{}.defer
-
-todo: matrix 
-. . o
-o x .
-o . .
+TODO: Check the use of String:drop(1) and String:drop(-1)
 
 
 */
@@ -31,18 +21,15 @@ o . .
 // matrix
 // coder (keys)
 
-// BUG: snapshots do not perk up agents that have been dozed
+// FIXED BUG: snapshots do not perk up agents that have been dozed
 // solution might be to mute and unmute in snapshots, rather than stop:
 // proxyspace[keyagentname].objects[0].array[0].unmute
-
-
 // FIXED BUG: Snapshots do not recall the effect state
+// FIXED BUG: single character percussive mode agents wont >shift
 
-
-// BUG: single character percussive mode agents wont >shift
-// BUG: 
-//  boob -> xylo[34   35  54]
-//  >shift b
+// Add: ptpd support for netclocks
+// Êsudo ./ptpd -cd
+// Êhttp://sourceforge.net/projects/ptpd/develop
 
 XiiLang {	
 	classvar globaldocnum;
@@ -716,6 +703,7 @@ XiiLang {
 					// here adding what the coder is about 
 					if(char.isAlpha, {
 						Synth(instrDict[char.asSymbol], [\freq, 60.midicps]); // original
+						/* -- discontinued experiment
 						if(coderRecFlag, { // the first key starts the recording process
 							"inside first recflag".postln;
 							recclock  = TempoClock.default.beats.round(0.25);
@@ -762,7 +750,9 @@ XiiLang {
 							});
 							recclock  = TempoClock.default.beats.round(0.25);
 						});
+						*/
 					});
+					/* -- discontinued experiment
 					if(char == $±, { // get ready for recording
 						bars = thisdoc.string[thisdoc.selectionStart-1..thisdoc.selectionStart+1].asInteger;
 						[\bars, bars].postln;
@@ -771,6 +761,7 @@ XiiLang {
 						coderRecFlag = true;
 						//firstCoderRecFlag = true;
 					});
+					*/
 
 				});
 			}
@@ -1014,7 +1005,7 @@ XiiLang {
 		var newInstrFlag = false;
 		var postfixArgDict;
 		
-	//	scorestring = string.reject({arg char; char.ascii == 10 }); // to store in agentDict XXX Testing
+		scorestring = string.reject({arg char; char.ascii == 10 }); // to store in agentDict XXX Testing
 		
 		string = string.reject({arg char; (char==$-) || (char==$>) || (char.ascii == 10) }); // no need for this here
 		splitloc = string.find("|");
