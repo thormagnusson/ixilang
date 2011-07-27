@@ -96,7 +96,7 @@ XiiLang {
 		});
 		// [\lang, lang].postln;
 		englishCommands = ["group", "sequence", "future", "snapshot", "->", "))", "((", "|", "[", "{", "(", ".", ">>", "<<", "tempo", 
-				"scale", "scalepush", "tuning", "tuningpush", "remind", "tonality", "instr", "tonic", "grid", "kill",  
+				"scale", "scalepush", "tuning", "tuningpush", "remind", "help", "tonality", "instr", "tonic", "grid", "kill",  
 				"doze", "perk", "nap", "shake", "swap", ">shift", "<shift", "invert", "expand", "reverse", 
 				"up", "down", "yoyo", "order", "suicide", "dict", "midiclients", "midiout", "matrix", "coder"];
 		
@@ -409,6 +409,9 @@ XiiLang {
 				});
 			}
 			{"remind"}{
+				this.getMethodsList;		
+			}
+			{"help"}{
 				this.getMethodsList;		
 			}
 			{"tonality"}{

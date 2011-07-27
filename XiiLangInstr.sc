@@ -323,7 +323,7 @@ Pdef(\test, Pbind(\instrument, \fmsynth, \midinote, Prand([1, 2, 5, 7, 9, 3], in
 		 Synth(\bass, [\freq, 344])
 		*/
 
-		
+/*		
 		SynthDef(\moog, {arg out=0, freq=220, amp=0.3, sustain=0.3, gate=1;
 			var signal;
 			var env = EnvGen.kr(Env.adsr(0.01, sustain, sustain/2, 0.3), gate, doneAction:2);
@@ -331,6 +331,13 @@ Pdef(\test, Pbind(\instrument, \fmsynth, \midinote, Prand([1, 2, 5, 7, 9, 3], in
 			Out.ar(out, signal);
 		}).add;
 
+*/
+		SynthDef(\moog, {arg out=0, freq=220, amp=0.3, sustain=0.3, gate=1;
+			var signal;
+			var env = EnvGen.kr(Env.adsr(0.01, 0.2, amp*0.8, 0.3), gate, doneAction:2);
+			signal = MoogFF.ar(Saw.ar([freq, freq+2], 1), 7*freq, 3.3) * env;
+			Out.ar(out, signal);
+		}).add;
 		/*
 		 Synth(\moog, [\freq, 344])
 		*/
@@ -487,6 +494,11 @@ Pdef(\test, Pbind(\instrument, \fmsynth, \midinote, Prand([1, 2, 5, 7, 9, 3], in
 		        x = Decay2.ar(Resonz.ar(Impulse.ar(0.01), freq*4, 0.005), 0.001, sustain*2, 3);
 		        x = Pan2.ar(x,pan);
 		        Out.ar(out, LeakDC.ar(x)*env*amp*50);
+		}).add;
+
+		SynthDef(\sine, {arg out=0, gate=1, freq=440, dur=1, sustain=0.5, amp=0.3, pan=0;
+			var env = EnvGen.kr(Env.adsr(0.0001, sustain, sustain/2, 0.3), gate, doneAction:2);
+			Out.ar(out, Pan2.ar(SinOsc.ar(freq), pan, env * amp));
 		}).add;
 
 		//^this.makeInstrDict; // changed such that the class returns its instance (not the dict)
