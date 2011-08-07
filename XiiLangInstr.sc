@@ -244,13 +244,13 @@ XiiLangInstr {
 			DetectSilence.ar(signal, doneAction:2);
 		}).add;
 		
-		SynthDef(\hat, { arg out=0, pan=0;
+		SynthDef(\hat, { arg out=0, pan=0, amp=0.3;
 			var sig;
 			// a release gate
 			EnvGen.ar(Env.perc(0.00001, 2), doneAction: 2); 
 			// the other env has problem with gate
 			// (i.e. FAILURE n_set Node not found)
-			sig = WhiteNoise.ar * EnvGen.ar(Env.perc(0.00001, 0.01));
+			sig = WhiteNoise.ar(amp) * EnvGen.ar(Env.perc(0.00001, 0.01));
 			Out.ar(out, Pan2.ar(sig, pan));
 		}).add;
 
@@ -276,7 +276,7 @@ XiiLangInstr {
 
 /*
 // a pattern to test the instruments
-Pdef(\test, Pbind(\instrument, \fmsynth, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) + 60, \dur, 0.8)).play;
+Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) + 60, \dur, 0.8)).play;
 */
 
 		// ---------------------- synthesized instruments -----------------------------
@@ -380,7 +380,6 @@ Pdef(\test, Pbind(\instrument, \fmsynth, \midinote, Prand([1, 2, 5, 7, 9, 3], in
 			Out.ar(out, (signal*env)*(amp*6)!2);
 		}).add;
 
-
 		SynthDef(\elbass, {arg out=0, amp=0.3, t_trig=1, sustain=0.5, freq=100, gate=1, rq=0.004;
 			var env, signal;
 			var rho, theta, b1, b2;
@@ -417,7 +416,6 @@ Pdef(\test, Pbind(\instrument, \fmsynth, \midinote, Prand([1, 2, 5, 7, 9, 3], in
 			signal = Decay2.ar(signal, 0.4, 0.3, signal*SinOsc.ar(freq)); // modulating
 			Out.ar(out, (signal*env)*(amp*0.65)!2);
 		}).add;
-
 
 		SynthDef(\wood, {arg out=0, amp=0.3, pan=0, sustain=0.5, t_trig=1, freq=100, rq=0.06;
 			var env, signal;
@@ -508,7 +506,7 @@ Pdef(\test, Pbind(\instrument, \fmsynth, \midinote, Prand([1, 2, 5, 7, 9, 3], in
 	makeInstrDict{ // this is where keys are mapped to instruments (better done by hand and design)
 	
 		// if sounds folder contains a key mapping file, then it is used, 
-		// else, the instrDict is create by putting random files onto the letters
+		// else, the instrDict is created by mapping random sound files onto the letters
 		
 		var file;
 		if(Object.readArchive("sounds/ixilang/"++project++"/_keyMapping.ixi").isNil, {
@@ -518,7 +516,7 @@ Pdef(\test, Pbind(\instrument, \fmsynth, \midinote, Prand([1, 2, 5, 7, 9, 3], in
 			\U, \u, \V, \v, \W, \w, \X, \x, \Y, \y, \Z, \z].do({arg letter, i;
 				instrDict[letter] = sampleNames.wrapAt(i).asSymbol;
 			});
-			" --->    ixi lang : No key mappings were found, they will be randomly generated".postln;
+			" --->    ixi lang : No key mappings were found, so sounds will be randomly assigned to keys - see helpfile".postln;
 		}, {
 			instrDict = Object.readArchive("sounds/ixilang/"++project++"/_keyMapping.ixi");
 		});

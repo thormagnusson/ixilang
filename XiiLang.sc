@@ -31,6 +31,16 @@ TODO: Check the use of String:drop(1) and String:drop(-1)
 // Êsudo ./ptpd -cd
 // Êhttp://sourceforge.net/projects/ptpd/develop
 
+// post ICMC ideas:
+// - store sessions (save whole doc string + snapshots) (with store and load function names)
+// - hotline (to kill suicide)
+// - Live recording into sound buffer by pressing shift+key (but save as livekey_a.aif and redefine SynthDef)
+// - find agent by comparing strings
+// - fixing future bug
+// - netclock
+// - morphing
+
+
 XiiLang {	
 	classvar globaldocnum;
 	var <>doc, docnum, oncolor, offcolor, processcolor, proxyspace, groups;
@@ -39,7 +49,7 @@ XiiLang {
 	var midiclient, eventtype;
 	var langCommands, englishCommands, language, english;
 	var matrixArray, initargs; // matrix vars
-	var bars, coderRecFlag, coderDurArray, recclock; // coder vars
+	// var bars, coderRecFlag, coderDurArray, recclock; // coder vars
 	
 	*new { arg project = "default", key = "C", txt = false, newdoc=false, language; // current doc and the project to use (folder of soundfiles)
 		^super.new.initXiiLang( project, key, txt, newdoc, language );
@@ -66,9 +76,9 @@ XiiLang {
 		chordDict = IdentityDictionary.new;
 		snapshotDict = IdentityDictionary.new;
 		TempoClock.default.tempo = 120/60;
-		coderRecFlag = false;
-		bars = 4;
-		coderDurArray = [];
+		//coderRecFlag = false;
+		//bars = 4;
+		//coderDurArray = [];
 		
 		midiclient = 0;
 		
@@ -1576,7 +1586,7 @@ XiiLang {
 		// HERE CHECK IF IT'S A GROUP THEN PERFORM A DO LOOP (for each member of the group)
 		if(groups.at(agent).isNil.not, { // the "agent" is a group
 			groups.at(agent).do({arg agentx, i;
-				"parsing this: ".post; (method+agentx+argument).postln;
+				// "parsing this: ".post; (method+agentx+argument).postln;
 				this.parseMethod(method+agentx+argument); // recursive calling of same method
 			});
 		}, { // it is a real agent, not a group
