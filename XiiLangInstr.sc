@@ -553,7 +553,15 @@ Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) 
 		"wood", "xylo", "softwg", "bass", "moog", "bell", "sines", "synth", 
 		"string", "drop", "crackle", "glass"].asCompileString
 	}
-
+	
+	returnMelodicInstr {
+		^["bling", "piano", "elbass", "marimba", "marimba2", "clarinet", "klang", 
+		"wood", "xylo", "softwg", "bass", "moog", "bell", "sines", "synth", 
+		"string", "drop", "crackle", "glass"]
+	}
+	returnPercussiveInstr {
+		^instrDict.atAll(instrDict.order);
+	}
 }
 
 		

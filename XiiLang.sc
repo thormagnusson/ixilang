@@ -14,13 +14,16 @@ TODO: Check the use of String:drop(1) and String:drop(-1)
 // new in ixi lang 3
 // midiout
 // midiclients
-// languages
+// languages (you can write in your native language, or create your own language for ixi lang)
 // fractional time multiplication
 // snapshots store and register effect states
 // netclock?
 // matrix
 // coder (keys)
 // save and load sessions (need to put into help file)
+// suicide hotline added (you can now change your mind, in case performance has picked up)
+// - automatic code writing (autocoder 4)
+
 
 // FIXED BUG: snapshots do not perk up agents that have been dozed
 // FIXED BUG: Snapshots do not recall the effect state
@@ -32,13 +35,10 @@ TODO: Check the use of String:drop(1) and String:drop(-1)
 // Êhttp://sourceforge.net/projects/ptpd/develop
 
 // post ICMC ideas:
-// - store sessions (save whole doc string + snapshots) (with store and load function names)
-// - hotline (to kill suicide)
 // - Live recording into sound buffer by pressing shift+key (but save as livekey_a.aif and redefine SynthDef)
 // - find agent by comparing strings
 // - netclock
 // - morphing
-// - automatic code writing
 
 
 XiiLang {	
@@ -46,18 +46,16 @@ XiiLang {
 	var <>doc, docnum, oncolor, offcolor, processcolor, proxyspace, groups;
 	var agentDict, instrDict, ixiInstr, effectDict, chordDict, snapshotDict; //, effectRegDict; //, codeDict;
 	var scale, tuning, chosenscale, tonic;
-	var midiclient, eventtype;
+	var midiclient, eventtype, suicidefork;
 	var langCommands, englishCommands, language, english;
 	var matrixArray, initargs; // matrix vars
 	var projectname, key;
 	
-	// var bars, coderRecFlag, coderDurArray, recclock; // coder vars
-	
-	*new { arg project = "default", keyarg = "C", txt = false, newdoc=false, language; // current doc and the project to use (folder of soundfiles)
-		^super.new.initXiiLang( project, keyarg, txt, newdoc, language );
+	*new { arg project="default", keyarg="C", txt=false, newdoc=false, language, dicts; // current doc and the project to use (folder of soundfiles)
+		^super.new.initXiiLang( project, keyarg, txt, newdoc, language, dicts );
 	}
 		
-	initXiiLang {arg project, keyarg, txt, newdoc, lang;
+	initXiiLang {arg project, keyarg, txt, newdoc, lang, dicts;
 		if(globaldocnum.isNil, {
 			globaldocnum = 0;
 		}, {
@@ -75,14 +73,20 @@ XiiLang {
 		oncolor = Color.white;
 		offcolor = Color.green;
 		processcolor = Color.yellow;
-		agentDict = IdentityDictionary.new;
-		chordDict = IdentityDictionary.new;
-		snapshotDict = IdentityDictionary.new;
+		if(dicts.isNil, {
+			agentDict = IdentityDictionary.new; // dicts are sent from "load"
+			chordDict = IdentityDictionary.new;
+			snapshotDict = IdentityDictionary.new; // dicts are sent from "load"
+			groups = ();
+		},{
+			agentDict = dicts[0]; // dicts are sent from "load"
+			chordDict = IdentityDictionary.new;
+			snapshotDict = dicts[1]; // dicts are sent from "load"
+			groups = dicts[2];
+			docnum = dicts[3];
+		});
 		TempoClock.default.tempo = 120/60;
 		projectname = project;
-		//coderRecFlag = false;
-		//bars = 4;
-		//coderDurArray = [];
 		
 		midiclient = 0;
 		
@@ -98,7 +102,6 @@ XiiLang {
 		ixiInstr = XiiLangInstr.new(project);
 		instrDict = ixiInstr.makeInstrDict;
 		proxyspace = ProxySpace.new.know_(true);
-		groups = ();
 		CmdPeriod.add({
 			16.do({arg i; try{midiclient.allNotesOff(i)} });
 			this.makeEffectDict;
@@ -108,11 +111,11 @@ XiiLang {
 			snapshotDict = IdentityDictionary.new;
 			proxyspace = ProxySpace.new.know_(true);
 		});
-		// [\lang, lang].postln;
 		englishCommands = ["group", "sequence", "future", "snapshot", "->", "))", "((", "|", "[", "{", "(", ".", ">>", "<<", "tempo", 
 				"scale", "scalepush", "tuning", "tuningpush", "remind", "help", "tonality", "instr", "tonic", "grid", "kill",  
 				"doze", "perk", "nap", "shake", "swap", ">shift", "<shift", "invert", "expand", "revert", 
-				"up", "down", "yoyo", "order", "suicide", "dict", "save", "load", "midiclients", "midiout", "matrix", "coder"];
+				"up", "down", "yoyo", "order", "suicide", "hotline", "dict", "save", "load", "midiclients", 
+				"midiout", "matrix", "autocoder", "coder"];
 		
 		if(lang.isNil, { 
 			"lang is nil".postln;
@@ -148,28 +151,14 @@ XiiLang {
 			doc = Document.new;		
 		}, {
 			doc = Document.current;
-			//doc.name_("ixi lang   -   project :" + project.quote + "  -   window nr:" + docnum.asString);
 		});
 		doc.bounds_(Rect(400,400, 1000, 600));
 		doc.background_(Color.black);
 		doc.stringColor_(oncolor);
-		if(txt == false, { 
-			doc.string_("");
-			doc.name_("ixi lang   -   project :" + project.quote + "  -   window nr:" + docnum.asString);
-		});
+		if(txt == false, { doc.string_("") });
+		doc.name_("ixi lang   -   project :" + project.quote + "  -   window nr:" + docnum.asString);
 		doc.font_(Font("Monaco",20));
-		doc.promptToSave_(false);
-		doc.onClose_({
-			doc.background_(Color.white); // for some reason this is not saved when the doc is closed/saved
-			doc.stringColor_(Color.black);	
-			proxyspace.end(4);  // free all proxies
-			agentDict.do({arg agent;
-				agent[2].stop;
-				agent[2] = nil;
-			});
-			snapshotDict[\futures].stop; 
-		});
-		
+		doc.promptToSave_(false);		
 		doc.keyDownAction_({|doc, char, mod, unicode, keycode | 
 			var linenr, string;
 			// evaluating code (the next line will use .isAlt, when that is available 
@@ -184,6 +173,16 @@ XiiLang {
 				});				
 			});		
 		});
+		doc.onClose_({
+			doc.background_(Color.white); // for some reason this is not saved when the doc is closed/saved
+			doc.stringColor_(Color.black);	
+			proxyspace.end(4);  // free all proxies
+			agentDict.do({arg agent;
+				agent[2].stop;
+				agent[2] = nil;
+			});
+			snapshotDict[\futures].stop; 
+		});
 	}
 	
 	// the interpreter of thie ixi lang - here operators are overwritten
@@ -191,7 +190,6 @@ XiiLang {
 		var oldop, operator; // the various operators of the language
 		var methodFound = false;
 		string = string.reject({ |c| c.ascii == 10 }); // get rid of char return XXX TESTING (before Helsinki GIG) 
-		[\string, string].postln;
 		operator = block{|break| // better NOT mess with the order of the following... (operators using -> need to be before "->")
 			langCommands.do({arg op; var suggestedop, space;
 				var c = string.find(op);
@@ -221,8 +219,14 @@ XiiLang {
 
 		switch(operator)
 			{"dict"}{ // TEMP: only used for debugging
-				Post << agentDict;
-				Post << snapshotDict;
+				"-- Groups : ".postln;
+				Post << groups; "\n".postln;
+				
+				"-- agentDicts : ".postln;
+				Post << agentDict; "\n".postln;
+				
+				"-- snapshotDicts : ".postln;
+				Post << snapshotDict; "\n".postln;
 			}
 			{"save"}{ 
 				var sessionstart, sessionend, session;
@@ -233,10 +237,11 @@ XiiLang {
 				sessionstart = string.findAll(" ")[0];
 				sessionend = string.findAll(" ")[1]; 
 				session = string[sessionstart+1..sessionend-1];
-				[projectname, key, language, doc.string, agentDict, snapshotDict].writeArchive("ixilang/"++session++".ils");
+				[projectname, key, language, doc.string, agentDict, snapshotDict, groups, docnum].writeArchive("ixilang/"++session++".ils");
 			}
 			{"load"}{
 				var sessionstart, sessionend, session, key, language, projectname;
+				var tempAgentDict, tempSnapshotDict;
 				string = string.replace("    ", " ");
 				string = string.replace("   ", " ");
 				string = string.replace("  ", " ");
@@ -244,9 +249,10 @@ XiiLang {
 				sessionstart = string.findAll(" ")[0];
 				sessionend = string.findAll(" ")[1]; 
 				session = string[sessionstart+1..sessionend-1];
-				#projectname, key, language, string, agentDict, snapshotDict = Object.readArchive("ixilang/"++session++".ils");
+				doc.onClose; // call this to end all agents and groups in this particular doc if it has been running agents
+				#projectname, key, language, string, agentDict, snapshotDict, groups, docnum = Object.readArchive("ixilang/"++session++".ils");
 				doc.string = string;
-				XiiLang.new( projectname, key, true, false, language);
+				XiiLang.new( projectname, key, true, false, language, [agentDict, snapshotDict, groups, docnum]);
 			}
 			{"snapshot"}{
 				this.parseSnapshot(string);
@@ -279,7 +285,7 @@ XiiLang {
 			{"future"}{
 				// future 8:4 >> swap thor // every 8 seconds the action is performed (here 4 times)
 				// future << thor // cancel the scheduling
-				var command, commandstart, colon, seconds, times, agent, agentstart, agentend;
+				var command, commandstart, colon, seconds, times, agent, pureagent, agentstart, agentend;
 				var cursorPos, testcond, snapshot;
 				string = string.reject({ |c| c.ascii == 10 }); // get rid of char return
 				// allow for some sloppyness in style
@@ -315,37 +321,62 @@ XiiLang {
 					}, {
 						agentstart = string.findAll(" ")[3];
 						agentend = string.findAll(" ")[4]; 
-						agent = string[agentstart+1..agentend-1];
-						agent = (docnum.asString++agent).asSymbol;
-						command = string[commandstart+3..string.size-1];
-						try{ // it'll only try to make a fork to slots in the dict that already exist, i.e. not groups
-							agentDict[agent][2] =
-								{ 
-									times.do({arg i; 
-										seconds.wait;
+						pureagent = string[agentstart+1..agentend-1];
+						agent = (docnum.asString++pureagent).asSymbol;
+						command = string[commandstart+3..agentstart-1];
+						
+						if(groups.at(agent).isNil.not, { // the "agent" is a group so we need to set routine to each of the agents in the group
+							groups.at(agent).do({arg agentx, i;
+								agentx.postln;
+								agent = (docnum.asString++agentx).asSymbol;
+								if(agentDict[agent][2].isNil, {
+									agentDict[agent][2] =
 										{ 
-										cursorPos = doc.selectionStart; // get cursor pos
-										this.parseMethod(command); // do command
-										doc.selectRange(cursorPos); // set cursor pos again
-										}.defer;
-									}) 
-								}.fork(TempoClock.new)
-						};
+											"GROUP calling ROUTINEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE".postln;
+											times.do({arg i; 
+												seconds.wait;
+												{ 
+												cursorPos = doc.selectionStart; // get cursor pos
+												this.parseMethod(command+agentx); // do command
+												doc.selectRange(cursorPos); // set cursor pos again
+												}.defer;
+											}) 
+										}.fork(TempoClock.new)
+								});
+							});
+						}, { // it is a real agent, not a group, then we ADD THE EFFECT
+							if(agentDict[agent][2].isNil, {
+								agentDict[agent][2] = 
+									{ 
+										"AGENT calling ROUTINEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE".postln;  // WORKING !!!
+										times.do({arg i; 
+											seconds.wait;
+											{ 
+											cursorPos = doc.selectionStart; // get cursor pos
+											this.parseMethod(command+pureagent); // do command
+											doc.selectRange(cursorPos); // set cursor pos again
+											}.defer;
+										}) 
+									}.fork(TempoClock.new)
+							});
+						});
 					});
 				}, { // removing future scheduling
-//					commandstart = string.find("<");
-//					agent = string[commandstart+2..string.size-1];
-//					agent = (docnum.asString++agent).asSymbol;
+					agentstart = string.findAll(" ")[1];
+					agentend = string.findAll(" ")[2]; 
+					agent = string[agentstart+1..agentend-1];
+					agent = (docnum.asString++agent).asSymbol;
 
-						agentstart = string.findAll(" ")[1];
-						agentend = string.findAll(" ")[2]; 
-						agent = string[agentstart+1..agentend-1];
-						agent = (docnum.asString++agent).asSymbol;
-
-						try{ // it'll only try to quit clocks in slots in the dict that already exist, i.e. not groups
+					if(groups.at(agent).isNil.not, { // the "agent" is a group so we need to set routine to each of the agents in the group
+						groups.at(agent).do({arg agentx, i;
+							agent = (docnum.asString++agentx).asSymbol;
 							agentDict[agent][2].stop;
 							agentDict[agent][2] = nil;
-						};
+						});
+					},{
+						agentDict[agent][2].stop;
+						agentDict[agent][2] = nil;
+					});
 				});
 			}
 			{">>"}{
@@ -384,23 +415,17 @@ XiiLang {
 				chosenscale = ("Scale."++scalestr).interpret;
 				chosenscale.tuning_(tuning.asSymbol);
 				scale = chosenscale.semitones.add(12); // used to be degrees, but that doesn't support tuning
-				" SCALE".postln;
 			}
 			{"scalepush"}{
 				var scalestart, scalestr;
 				var dictscore, mode;
-				"PUSHING SCALE".postln;
 				scalestart = string.find("h");
 				scalestr = string.tr($ , \);
 				scalestr = scalestr[scalestart+1..scalestr.size-1];
 				chosenscale = ("Scale."++scalestr).interpret;
 				chosenscale.tuning_(tuning.asSymbol);
 				scale = chosenscale.semitones.add(12); // used to be degrees, but that doesn't support tuning
-				"PUSHING SCALE2 ".postln;
 				agentDict.do({arg agent;
-					[\settingnewagent, agent].postln;
-					//pureagentname = agent.asString;
-					//pureagentname = pureagentname[1..pureagentname.size-1];
 					dictscore = agent[1].scorestring;
 					dictscore = dictscore.reject({ |c| c.ascii == 34 }); // get rid of quotation marks
 					mode = block{|break| 
@@ -436,9 +461,6 @@ XiiLang {
 				chosenscale.tuning_(tuning.asSymbol);
 				scale = chosenscale.semitones.add(12);
 				agentDict.do({arg agent;
-					[\settingnewagent, agent].postln;
-					//pureagentname = agent.asString;
-					//pureagentname = pureagentname[1..pureagentname.size-1];
 					dictscore = agent[1].scorestring;
 					dictscore = dictscore.reject({ |c| c.ascii == 34 }); // get rid of quotation marks
 					mode = block{|break| 
@@ -683,10 +705,6 @@ XiiLang {
 			{"order"}{
 				this.parseMethod(string);			
 			}
-			{"dict"}{
-				Post << agentDict;
-				// Post << effectDict;
-			}
 			{"suicide"}{
 				var chance, time, op;
 				var nrstart = string.find("e")+1;
@@ -695,12 +713,17 @@ XiiLang {
 					op = string.find(":");
 					chance = string[nrstart..op].asInteger;
 					time = string[op+1..string.size-1].asInteger;
-					AppClock.sched(0.0, {
-						"---  WILL I CRASH NOW? ---".postln;
+					suicidefork = fork{
+						inf.do({
+						["---  WILL I DIE NOW? ---", "---  HAS IT COME TO AN END?  ---", "---  WHEN WILL I DIE?  ---", "---  MORRISSEY  ---", "---  ACTUALLY, WAIT A MINUTE...  ---", "---  I'VE HAD IT  ---", "---  THIS IS THE END  ---", "---  I'M PATHETIC  ---"].choose.postln;
 						if((chance/100).coin, { 0.exit }); // kill supercollider
-						time;
-					});
+						time.wait;
+						});
+					};
 				});
+			}
+			{"hotline"}{
+				suicidefork.stop;
 			}
 			{"midiclients"}{
 				"-----------   Avalable midiclients   ------------ ".postln;
@@ -722,7 +745,6 @@ XiiLang {
 				matrixArray = matrixArray.add( XiiLangMatrix.new(size, direction, instrDict) );
 			}
 			{"coder"}{
-				// XiiLangCoder.new(instrDict);
 				var xiilang, tempstring, scorestring, coderarraysum, quantspaces, quant;
 
 				xiilang = XiiLang.new(initargs[0], initargs[1], initargs[2], true, initargs[4]);
@@ -742,67 +764,65 @@ XiiLang {
 					// here adding what the coder is about 
 					if(char.isAlpha, {
 						Synth(instrDict[char.asSymbol], [\freq, 60.midicps]); // original
-						/* -- discontinued experiment
-						if(coderRecFlag, { // the first key starts the recording process
-							"inside first recflag".postln;
-							recclock  = TempoClock.default.beats.round(0.25);
-							quant = recclock-(TempoClock.default.nextBar-bars); // not used now
-							[\coderquant, quant].postln;
-							
-							TempoClock.default.schedAbs(TempoClock.default.beats+bars, { // after N number of bars, the recording is parsed
-								// here I need to get the durarray and rewrite the string (expand w silences)
-								"coderDurArray is: ".post; coderDurArray.postln;
-								coderarraysum = coderDurArray.sum;
-								coderDurArray = coderDurArray.add( bars - coderDurArray.sum );
-								"--- after fixing, coderDurArray is: ".post; coderDurArray.postln;
-								{
-								linenr = thisdoc.string[0..thisdoc.selectionStart-1].split($\n).size;
-								thisdoc.selectLine(linenr);
-								string = thisdoc.selectedString;
-								scorestring = string[string.find("|")+1..string.size-1];
-								[\scorestring, scorestring].postln;
-					tempstring = "";
-					(coderDurArray.size).do({arg i;  // scorestring might be longer than bars, so use the dur array
-						var spaces = "";
-						((coderDurArray[i]/0.25)-1).do({ spaces = spaces ++ " " });
-						tempstring = tempstring ++ scorestring[i] ++ spaces;
 					});
-					// quantspaces = "";
-					// (quant/0.25).do({ quantspaces = quantspaces ++ " " });
-					// tempstring = quantspaces ++ tempstring;
-					
-					tempstring = tempstring[0..((bars*4)-1)]; // make sure string is right length
-					tempstring = string[0..string.find(">")+1] ++ "|" ++ tempstring ++ "|" ++ "\n";
-					[\tempstring, tempstring].postln;
-					// -------- put it back in place ----------
-					thisdoc.string_(thisdoc.string.replace(thisdoc.selectedString, tempstring));
-
-					xiilang.opInterpreter(tempstring); // string sent to pattern engine
-					
-								}.defer;
-							});
-							coderRecFlag = false; 
-						}, {
-							if(coderDurArray.size<=(bars*4), {
-								coderDurArray = coderDurArray.add((TempoClock.default.beats-0.01).round(0.25) - recclock); // 0.01 key latency
-								coderDurArray.postln;
-							});
-							recclock  = TempoClock.default.beats.round(0.25);
-						});
-						*/
-					});
-					/* -- discontinued experiment
-					if(char == $±, { // get ready for recording
-						bars = thisdoc.string[thisdoc.selectionStart-1..thisdoc.selectionStart+1].asInteger;
-						[\bars, bars].postln;
-						// bars = bars.asInteger;
-						coderDurArray = [];
-						coderRecFlag = true;
-						//firstCoderRecFlag = true;
-					});
-					*/
-
 				});
+			}			
+			{"autocoder"}{
+				var agent, mode, instrument, score, line, charloc, cursorPos, density, lines, linenr;
+				charloc = doc.selectionStart+string.size;
+				{doc.insertTextRange("\n", charloc, 0)}.defer; 
+				lines = "";
+				string.collect({arg char; if(char.isDecDigit, {lines = lines++char}) });
+				lines = lines.asInteger;
+				{	
+					lines.do({
+						mode = [0,1,2].wchoose([0.5, 0.35, 0.15]);
+						agent = "abcdefghijklmnopqrstuvxyzaeyiuxz".scramble[0..(2+(4.rand))];
+						density = rrand(0.15, 0.45);
+						switch(mode)
+							{0}{
+								score = "";
+								[16, 20, 24].choose.do({arg char;
+									score = score ++ if(density.coin, {
+										"abcdefghijklmnopqrstuvxABCDEFGHIJKLMNOPQRSTUVXYZ".scramble.choose
+									}, {" "});
+								});
+								score = "|"++score++"|";
+								line = agent+"->"+score+"\n";
+								line.postln;
+							}
+							{1}{
+								instrument = (ixiInstr.returnMelodicInstr++
+								ixiInstr.returnMelodicInstr++ixiInstr.returnMelodicInstr++
+								ixiInstr.returnMelodicInstr++ixiInstr.returnPercussiveInstr).choose;
+								score = "";
+								[16, 20, 24].choose.do({
+									score = score ++ if(density.coin, {10.rand}, {" "});
+								});
+								score = instrument++"["++score++"]";
+								line = agent+"->"+score+"\n";
+								line.postln;
+							}
+							{2}{
+								instrument = ixiInstr.returnPercussiveInstr.choose;
+								score = "";
+								[16, 20, 24].choose.do({
+									score = score ++ if(density.coin, {10.rand}, {" "});
+								});
+								score = instrument++"{"++score++"}";
+								line = agent+"->"+score+"\n";
+								line.postln;
+							};
+						line.do({arg char, i; 
+							charloc = charloc + 1; 
+							{doc.insertTextRange(char.asString, charloc, 0)}.defer; 
+							[0.1, 0.05, 0.5].wchoose([0.5, 0.4, 0.1]).wait;
+						});
+						1.wait;
+						this.opInterpreter(line);
+						"sending this to interpreter:-".post; line.post; "-".postln;
+					});
+				}.fork(TempoClock.new);
 			}
 			;
 		}
@@ -818,9 +838,6 @@ XiiLang {
 		agent = (docnum.asString++agent).asSymbol;
 		proxyspace[agent].clear;
 		agentDict[agent] = nil;
-		
-	//	proxyspace[agent].objects[0].array[0].mute; // xxx
-
 		{doc.stringColor_(Color.red, doc.selectionStart, doc.selectionSize)}.defer(0.1); // killed code is red
 	}
 	
@@ -892,7 +909,6 @@ XiiLang {
 					};
 					
 					thisline = doc.string[stringstart..stringend];
-					//thisline = thisline.reject({ |c| c.ascii == 10 }); // get rid of char return
 
 					dictscore = agentDictItem[1].scorestring;
 					dictscore = dictscore.reject({ |c| c.ascii == 34 }); // get rid of quotation marks
@@ -902,25 +918,7 @@ XiiLang {
 					// either with the simple swap
 					doc.string_( dictscore, stringstart, stringend-stringstart); // this one keeps text colour
 					doc.stringColor_(oncolor, stringstart, stringend-stringstart);
-					
-					// or the fancy colour swap (which migth be buggy atm)
-					/*
-					fork{
-						{cursorPos = doc.selectionStart; // get cursor pos
-						doc.stringColor_(processcolor, stringstart, stringend-stringstart);
-						doc.selectRange(cursorPos);}.defer; // set cursor pos again
-						0.3.wait;
-						{cursorPos = doc.selectionStart; // get cursor pos
-						doc.string_( dictscore, stringstart, stringend-stringstart);
-						//{doc.string_(doc.string.replace(thisline, dictscore));
-						doc.selectRange(cursorPos)}.defer; // set cursor pos again
-						0.3.wait;
-						{cursorPos = doc.selectionStart; // get cursor pos
-						doc.stringColor_(oncolor, stringstart, stringend-stringstart);
-						doc.selectRange(cursorPos)}.defer; // set cursor pos again
-					};
-					*/
-	
+						
 					// --  3)  Run the code (parse it) - IF playstate is true
 					
 					mode = block{|break| 
@@ -934,17 +932,9 @@ XiiLang {
 						{2} { this.parseScoreMode2(dictscore) };
 					proxyspace[keyagentname].play;
 					
-					// if(agentDictItem[1].playstate == false, {
-					// proxyspace[keyagentname].objects[0].array[0].unmute; // xxx
-					// });
-					
-					//agentDict[keyagentname][1].playstate = true;
-					//proxyspace[keyagentname].objects[0].array[0].unmute;
-
 					// --  4)  Set the effects that were active when the snapshot was taken
 					
 					10.do({arg i; proxyspace[keyagentname][i+1] =  nil }); // remove all effects (10 max) (+1 as 0 is Pdef)
-					// agentDict[keyagentname][0].clear;
 					
 					agentDICT[keyagentname][0].keys.do({arg key, i; 
 						key.post; "  ".post; i.postln;
@@ -976,7 +966,6 @@ XiiLang {
 					});
 				};
 				timestretch = timestretch.asFloat;
-			//	[\time_____________________________stretch, timestretch].postln;
 				if( (char==$/), {timestretch = timestretch.reciprocal; });
 				argDict[\timestretch] = timestretch.asFloat;
 			});
@@ -1026,7 +1015,6 @@ XiiLang {
 			attackendloc = attacksymbols[1];
 			attackstring = postfixstring[attackstartloc+1..attackendloc-1];
 		});
-	//	[\attackstring, attackstring].postln;
 		attackstring.do({arg att; 
 			attackarr = attackarr.add(att.asString.asInteger/9); // values range from 0 to 1.0
 		 });
@@ -1038,7 +1026,6 @@ XiiLang {
 	parseScoreMode0 {arg string; 
 		var agent, score, splitloc, endchar, agentstring, silenceicon, silences, scorestring, timestretch=1, postfixargs;
 		var durarr, sustainarr, spacecount, instrarr, instrstring, quantphase, empty, outbus;
-//		var sustainstartloc, sustainendloc, sustainstring;
 		var attacksymbols, attackstartloc, attackendloc, attackstring, attackarr;
 		var startWempty = false;
 		var newInstrFlag = false;
@@ -1076,24 +1063,6 @@ XiiLang {
 		instrstring = score.tr($ , \);
 		instrarr = [];
 		instrstring.collect({arg instr, i; instrarr = instrarr.add(instrDict[instr.asSymbol]) });
-		
-		/*
-		// IN PROGRESS - NOT WORKING BECAUSE OF INSTR NOT EXPANDING IN Pseq
-		instrstring.collect({arg instr, i;
-			var scalenote, thisinstr, chord;
-			//thisinstr = instr.asString.asInteger; // if thisnote is 0 then it's a chord (since "a".asInteger becomes 0)
-			if(instr.asString.interpret.isNil.not, { // if it is a CHORD
-				"in Here !!!-------------".postln;
-				//[\note, note.asSymbol].postln;
-				chordDict.postln;
-				chord = chordDict[instr.asSymbol];
-				instrarr = instrarr.add(chord);
-				//instrarr = instrarr.add(instrDict[instr.asSymbol]);
-			}, { // it's not a chord but a NOTE
-				instrarr = instrarr.add(instrDict[instr.asSymbol]);
-			});
-		});
-		*/
 
 		// -------------    the score   -------------------
 		quantphase=0;	
@@ -1150,7 +1119,6 @@ XiiLang {
 		var channelicon, midichannel;
 		var postfixArgDict;
 		
-	//	string = string.reject({ |c| c.ascii == 10 }); // get rid of char return XXX TESTING commenting 
 		channelicon = 0;
 
 		scorestartloc = string.find("[");
@@ -1195,8 +1163,6 @@ XiiLang {
 			var scalenote, thisnote, chord;
 			thisnote = note.asString.asInteger; // if thisnote is 0 then it's a chord (since "a".asInteger becomes 0)
 			if(thisnote == 0, { // if it is a CHORD
-				"in Here !!!-------------".postln;
-				[\note, note.asSymbol].postln;
 				chordDict.postln;
 				chord = chordDict[note.asSymbol];
 				if(chord.isNil, { // if using a chord (item in dict) that does not exist (say x) - to prevent error posting
@@ -1263,8 +1229,6 @@ XiiLang {
 		var durarr, spacecount, amparr, ampstring, quantphase, empty, outbus;
 		var startWempty = false;
 		var postfixArgDict;
-		
-	//	string = string.reject({ |c| c.ascii == 10 }); // get rid of char return XXX TESTING commenting 
 
 		scorestartloc = string.find("{");
 		prestring = string[0..scorestartloc-1].tr($ , \); // get rid of spaces until score
@@ -1641,7 +1605,6 @@ XiiLang {
 		if(modearray[scoremode], { // if this scoremode supports the operation (no need to yoyo a melodic score for example)
 			
 		score = thisline[scorerange[0]+1..scorerange[1]-1];
-		//scorestringsuffix = switch(scoremode) {0}{"|"++transpsuffix++"\n"}{1}{"]"++transpsuffix++"\n"}{2}{"}\n"};
 		scorestringsuffix = switch(scoremode) {0}{"|"++transpsuffix}{1}{"]"++transpsuffix}{2}{"}"};
 
 		// -------- put it back in place ----------
@@ -1742,7 +1705,6 @@ XiiLang {
 				scoremode = 2;
 			});
 			score = thisline[scorerange[0]+1..scorerange[1]-1];
-			//scorestringsuffix = switch(scoremode) {0}{"|"++transpsuffix++"\n"}{1}{"]"++transpsuffix++"\n"}{2}{"}\n"};
 			scorestringsuffix = switch(scoremode) {0}{"|"++transpsuffix}{1}{"]"++transpsuffix}{2}{"}"};
 
 			// -------------   Perform methods - the ixi lang verbs
@@ -1751,33 +1713,10 @@ XiiLang {
 					if(agentDict[agent][1].playstate == true, {
 						agentDict[agent][1].playstate = false;
 						proxyspace[agent].objects[0].array[0].mute;
-				 		
-				 		//proxyspace[agent].clear;
-						//agentDict[agent] = nil;
-	
 				 		doc.stringColor_(offcolor, stringstart, stringend-stringstart);
 					})
 				}
 				{"perk"} { // restart stream
-					/*
-					var dictscore, mode;
-					if(agentDict[agent][1].playstate == false, {
-					dictscore = agentDict[agent][1].scorestring;
-					
-					mode = block{|break| 
-						["|", "[", "{", "("].do({arg op, i;						var c = dictscore.find(op);
-							if(c.isNil.not, {break.value(i)}); 
-						});
-					};
-					switch(mode)
-						{0} { this.parseScoreMode0(dictscore) }
-						{1} { this.parseScoreMode1(dictscore) }
-						{2} { this.parseScoreMode2(dictscore) };
-					proxyspace[agent].play;
-					agentDict[agent][1].playstate = true;
-	
-					});
-					*/
 					if(agentDict[agent][1].playstate == false, {
 						agentDict[agent][1].playstate = true;
 						proxyspace[agent].objects[0].array[0].unmute;
@@ -1824,39 +1763,7 @@ XiiLang {
 					// -------- perform the method -----------
 					score = score.scramble;
 					// -------- put it back in place ----------
-					//modstring = thisline[0..scorerange[0]]++score++scorestringsuffix;
-					//modstring = modstring.reject({ |c| c.ascii == 10 }); // get rid of \n					
 					this.swapString(doc, pureagentname, score, [true, true, true]);
-					
-					/*
-					{
-						{
-						cursorPos = doc.selectionStart; // get cursor pos
-						#stringstart, stringend = this.findStringStartEnd(doc, pureagentname);
-						doc.stringColor_(processcolor, stringstart, stringend-stringstart);
-						doc.selectRange(cursorPos); // set cursor pos again
-						}.defer;
-						0.3.wait;
-						{
-						cursorPos = doc.selectionStart; // get cursor pos
-						#stringstart, stringend = this.findStringStartEnd(doc, pureagentname);
-						doc.string_( modstring, stringstart, stringend-stringstart);
-						doc.selectRange(cursorPos); // set cursor pos again
-						}.defer;
-						0.3.wait;
-						{
-						cursorPos = doc.selectionStart; // get cursor pos
-						#stringstart, stringend = this.findStringStartEnd(doc, pureagentname);
-						doc.stringColor_(oncolor, stringstart, stringend-stringstart);
-						doc.selectRange(cursorPos); // set cursor pos again
-						}.defer;
-					}.fork(TempoClock.new);
-					// -------  interpret new code ------------
-					switch(scoremode)
-						{0} { this.parseScoreMode0(modstring) }
-						{1} { this.parseScoreMode1(modstring) }
-						{2} { "ixi lang : Action not applicable in this mode".postln; };
-					*/
 				}
 				{"swap"} {
 					var instruments;
@@ -1865,105 +1772,18 @@ XiiLang {
 					score = score.collect({arg char; if(char!=$ , {instruments.pop}, {" "}) });
 					
 					this.swapString(doc, pureagentname, score, [true, true, true]);
-/*
-					// -------- put it back in place ----------
-					modstring = thisline[0..scorerange[0]]++score++scorestringsuffix;
-					modstring = modstring.reject({ |c| c.ascii == 10 }); // get rid of \n
-					
-					{
-						cursorPos = doc.selectionStart; // get cursor pos
-						{doc.stringColor_(processcolor, stringstart, stringend-stringstart)}.defer;
-						doc.selectRange(cursorPos); // set cursor pos again
-						0.3.wait;
-						cursorPos = doc.selectionStart; // get cursor pos
-						{doc.string_( modstring, stringstart, stringend-stringstart)}.defer;
-						doc.selectRange(cursorPos); // set cursor pos again
-						0.3.wait;
-						cursorPos = doc.selectionStart; // get cursor pos
-						{doc.stringColor_(oncolor, stringstart, stringend-stringstart)}.defer;
-						doc.selectRange(cursorPos); // set cursor pos again
-					}.fork(TempoClock.new);
-
-			/* // the following seems to fuck up the future function - need to investigate
-					fork{
-						{cursorPos = doc.selectionStart; // get cursor pos
-						doc.stringColor_(processcolor, stringstart, stringend-stringstart);
-						doc.selectRange(cursorPos);}.defer; // set cursor pos again
-						0.3.wait;
-						{cursorPos = doc.selectionStart; // get cursor pos
-						doc.string_( modstring, stringstart, stringend-stringstart);
-						doc.selectRange(cursorPos);}.defer; // set cursor pos again
-						0.3.wait;
-						{cursorPos = doc.selectionStart; // get cursor pos
-						doc.stringColor_(oncolor, stringstart, stringend-stringstart);
-						doc.selectRange(cursorPos);}.defer; // set cursor pos again
-					};
-			*/
-					// -------  interpret new code ------------
-					switch(scoremode)
-						{0} { this.parseScoreMode0(modstring) }
-						{1} { this.parseScoreMode1(modstring) }
-						//{2} { this.parseScoreMode2(modstring, agentDict[agent][2][1]) };
-*/			
 				}
 				{">shift"} {
 					argument = argument.asInteger;
 					// -------- perform the method -----------
 					score = score.rotate(if((argument==0) || (argument=="") || (argument==" "), {1}, {argument}));
 					this.swapString(doc, pureagentname, score, [true, true, true]);
-/*
-					// -------- put it back in place ----------
-					modstring = thisline[0..scorerange[0]]++score++scorestringsuffix;
-					modstring = modstring.reject({ |c| c.ascii == 10 }); // get rid of \n
-					{
-						cursorPos = doc.selectionStart; // get cursor pos
-						{doc.stringColor_(processcolor, stringstart, stringend-stringstart)}.defer;
-						doc.selectRange(cursorPos); // set cursor pos again
-						0.3.wait;
-						cursorPos = doc.selectionStart; // get cursor pos
-						{doc.string_( modstring, stringstart, stringend-stringstart)}.defer;
-						doc.selectRange(cursorPos); // set cursor pos again
-						0.3.wait;
-						cursorPos = doc.selectionStart; // get cursor pos
-						{doc.stringColor_(oncolor, stringstart, stringend-stringstart)}.defer;
-						doc.selectRange(cursorPos); // set cursor pos again
-					}.fork(TempoClock.new);
-					// -------  interpret new code ------------
-					switch(scoremode)
-						{0} { this.parseScoreMode0(modstring) }
-						{1} { this.parseScoreMode1(modstring) }
-						{2} { "ixi lang : Action not applicable in this mode".postln; };
-*/			
 				}
 				{"<shift"} {
 					argument = argument.asInteger;	
 					// -------- perform the method -----------
 					score = score.rotate(if((argument==0) || (argument=="") || (argument==" "), {-1}, {argument.neg}));
 					this.swapString(doc, pureagentname, score, [true, true, true]);
-
-/*
-					// -------- put it back in place ----------
-					modstring = thisline[0..scorerange[0]]++score++scorestringsuffix;
-					modstring = modstring.reject({ |c| c.ascii == 10 }); // get rid of \n
-					{
-						cursorPos = doc.selectionStart; // get cursor pos
-						{doc.stringColor_(processcolor, stringstart, stringend-stringstart)}.defer;
-						doc.selectRange(cursorPos); // set cursor pos again
-						0.3.wait;
-						cursorPos = doc.selectionStart; // get cursor pos
-						{doc.string_( modstring, stringstart, stringend-stringstart)}.defer;
-						doc.selectRange(cursorPos); // set cursor pos again
-						0.3.wait;
-						cursorPos = doc.selectionStart; // get cursor pos
-						{doc.stringColor_(oncolor, stringstart, stringend-stringstart)}.defer;
-						doc.selectRange(cursorPos); // set cursor pos again
-					}.fork(TempoClock.new);
-					// -------  interpret new code ------------
-					switch(scoremode)
-						{0} { this.parseScoreMode0(modstring) }
-						{1} { this.parseScoreMode1(modstring) }
-						{2} { "ixi lang : Action not applicable in this mode".postln; };
-*/
 				}
 				{"invert"} { 
 					var temparray;
@@ -1974,29 +1794,6 @@ XiiLang {
 					score = "";
 					temparray.do({arg item; score = score++if(item==nil, {" "}, {item.asString}) });
 					this.swapString(doc, pureagentname, score, [false, true, true]);
-/*
-					// -------- put it back in place ----------
-					modstring = thisline[0..scorerange[0]]++score++scorestringsuffix;
-					modstring = modstring.reject({ |c| c.ascii == 10 }); // get rid of \n
-					{
-						cursorPos = doc.selectionStart; // get cursor pos
-						{doc.stringColor_(processcolor, stringstart, stringend-stringstart)}.defer;
-						doc.selectRange(cursorPos); // set cursor pos again
-						0.3.wait;
-						cursorPos = doc.selectionStart; // get cursor pos
-						{doc.string_( modstring, stringstart, stringend-stringstart)}.defer;
-						doc.selectRange(cursorPos); // set cursor pos again
-						0.3.wait;
-						cursorPos = doc.selectionStart; // get cursor pos
-						{doc.stringColor_(oncolor, stringstart, stringend-stringstart)}.defer;
-						doc.selectRange(cursorPos); // set cursor pos again
-					}.fork(TempoClock.new);
-					// -------  interpret new code ------------
-					switch(scoremode)
-						{0} { "ixi lang : Action not applicable in this mode".postln; }
-						{1} { this.parseScoreMode1(modstring) }
-						{2} { "ixi lang : Action not applicable in this mode".postln; };
-*/
 				}
 				{"expand"} { // has to behave differently as it adds characters
 					var tempstring;
@@ -2012,127 +1809,25 @@ XiiLang {
 					});
 					score = tempstring;
 					this.swapString(doc, pureagentname, score, [true, true, true]);
-/*
-					// -------- put it back in place ----------
-					modstring = thisline[0..scorerange[0]]++score++scorestringsuffix;
-					doc.string_(doc.string.replace(thisline, modstring));
-					// -------  interpret new code ------------
-					switch(scoremode)
-						{0} { this.parseScoreMode0(modstring) }
-						{1} { this.parseScoreMode1(modstring) }
-						{2} { "ixi lang : Action not applicable in this mode".postln; };
-*/
 				}
 				{"revert"} { // reverse
 					// -------- perform the method -----------
 					score = score.reverse;
 					this.swapString(doc, pureagentname, score, [true, true, true]);
-/*
-					// -------- put it back in place ----------
-					modstring = thisline[0..scorerange[0]]++score++scorestringsuffix;
-					modstring = modstring.reject({ |c| c.ascii == 10 }); // get rid of \n
-					{
-						cursorPos = doc.selectionStart; // get cursor pos
-						{doc.stringColor_(processcolor, stringstart, stringend-stringstart)}.defer;
-						doc.selectRange(cursorPos); // set cursor pos again
-						0.3.wait;
-						cursorPos = doc.selectionStart; // get cursor pos
-						{doc.string_( modstring, stringstart, stringend-stringstart)}.defer;
-						doc.selectRange(cursorPos); // set cursor pos again
-						0.3.wait;
-						cursorPos = doc.selectionStart; // get cursor pos
-						{doc.stringColor_(oncolor, stringstart, stringend-stringstart)}.defer;
-						doc.selectRange(cursorPos); // set cursor pos again
-					}.fork(TempoClock.new);
-					// -------  interpret new code ------------
-					switch(scoremode)
-						{0} { this.parseScoreMode0(modstring) }
-						{1} { this.parseScoreMode1(modstring) }
-						{2} { this.parseScoreMode2(modstring) };
-*/
 				}
 				{"up"} { // all instruments uppercase
 					// -------- perform the method -----------
 					score = score.toUpper;
 					this.swapString(doc, pureagentname, score, [true, false, false]);
-/*
-					// -------- put it back in place ----------
-					modstring = thisline[0..scorerange[0]]++score++scorestringsuffix;
-					modstring = modstring.reject({ |c| c.ascii == 10 }); // get rid of \n
-					{
-						cursorPos = doc.selectionStart; // get cursor pos
-						{doc.stringColor_(processcolor, stringstart, stringend-stringstart)}.defer;
-						doc.selectRange(cursorPos); // set cursor pos again
-						0.3.wait;
-						cursorPos = doc.selectionStart; // get cursor pos
-						{doc.string_( modstring, stringstart, stringend-stringstart)}.defer;
-						doc.selectRange(cursorPos); // set cursor pos again
-						0.3.wait;
-						cursorPos = doc.selectionStart; // get cursor pos
-						{doc.stringColor_(oncolor, stringstart, stringend-stringstart)}.defer;
-						doc.selectRange(cursorPos); // set cursor pos again
-					}.fork(TempoClock.new);
-					// -------  interpret new code ------------
-					switch(scoremode)
-						{0} { this.parseScoreMode0(modstring) }
-						{1} { "ixi lang : Action not applicable in this mode".postln; }
-						{2} { "ixi lang : Action not applicable in this mode".postln; };
-*/
 				}
 				{"down"} { // all instruments lowercase
 					// -------- perform the method -----------
 					score = score.toLower;								this.swapString(doc, pureagentname, score,[true, false, false]);
-/*
-					// -------- put it back in place ----------
-					modstring = thisline[0..scorerange[0]]++score++scorestringsuffix;
-					modstring = modstring.reject({ |c| c.ascii == 10 }); // get rid of \n
-					{
-						cursorPos = doc.selectionStart; // get cursor pos
-						{doc.stringColor_(processcolor, stringstart, stringend-stringstart)}.defer;
-						doc.selectRange(cursorPos); // set cursor pos again
-						0.3.wait;
-						cursorPos = doc.selectionStart; // get cursor pos
-						{doc.string_( modstring, stringstart, stringend-stringstart)}.defer;
-						doc.selectRange(cursorPos); // set cursor pos again
-						0.3.wait;
-						cursorPos = doc.selectionStart; // get cursor pos
-						{doc.stringColor_(oncolor, stringstart, stringend-stringstart)}.defer;
-						doc.selectRange(cursorPos); // set cursor pos again
-					}.fork(TempoClock.new);
-					// -------  interpret new code ------------
-					switch(scoremode)
-						{0} { this.parseScoreMode0(modstring) }
-						{1} { "ixi lang : Action not applicable in this mode".postln; }
-						{2} { "ixi lang : Action not applicable in this mode".postln; };
-*/
 				}
 				{"yoyo"} { // swaps lowercase and uppercase randomly
 					// -------- perform the method -----------
 					score = score.collect({arg char; 0.5.coin.if({char.toUpper},{char.toLower})});
 					this.swapString(doc, pureagentname, score, [true, false, false]);
-/*
-					// -------- put it back in place ----------
-					modstring = thisline[0..scorerange[0]]++score++scorestringsuffix;
-					modstring = modstring.reject({ |c| c.ascii == 10 }); // get rid of \n
-					{
-						cursorPos = doc.selectionStart; // get cursor pos
-						{doc.stringColor_(processcolor, stringstart, stringend-stringstart)}.defer;
-						doc.selectRange(cursorPos); // set cursor pos again
-						0.3.wait;
-						cursorPos = doc.selectionStart; // get cursor pos
-						{doc.string_( modstring, stringstart, stringend-stringstart)}.defer;
-						doc.selectRange(cursorPos); // set cursor pos again
-						0.3.wait;
-						cursorPos = doc.selectionStart; // get cursor pos
-						{doc.stringColor_(oncolor, stringstart, stringend-stringstart)}.defer;
-						doc.selectRange(cursorPos); // set cursor pos again
-					}.fork(TempoClock.new);
-					// -------  interpret new code ------------
-					switch(scoremode)
-						{0} { this.parseScoreMode0(modstring) }
-						{1} { "ixi lang : Action not applicable in this mode".postln; }
-						{2} { "ixi lang : Action not applicable in this mode".postln; };
-*/
 				}
 				{"order"} { // put things in order in time
 
@@ -2210,6 +1905,9 @@ XiiLang {
  suicide : allow the language to kill itself sometime in the future
  midiclients : post the available midiclients
  midiout : set the port to the midiclient
+ save	: save the session
+ load	: load the session
+ autocode : autocode some lines
   
  -----------  effects  -----------
  reverb
