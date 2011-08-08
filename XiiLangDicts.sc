@@ -13,7 +13,7 @@ XiiLangDicts {
 							'empujarescala': "scalepush", 'afinaci—n': "tuning", 'empujarafinaci—n': "scalepush", 'recordar': "remind",
 							'tonality': "tonalidad", 'instr': "instr", 'notaclave': "tonic", 'red': "grid", 'kill': "matar", 'dormir': "doze",
 							'espabilar': "perk", 'nap': "siesta", 'agitar': "shake", 'intercambiar': "swap", '>desplazar': ">shift", 
-							'<desplazar': "<shift", 'invertir': "invert", 'expandir': "expand", 'revertir': "reverse", 'arriba': "up",
+							'<desplazar': "<shift", 'invertir': "invert", 'expandir': "expand", 'revertir': "revert", 'arriba': "up",
 							'abajo': "down", 'yoyo': "yoyo", 'ordenar': "order", 'suicidar': "suicide", 'dicc': "dict", 'clientsmidi': "midiclients",
 							'salamidi': "midiout")
 		
