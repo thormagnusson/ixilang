@@ -99,9 +99,12 @@ XiiLang {
 		eventtype = \note;
 		this.makeEffectDict; // in a special method, as it has to be called after every cmd+dot
 		this.envirSetup( txt, newdoc, project );
+	\deb0.postln;
 		ixiInstr = XiiLangInstr.new(project);
 		instrDict = ixiInstr.makeInstrDict;
 		proxyspace = ProxySpace.new.know_(true);
+	\deb1.postln;
+
 		CmdPeriod.add({
 			16.do({arg i; try{midiclient.allNotesOff(i)} });
 			this.makeEffectDict;

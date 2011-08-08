@@ -21,6 +21,13 @@ XiiLangInstr {
 		samplePaths = ("sounds/ixilang/"++project++"/*").pathMatch;
 		sampleNames = samplePaths.collect({ |path| path.basename.splitext[0]});
 		
+		if(samplePaths == [], {
+			"-------------------------- ERROR ---------------------------".postln;
+			"ixi lang : You need to create an 'ixilang' folder within your 'sounds' folder. \nIn there, you create your project folders, such as 'default'.\n For example: /sounds/ixilang/default. \nSee the XiiLang.html help file".postln;
+			"------------------------------------------------------------".postln;
+	
+		}, {
+		
 		// there might be more samples in the folder than the 52 keys of the keyboard, so load them as well
 		nrOfSampleSynthDefs = if(sampleNames.size < 52, {52}, {sampleNames.size});
 		
@@ -500,7 +507,7 @@ Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) 
 		}).add;
 
 		//^this.makeInstrDict; // changed such that the class returns its instance (not the dict)
-		
+		});
 	}
 	
 	makeInstrDict{ // this is where keys are mapped to instruments (better done by hand and design)
