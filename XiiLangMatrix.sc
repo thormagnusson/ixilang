@@ -63,13 +63,11 @@ XiiLangMatrix {
 						}, {
 							doc.string_("", loc, 1);	
 						});
-						"mod is : ".post; mod.postln;
 						if((mod == 8388864) || (mod == 8519938) || (mod == 10486016), { // holding down fn (and optinally shift) opens a coding window
 							if(matrix[locrow][loccol].instr == "none", { // just insert the synthdef from the instrDict
 								matrix[locrow][loccol].instr  = instrDict[key.asSymbol];
 								// no other info needed.
 							});
-							"OPENING CODE DOC".postln;
 							codeDoc.value(loccol, locrow, key, true); // imposed key does not exist 
 						},{ // default is keys from instrDict (as mapped by instrDict)
 							matrix[locrow][loccol].char = key;
@@ -79,23 +77,13 @@ XiiLangMatrix {
 							}, {
 								matrix[locrow][loccol].instr  = charDict[key.asSymbol].instr;
 							});
-							//matrix[locrow][loccol].note   = 69;
-							//matrix[locrow][loccol].amp    = 0.6;
-							//matrix[locrow][loccol].wait   = 1;
-							//matrix[locrow][loccol].nextX  = (str[str.find("nextX  :")+9..str.findAll("\n")[5]-1].asInteger-1);
-							//matrix[locrow][loccol].nextY  = (str[str.find("nextY  :")+9..str.findAll("\n")[6]-1].asInteger-1);
-							//matrix[locrow][loccol].sccode = str[str.find("sccode :")+9..str.findAll("\n")[str.findAll("\n").size]];
 							matrixCopy = matrix.copy;
-							
 							// store the latest info in the charDict, so it will be set on next key
-							
 							charDict[key.asSymbol] = ().add(\instr -> matrix[locrow][loccol].instr)
 											.add(\note -> matrix[locrow][loccol].note)
 											.add(\amp -> matrix[locrow][loccol].amp)
 											.add(\wait -> matrix[locrow][loccol].wait)
 											.add(\sccode -> matrix[locrow][loccol].sccode);
-							
-
 						});
 					});
 					if(key.isDecDigit, { // if number, then it sets the nextX or nextY (depending on direction)
@@ -243,8 +231,6 @@ XiiLangMatrix {
 				amp   = ~amp   ? matrix[row][col].amp;
 				char  = ~char  ? matrix[row][col].char;
 				wait  = ~wait  ? matrix[row][col].wait;
-										
-				//{drawMatrix.value(row, col, wait) }.defer; // drawer
 				
 				{arg row, col, wait;
 					{drawMatrix.value(row, col, wait)}.defer; // drawer
@@ -262,19 +248,15 @@ XiiLangMatrix {
 			);
 			clockArray.postln;
 		};
-	
 	}
 
 	setTempo_ {arg newtempo;
-		//"setting Tempo".postln;
 		clockArray.do({arg clock; clock.tempo = newtempo });
 	}
 
 	setSyncTempo_ {arg newtempo, time;
-		//"setting Sync Tempo".postln;
 		clockArray.do({arg clock; clock.sync(newtempo, time)  });
 	}
-		
 }
 
 

@@ -1,6 +1,8 @@
 
 /*
 
+GPL license (c) thor magnusson, 2011
+
 // XiiLang.new("project", "key") - "project" stands for the name of the folder where soundfiles are kept. in this folder a _keyMapping.ixi file can be found that maps letters to sounds. if there is no file, then the mapping will be random
 
 TODO: Add parameter effect control
@@ -22,24 +24,24 @@ TODO: Check the use of String:drop(1) and String:drop(-1)
 // coder (keys)
 // save and load sessions (need to put into help file)
 // suicide hotline added (you can now change your mind, in case performance has picked up)
-// - automatic code writing (autocoder 4)
+// automatic code writing (autocoder 4)
 
 
 // FIXED BUG: snapshots do not perk up agents that have been dozed
 // FIXED BUG: Snapshots do not recall the effect state
 // FIXED BUG: single character percussive mode agents wont >shift
 // FIXED BUG: future bug
+// FIXED BUG: the active agent is found by comparing strings in dict and on doc. (in case of many agents on doc with same name)
 
 // Add: ptpd support for netclocks
 // Êsudo ./ptpd -cd
 // Êhttp://sourceforge.net/projects/ptpd/develop
 
-// post ICMC ideas:
+// post ICMC ideas (many of whom have been added above):
 // - Live recording into sound buffer by pressing shift+key (but save as livekey_a.aif and redefine SynthDef)
-// - find agent by comparing strings
 // - netclock
 // - morphing
-
+// add some more effects
 
 XiiLang {	
 	classvar globaldocnum;
@@ -99,11 +101,9 @@ XiiLang {
 		eventtype = \note;
 		this.makeEffectDict; // in a special method, as it has to be called after every cmd+dot
 		this.envirSetup( txt, newdoc, project );
-	\deb0.postln;
 		ixiInstr = XiiLangInstr.new(project);
 		instrDict = ixiInstr.makeInstrDict;
 		proxyspace = ProxySpace.new.know_(true);
-	\deb1.postln;
 
 		CmdPeriod.add({
 			16.do({arg i; try{midiclient.allNotesOff(i)} });
@@ -121,7 +121,6 @@ XiiLang {
 				"midiout", "matrix", "autocoder", "coder"];
 		
 		if(lang.isNil, { 
-			"lang is nil".postln;
 			english = true; // might not need this;
 			langCommands = englishCommands;
 		}, {
@@ -196,7 +195,6 @@ XiiLang {
 		operator = block{|break| // better NOT mess with the order of the following... (operators using -> need to be before "->")
 			langCommands.do({arg op; var suggestedop, space;
 				var c = string.find(op);
-				//[\op, op].postln;
 				if(c.isNil.not, {
 					space = string[c..string.size].find(" "); // allowing for longer operators with same beginning as shorter
 					if(space.isNil.not, { 
@@ -296,7 +294,7 @@ XiiLang {
 				string = string.replace("   ", " ");
 				string = string.replace("  ", " ");
 				string = string++" "; // add a space in order to find end of agent (if no argument)
-
+								
 				if(string.contains(">>"), { // setting future event(s)
 					commandstart = string.find(">");
 					colon = string.find(":");
@@ -331,12 +329,17 @@ XiiLang {
 						
 						if(groups.at(agent).isNil.not, { // the "agent" is a group so we need to set routine to each of the agents in the group
 							groups.at(agent).do({arg agentx, i;
-								agentx.postln;
 								agent = (docnum.asString++agentx).asSymbol;
-								if(agentDict[agent][2].isNil, {
-									{var thisAgent; // this is needed so next agent doesn't overwrite the earlier one
-									thisAgent = agentDict[agent][2]; 
-									thisAgent =
+								//if(agentDict[agent][2].isNil, {
+								agentDict[agent][2] = agentDict[agent][2].add(
+									//{var thisAgent; // this is needed so next agent doesn't overwrite the earlier one
+									//thisAgent = agentDict[agent][2]; 
+									//thisAgent =
+									
+									
+									//////// THE PROBLEM : two different futures fuck this up
+									
+									
 										{ 
 											times.do({arg i; 
 												seconds.wait;
@@ -346,14 +349,15 @@ XiiLang {
 												doc.selectRange(cursorPos); // set cursor pos again
 												}.defer;
 											});
-											thisAgent = nil; // set it back to nil after routine is finished
+											//thisAgent = nil; // set it back to nil after routine is finished
 										}.fork(TempoClock.new)
-									}.value;
-								});
+									//}.value;
+								);
+								//});
 							});
 						}, { // it is a real agent, not a group, then we ADD THE EFFECT
-							if(agentDict[agent][2].isNil, {
-								agentDict[agent][2] = 
+							//if(agentDict[agent][2].isNil, {
+								agentDict[agent][2] = agentDict[agent][2].add( 
 									{ 
 										times.do({arg i; 
 											seconds.wait;
@@ -363,9 +367,10 @@ XiiLang {
 											doc.selectRange(cursorPos); // set cursor pos again
 											}.defer;
 										});
-										agentDict[agent][2] = nil; // set it back to nil after routine is finished
+										// agentDict[agent][2] = nil; // set it back to nil after routine is finished
 									}.fork(TempoClock.new)
-							});
+								);
+							//});
 						});
 					});
 				}, { // removing future scheduling
@@ -373,16 +378,15 @@ XiiLang {
 					agentend = string.findAll(" ")[2]; 
 					agent = string[agentstart+1..agentend-1];
 					agent = (docnum.asString++agent).asSymbol;
-
 					if(groups.at(agent).isNil.not, { // the "agent" is a group so we need to set routine to each of the agents in the group
 						groups.at(agent).do({arg agentx, i;
 							agent = (docnum.asString++agentx).asSymbol;
-							agentDict[agent][2].stop;
-							agentDict[agent][2] = nil;
+							agentDict[agent][2].do({arg routine; routine.stop});
+							agentDict[agent][2] = [];
 						});
 					},{
-						agentDict[agent][2].stop;
-						agentDict[agent][2] = nil;
+						agentDict[agent][2].do({arg routine; routine.stop});
+						agentDict[agent][2] = [];
 					});
 				});
 			}
@@ -550,7 +554,6 @@ XiiLang {
 					if(spaces[i] > op, { groupitems = groupitems.add( string[spaces[i]+1..spaces[i+1]-1].asSymbol ) }) 
 				});
 				groups.add(groupname -> groupitems);
-				groups.postln;
 			}
 			{"sequence"}{
 				var spaces, sequenceagent, op, seqagents, typecheck, firsttype, sa, originalstring, originalagents, fullscore;
@@ -796,7 +799,6 @@ XiiLang {
 								});
 								score = "|"++score++"|";
 								line = agent+"->"+score+"\n";
-								line.postln;
 							}
 							{1}{
 								instrument = (ixiInstr.returnMelodicInstr++
@@ -808,7 +810,6 @@ XiiLang {
 								});
 								score = instrument++"["++score++"]";
 								line = agent+"->"+score+"\n";
-								line.postln;
 							}
 							{2}{
 								instrument = ixiInstr.returnPercussiveInstr.choose;
@@ -818,7 +819,6 @@ XiiLang {
 								});
 								score = instrument++"{"++score++"}";
 								line = agent+"->"+score+"\n";
-								line.postln;
 							};
 						line.do({arg char, i; 
 							charloc = charloc + 1; 
@@ -827,7 +827,6 @@ XiiLang {
 						});
 						1.wait;
 						this.opInterpreter(line);
-						"sending this to interpreter:-".post; line.post; "-".postln;
 					});
 				}.fork(TempoClock.new);
 			}
@@ -944,7 +943,6 @@ XiiLang {
 					10.do({arg i; proxyspace[keyagentname][i+1] =  nil }); // remove all effects (10 max) (+1 as 0 is Pdef)
 					
 					agentDICT[keyagentname][0].keys.do({arg key, i; 
-						key.post; "  ".post; i.postln;
 						proxyspace[keyagentname][i+1] = \filter -> effectDict[key.asSymbol];
 					});
 
@@ -1061,7 +1059,7 @@ XiiLang {
 		
 		// -- create a new agent if needed 
 		if(agentDict[agent].isNil, {
-			agentDict[agent] = [(), ().add(\amp->0.5), nil];
+			agentDict[agent] = [(), ().add(\amp->0.5), []];
 		}, {
 			if(agentDict[agent][1].scorestring.contains("{"), { newInstrFlag = true }); // trick to free if the agent was { instr (Pmono is always on)
 		}); // 1st = effectRegistryDict, 2nd = scoreInfoDict, 3rd = placeholder for a routine
@@ -1158,7 +1156,7 @@ XiiLang {
 		score = score[0..endchar-1]; // get rid of the function marker
 		
 		if(agentDict[agent].isNil, {
-			agentDict[agent] = [(), ().add(\amp->0.5), nil];
+			agentDict[agent] = [(), ().add(\amp->0.5), []];
 		}, {
 			if(agentDict[agent][1].scorestring.contains("{"), {"FREE !!!".postln; newInstrFlag = true }); // trick to free if the agent was { instr (Pmono is always on)
 		}); // 1st = effectRegistryDict, 2nd = scoreInfoDict, 3rd = placeholder for a routine
@@ -1261,13 +1259,11 @@ XiiLang {
 
 		// due to Pmono not being able to load a new instr, I check if it there is a new one
 		if(agentDict[agent].isNil, { 
-			agentDict[agent] = [(), ().add(\amp->0.5), nil];
+			agentDict[agent] = [(), ().add(\amp->0.5), []];
 		}, {			
 			if(agentDict[agent][1].instrument != instrument, { 
-				"NEW INSTR".postln; 
 				newInstrFlag = true;
 			}, {
-				"SAME INSTR".postln; 
 			 	newInstrFlag = false; 
 			});	
 		});  // 1st = effectRegistryDict, 2nd = scoreInfoDict, 3rd = placeholder for a routine
@@ -1328,13 +1324,11 @@ XiiLang {
 			chord = [];
 			chordstring.do({arg instr; chord = chord.add(instrDict[instr.asSymbol]) });
 			chordDict[chordname.asSymbol] = chord; 
-			chordDict.postln;
 		}, { // MELODIC MODE
 			chordstring = string[splitloc+3..string.size-3];
 			chord = [];
 			chordstring.do({arg note; chord = chord.add(scale[note.asString.asInteger-1]) });
 			chordDict[chordname.asSymbol] = chord; 
-			chordDict.postln;
 		});
 	}	
 
@@ -1387,7 +1381,7 @@ XiiLang {
 						\sustain, Pseq(sustainarr, inf),
 						\amp, Pseq(attackarr*agentDict[agent][1].amp, inf)
 			));
-			[\quant, durarr.sum, \quantphase, quantphase].postln;
+		//	[\quant, durarr.sum, \quantphase, quantphase].postln;
 			proxyspace[agent].quant = [durarr.sum, quantphase, 0, 1];
 			proxyspace[agent] = Pdef(agent);
 			proxyspace[agent].play;
@@ -1575,7 +1569,11 @@ XiiLang {
 				if(doc.string[(loc+pureagentname.size)..stringend].contains("->"), {
 					stringstart = loc; //doc.string.find(pureagentname);
 					if(pureagentname == doc.string[stringstart..doc.string.findAll("->")[doc.string.findAll("->").indexOfGreaterThan(stringstart+1)]-1].tr($ , \), {
-						break.value; //  exact match found and we break loop, leaving stringstart and stringend with correct values
+						// the line below will check if it's the same agent in the dict and on the doc. if so, it changes it (in case there are many with same name)
+						if(agentDict[(docnum.asString++pureagentname.asString).asSymbol][1].scorestring == doc.string[loc..stringend-1].asCompileString, {
+							break.value; //  exact match found and we break loop, leaving stringstart and stringend with correct values
+						});
+						// break.value; //  exact match found and we break loop, leaving stringstart and stringend with correct values
 					});
 				});
 			});
@@ -1611,55 +1609,40 @@ XiiLang {
 		
 		if(modearray[scoremode], { // if this scoremode supports the operation (no need to yoyo a melodic score for example)
 			
-		score = thisline[scorerange[0]+1..scorerange[1]-1];
-		scorestringsuffix = switch(scoremode) {0}{"|"++transpsuffix}{1}{"]"++transpsuffix}{2}{"}"};
-
-		// -------- put it back in place ----------
-		modstring = thisline[0..scorerange[0]]++newscore++scorestringsuffix;
-		modstring = modstring.reject({ |c| c.ascii == 10 }); // get rid of \n
-		{
+			score = thisline[scorerange[0]+1..scorerange[1]-1];
+			scorestringsuffix = switch(scoremode) {0}{"|"++transpsuffix}{1}{"]"++transpsuffix}{2}{"}"};
+	
+			// -------- put it back in place ----------
+			modstring = thisline[0..scorerange[0]]++newscore++scorestringsuffix;
+			modstring = modstring.reject({ |c| c.ascii == 10 }); // get rid of \n
 			{
-				cursorPos = doc.selectionStart; // get cursor pos
-				#stringstart, stringend = this.findStringStartEnd(doc, pureagentname);
-				doc.stringColor_(processcolor, stringstart, stringend-stringstart);
-				doc.selectRange(cursorPos); // set cursor pos again
-			}.defer;
-			0.3.wait;
-			{
-				cursorPos = doc.selectionStart; // get cursor pos
-				#stringstart, stringend = this.findStringStartEnd(doc, pureagentname);
-				doc.string_( modstring, stringstart, stringend-stringstart);
-				doc.selectRange(cursorPos); // set cursor pos again
-			}.defer;
-			0.3.wait;
-			{
-				cursorPos = doc.selectionStart; // get cursor pos
-				#stringstart, stringend = this.findStringStartEnd(doc, pureagentname);
-				doc.stringColor_(oncolor, stringstart, stringend-stringstart);
-				doc.selectRange(cursorPos); // set cursor pos again
-				switch(scoremode)
-					{0} { if(modearray[0], {
-								if(agentDict[agent][1].playstate, {this.parseScoreMode0(modstring)})
-							}, {
-								"ixi lang : Action not applicable in this mode".postln; 
-							}) 
-						}
-					{1} { if(modearray[1], {
-								if(agentDict[agent][1].playstate, {this.parseScoreMode1(modstring)})
-							}, {
-								"ixi lang : Action not applicable in this mode".postln; 
-							}) 
-						}
-					{2} { if(modearray[2], {
-								if(agentDict[agent][1].playstate, {this.parseScoreMode2(modstring)})
-							}, {
-								"ixi lang : Action not applicable in this mode".postln; 
-							}) 
-						}
-			}.defer;
-
-		}.fork(TempoClock.new);
-		
+				{
+					cursorPos = doc.selectionStart; // get cursor pos
+					#stringstart, stringend = this.findStringStartEnd(doc, pureagentname);
+					doc.stringColor_(processcolor, stringstart, stringend-stringstart);
+					doc.selectRange(cursorPos); // set cursor pos again
+				}.defer;
+				0.3.wait;
+				{
+					cursorPos = doc.selectionStart; // get cursor pos
+					#stringstart, stringend = this.findStringStartEnd(doc, pureagentname);
+					doc.string_( modstring, stringstart, stringend-stringstart);
+					doc.selectRange(cursorPos); // set cursor pos again
+					switch(scoremode)
+						{0} { if(agentDict[agent][1].playstate, {this.parseScoreMode0(modstring)}) }
+						{1} { if(agentDict[agent][1].playstate, {this.parseScoreMode1(modstring)}) }
+						{2} { if(agentDict[agent][1].playstate, {this.parseScoreMode2(modstring)}) }
+				}.defer;
+				0.3.wait;
+				{
+					cursorPos = doc.selectionStart; // get cursor pos
+					#stringstart, stringend = this.findStringStartEnd(doc, pureagentname); // this will cause error since the agent string will have changed
+					doc.stringColor_(oncolor, stringstart, stringend-stringstart);
+					doc.selectRange(cursorPos); // set cursor pos again
+				}.defer;
+	
+			}.fork(TempoClock.new);
+			
 		},{
 			"ixi lang : Action not applicable in this mode".postln;		});
 
@@ -1669,6 +1652,7 @@ XiiLang {
 		var splitloc, methodstring, spaces, agent, method, pureagentname;
 		var thisline, modstring, stringstart, allreturns, stringend, scorerange, score, scoremode, scorestringsuffix;
 		var argument, transpsuffix, cursorPos;
+				
 		splitloc = string.find(" ");
 		methodstring = string[0..splitloc-1].tr($ , \); // get the name of the agent
 		method = methodstring[0..methodstring.size-1];
@@ -1679,11 +1663,11 @@ XiiLang {
 		pureagentname = agent; // the name of the agent is different in code (0john) and in doc (john) (for multidoc support)
 		agent = (docnum.asString++agent).asSymbol;
 		if( spaces.size > 1, { argument = string[spaces[1]..spaces[spaces.size-1]] }); // is there an argument?
-
+		
+		
 		// HERE CHECK IF IT'S A GROUP THEN PERFORM A DO LOOP (for each member of the group)
 		if(groups.at(agent).isNil.not, { // the "agent" is a group
 			groups.at(agent).do({arg agentx, i;
-				// "parsing this: ".post; (method+agentx+argument).postln;
 				this.parseMethod(method+agentx+argument); // recursive calling of same method
 			});
 		}, { // it is a real agent, not a group
@@ -1766,7 +1750,6 @@ XiiLang {
 				 	});
 				}
 				{"shake"} { 
-					"shaking".postln;
 					// -------- perform the method -----------
 					score = score.scramble;
 					// -------- put it back in place ----------
