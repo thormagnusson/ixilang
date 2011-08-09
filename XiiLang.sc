@@ -333,9 +333,10 @@ XiiLang {
 								agentx.postln;
 								agent = (docnum.asString++agentx).asSymbol;
 								if(agentDict[agent][2].isNil, {
-									agentDict[agent][2] =
+									{var thisAgent; // this is needed so next agent doesn't overwrite the earlier one
+									thisAgent = agentDict[agent][2]; 
+									thisAgent =
 										{ 
-											"GROUP calling ROUTINEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE".postln;
 											times.do({arg i; 
 												seconds.wait;
 												{ 
@@ -343,15 +344,16 @@ XiiLang {
 												this.parseMethod(command+agentx); // do command
 												doc.selectRange(cursorPos); // set cursor pos again
 												}.defer;
-											}) 
+											});
+											thisAgent = nil; // set it back to nil after routine is finished
 										}.fork(TempoClock.new)
+									}.value;
 								});
 							});
 						}, { // it is a real agent, not a group, then we ADD THE EFFECT
 							if(agentDict[agent][2].isNil, {
 								agentDict[agent][2] = 
 									{ 
-										"AGENT calling ROUTINEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE".postln;  // WORKING !!!
 										times.do({arg i; 
 											seconds.wait;
 											{ 
@@ -359,7 +361,8 @@ XiiLang {
 											this.parseMethod(command+pureagent); // do command
 											doc.selectRange(cursorPos); // set cursor pos again
 											}.defer;
-										}) 
+										});
+										agentDict[agent][2] = nil; // set it back to nil after routine is finished
 									}.fork(TempoClock.new)
 							});
 						});
