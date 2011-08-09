@@ -288,7 +288,7 @@ XiiLang {
 			{"future"}{
 				// future 8:4 >> swap thor // every 8 seconds the action is performed (here 4 times)
 				// future << thor // cancel the scheduling
-				var command, commandstart, colon, seconds, times, agent, pureagent, agentstart, agentend;
+				var command, commandstart, colon, seconds, times, agent, pureagent, agentstart, agentend, argument;
 				var cursorPos, testcond, snapshot;
 				string = string.reject({ |c| c.ascii == 10 }); // get rid of char return
 				// allow for some sloppyness in style
@@ -302,7 +302,7 @@ XiiLang {
 					colon = string.find(":");
 					seconds = string[6..colon-1].asInteger;
 					times = string[colon+1..commandstart-1].asInteger;
-
+					
 					if(string[commandstart+3..commandstart+10] == "snapshot", { // it's the "choose snapshot" future
 						snapshotDict[\futures].stop;
 						snapshotDict[\futures] = // don't need to store the name, just a unique name
@@ -327,6 +327,7 @@ XiiLang {
 						pureagent = string[agentstart+1..agentend-1];
 						agent = (docnum.asString++pureagent).asSymbol;
 						command = string[commandstart+3..agentstart-1];
+						argument = string[agentend..string.size-1];
 						
 						if(groups.at(agent).isNil.not, { // the "agent" is a group so we need to set routine to each of the agents in the group
 							groups.at(agent).do({arg agentx, i;
@@ -341,7 +342,7 @@ XiiLang {
 												seconds.wait;
 												{ 
 												cursorPos = doc.selectionStart; // get cursor pos
-												this.parseMethod(command+agentx); // do command
+												this.parseMethod(command+agentx+argument); // do command
 												doc.selectRange(cursorPos); // set cursor pos again
 												}.defer;
 											});
@@ -358,7 +359,7 @@ XiiLang {
 											seconds.wait;
 											{ 
 											cursorPos = doc.selectionStart; // get cursor pos
-											this.parseMethod(command+pureagent); // do command
+											this.parseMethod(command+pureagent+argument); // do command
 											doc.selectRange(cursorPos); // set cursor pos again
 											}.defer;
 										});

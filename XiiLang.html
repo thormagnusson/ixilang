@@ -11,7 +11,7 @@ p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 18.0px Helvetica; min-height: 22.0p
 p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica}
 p.p3 {margin: 0.0px 0.0px 0.0px 0.0px; font: 9.0px Monaco; min-height: 12.0px}
 p.p4 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica; min-height: 14.0px}
-p.p5 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica; color: #1636ee}
+p.p5 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica; color: #0000ee}
 p.p6 {margin: 0.0px 0.0px 0.0px 0.0px; font: 14.0px Helvetica}
 p.p7 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica; color: #95221c}
 p.p8 {margin: 0.0px 0.0px 0.0px 57.0px; text-indent: -57.0px; font: 9.0px Monaco; min-height: 12.0px}
@@ -19,22 +19,22 @@ p.p9 {margin: 0.0px 0.0px 0.0px 57.0px; text-indent: -57.0px; font: 12.0px Helve
 p.p10 {margin: 0.0px 0.0px 0.0px 57.0px; text-indent: -57.0px; font: 12.0px Helvetica; min-height: 14.0px}
 p.p11 {margin: 0.0px 0.0px 0.0px 85.0px; text-indent: -85.0px; font: 12.0px Helvetica}
 p.p12 {margin: 0.0px 0.0px 0.0px 57.0px; text-indent: -57.0px; font: 9.0px Monaco; color: #95221c}
-p.p13 {margin: 0.0px 0.0px 0.0px 57.0px; text-indent: -57.0px; font: 9.0px Monaco; color: #0e27b6}
+p.p13 {margin: 0.0px 0.0px 0.0px 57.0px; text-indent: -57.0px; font: 9.0px Monaco; color: #0e17b6}
 p.p14 {margin: 0.0px 0.0px 0.0px 57.0px; text-indent: -57.0px; font: 9.0px Monaco}
 p.p15 {margin: 0.0px 0.0px 0.0px 57.0px; text-indent: -57.0px; font: 9.0px Monaco; color: #606060}
 p.p16 {margin: 0.0px 0.0px 0.0px 57.0px; text-indent: -57.0px; font: 14.0px Helvetica; min-height: 17.0px}
 p.p17 {margin: 0.0px 0.0px 0.0px 57.0px; text-indent: -57.0px; font: 14.0px Helvetica}
 p.p18 {margin: 0.0px 0.0px 0.0px 0.0px; font: 9.0px Monaco; color: #cd1713}
-p.p19 {margin: 0.0px 0.0px 0.0px 0.0px; font: 9.0px Monaco; color: #102bc3}
+p.p19 {margin: 0.0px 0.0px 0.0px 0.0px; font: 9.0px Monaco; color: #102ac3}
 p.p20 {margin: 0.0px 0.0px 0.0px 0.0px; font: 9.0px Monaco}
 p.p21 {margin: 0.0px 0.0px 0.0px 0.0px; font: 9.0px Monaco; color: #737373}
 span.s1 {font: 18.0px Helvetica}
 span.s2 {color: #000000}
 span.s3 {text-decoration: underline}
 span.s4 {text-decoration: underline ; color: #5d5e7c}
-span.s5 {color: #0e27b6}
+span.s5 {color: #0e17b6}
 span.s6 {color: #cd1713}
-span.s7 {color: #102bc3}
+span.s7 {color: #102ac3}
 span.s8 {color: #737373}
 span.Apple-tab-span {white-space:pre}
 </style>
@@ -48,7 +48,7 @@ span.Apple-tab-span {white-space:pre}
 <p class="p4"><br></p>
 <p class="p2"><b>NOTE: The interpreter uses a different key command for evaluating ixi lang code, namely alt+arrows</b>. This allows for coding in both sc lang and ixi lang in the same document without confusing interpreters.</p>
 <p class="p4"><br></p>
-<p class="p5"><span class="s2"><b>See also:</b> <a href="../../../../Library/Application Support/SuperCollider/Extensions/help/Core/Object.html"><span class="s3">XiiLangInstr</span></a></span></p>
+<p class="p5"><span class="s2"><b>See also:</b> <a href="../Core/Object.html"><span class="s3">XiiLangInstr</span></a></span></p>
 <p class="p4"><br></p>
 <p class="p4"><br></p>
 <p class="p2">Further explanation below, but videos can be found on <a href="http://www.vimeo.com/ixi"><span class="s4">www.vimeo.com/ixi</span></a></p>
@@ -331,9 +331,13 @@ span.Apple-tab-span {white-space:pre}
 <p class="p3"><br></p>
 <p class="p18"><span class="s2">jimi ))<span class="Apple-converted-space">  <span class="Apple-tab-span">	</span></span></span>// increase the volume of jimi</p>
 <p class="p3"><br></p>
+<p class="p20">jimi &gt;&gt; delay <span class="Apple-tab-span">	</span>// add one effect to jimi's output</p>
+<p class="p3"><br></p>
 <p class="p18"><span class="s2">jimi &gt;&gt; distort &gt;&gt; reverb<span class="Apple-converted-space">  </span></span>// put jimi through distortion and reverb effects</p>
 <p class="p3"><br></p>
-<p class="p18"><span class="s2">jimi &lt;&lt; <span class="Apple-tab-span">	</span></span>// remove the effects</p>
+<p class="p18"><span class="s2">jimi &lt;&lt; distort<span class="Apple-tab-span">	</span></span>// remove distortion but not the reverb effect</p>
+<p class="p3"><br></p>
+<p class="p18"><span class="s2">jimi &lt;&lt; <span class="Apple-tab-span">	</span></span>// remove all effects</p>
 <p class="p3"><br></p>
 <p class="p18"><span class="s2">shake jimi<span class="Apple-converted-space">  <span class="Apple-tab-span">	</span></span></span>// scramble jimi's score</p>
 <p class="p3"><br></p>
