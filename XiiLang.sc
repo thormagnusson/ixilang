@@ -330,16 +330,7 @@ XiiLang {
 						if(groups.at(agent).isNil.not, { // the "agent" is a group so we need to set routine to each of the agents in the group
 							groups.at(agent).do({arg agentx, i;
 								agent = (docnum.asString++agentx).asSymbol;
-								//if(agentDict[agent][2].isNil, {
 								agentDict[agent][2] = agentDict[agent][2].add(
-									//{var thisAgent; // this is needed so next agent doesn't overwrite the earlier one
-									//thisAgent = agentDict[agent][2]; 
-									//thisAgent =
-									
-									
-									//////// THE PROBLEM : two different futures fuck this up
-									
-									
 										{ 
 											times.do({arg i; 
 												seconds.wait;
@@ -349,28 +340,23 @@ XiiLang {
 												doc.selectRange(cursorPos); // set cursor pos again
 												}.defer;
 											});
-											//thisAgent = nil; // set it back to nil after routine is finished
 										}.fork(TempoClock.new)
-									//}.value;
 								);
-								//});
 							});
 						}, { // it is a real agent, not a group, then we ADD THE EFFECT
-							//if(agentDict[agent][2].isNil, {
-								agentDict[agent][2] = agentDict[agent][2].add( 
-									{ 
-										times.do({arg i; 
-											seconds.wait;
-											{ 
-											cursorPos = doc.selectionStart; // get cursor pos
-											this.parseMethod(command+pureagent+argument); // do command
-											doc.selectRange(cursorPos); // set cursor pos again
-											}.defer;
-										});
-										// agentDict[agent][2] = nil; // set it back to nil after routine is finished
-									}.fork(TempoClock.new)
-								);
-							//});
+							agentDict[agent][2] = agentDict[agent][2].add( 
+								{ 
+									times.do({arg i; 
+										seconds.wait;
+										{ 
+										cursorPos = doc.selectionStart; // get cursor pos
+										this.parseMethod(command+pureagent+argument); // do command
+										doc.selectRange(cursorPos); // set cursor pos again
+										}.defer;
+									});
+									// agentDict[agent][2] = nil; // set it back to nil after routine is finished
+								}.fork(TempoClock.new)
+							);
 						});
 					});
 				}, { // removing future scheduling
@@ -655,7 +641,6 @@ XiiLang {
 							instrument = agentDict[seqagents[0]][1].instrument;
 							fullscore = (sa++" -> "++ instrument ++"{"++score++"}");
 							if(agentDict[sequenceagent].isNil, {
-								" creating a new Dict !!!!!!!!".postln;
 								agentDict[sequenceagent] = [ (), ().add(\amp->0.3), nil];
 							}, {
 								if(agentDict[sequenceagent][1].scorestring.contains("{"), {newInstrFlag = true }); // free if { instr (Pmono is always on)
@@ -778,11 +763,20 @@ XiiLang {
 				});
 			}			
 			{"autocoder"}{
-				var agent, mode, instrument, score, line, charloc, cursorPos, density, lines, linenr;
-				charloc = doc.selectionStart+string.size;
+				var agent, mode, instrument, score, line, charloc, cursorPos, density, lines, spaces, nextline;
+				
+				charloc = doc.selectedRangeLocation;
+				spaces = doc.string.findAll(" ");
+				nextline = if(spaces.indexOfGreaterThan(charloc).isNil, {
+						charloc;
+					},{
+						spaces[spaces.indexOfGreaterThan(charloc)];
+					});
+				charloc = nextline;
+				
 				{doc.insertTextRange("\n", charloc, 0)}.defer; 
 				lines = "";
-				string.collect({arg char; if(char.isDecDigit, {lines = lines++char}) });
+				string.collect({arg char; if(char.isDecDigit, { lines = lines++char }) });
 				lines = lines.asInteger;
 				{	
 					lines.do({
@@ -847,7 +841,7 @@ XiiLang {
 		{doc.stringColor_(Color.red, doc.selectionStart, doc.selectionSize)}.defer(0.1); // killed code is red
 	}
 	
-	parseSnapshot{ arg string; // XXX
+	parseSnapshot{ arg string;
 		var snapshotname, splitloc, agentDICT;
 		string = string.reject({ |c| c.ascii == 10 }); // get rid of char return
 
@@ -871,8 +865,8 @@ XiiLang {
 				pureagentname = pureagentname[1..pureagentname.size-1];
 
 				if(agentDICT[agent].isNil, { 
-					proxyspace[agent].stop; // xxx
-					// proxyspace[agent].objects[0].array[0].mute; // xxx
+					proxyspace[agent].stop; 
+					// proxyspace[agent].objects[0].array[0].mute;
 					allreturns = doc.string.findAll("\n");
 					// the following checks if it's exactly the same agent name (and not confusing joe and joel)
 					block{ | break |
@@ -1036,7 +1030,7 @@ XiiLang {
 		var newInstrFlag = false;
 		var postfixArgDict;
 		
-		scorestring = string.reject({arg char; char.ascii == 10 }); // to store in agentDict XXX Testing
+		scorestring = string.reject({arg char; char.ascii == 10 }); // to store in agentDict
 		
 		string = string.reject({arg char; (char==$-) || (char==$>) || (char.ascii == 10) }); // no need for this here
 		splitloc = string.find("|");
@@ -1158,7 +1152,7 @@ XiiLang {
 		if(agentDict[agent].isNil, {
 			agentDict[agent] = [(), ().add(\amp->0.5), []];
 		}, {
-			if(agentDict[agent][1].scorestring.contains("{"), {"FREE !!!".postln; newInstrFlag = true }); // trick to free if the agent was { instr (Pmono is always on)
+			if(agentDict[agent][1].scorestring.contains("{"), { newInstrFlag = true }); // trick to free if the agent was { instr (Pmono is always on)
 		}); // 1st = effectRegistryDict, 2nd = scoreInfoDict, 3rd = placeholder for a routine
 
 		// ------------- the notes -------------------
@@ -1168,7 +1162,6 @@ XiiLang {
 			var scalenote, thisnote, chord;
 			thisnote = note.asString.asInteger; // if thisnote is 0 then it's a chord (since "a".asInteger becomes 0)
 			if(thisnote == 0, { // if it is a CHORD
-				chordDict.postln;
 				chord = chordDict[note.asSymbol];
 				if(chord.isNil, { // if using a chord (item in dict) that does not exist (say x) - to prevent error posting
 					notearr = notearr.add('\s');
@@ -1361,7 +1354,7 @@ XiiLang {
 							\amp, Pseq(attackarr*agentDict[agent][1].amp, inf),
 							\sustain, Pseq(sustainarr, inf)
 				)).quant = [durarr.sum, quantphase, 0, 1];
-				proxyspace[agent].play; // xxx new
+				proxyspace[agent].play;
 			});
 		});
 	}
@@ -1372,7 +1365,7 @@ XiiLang {
 		// ------------ play function --------------
 		if(proxyspace[agent].isNeutral, { // check if the object exists alreay
 			Pdef(agent, Pbind(
-						\instrument, instrument, // XXX instrument
+						\instrument, instrument,
 						\type, eventtype,
 						\midiout, midiclient,
 						\chan, midichannel,
@@ -1381,7 +1374,6 @@ XiiLang {
 						\sustain, Pseq(sustainarr, inf),
 						\amp, Pseq(attackarr*agentDict[agent][1].amp, inf)
 			));
-		//	[\quant, durarr.sum, \quantphase, quantphase].postln;
 			proxyspace[agent].quant = [durarr.sum, quantphase, 0, 1];
 			proxyspace[agent] = Pdef(agent);
 			proxyspace[agent].play;
@@ -1410,7 +1402,7 @@ XiiLang {
 						\sustain, Pseq(sustainarr, inf),
 						\amp, Pseq(attackarr*agentDict[agent][1].amp, inf)
 				)).quant = [durarr.sum, quantphase, 0, 1];
-				proxyspace[agent].play; // xxx new
+				proxyspace[agent].play;
 			});
 		});
 	}
@@ -1420,7 +1412,7 @@ XiiLang {
 		if(proxyspace[agent].isNeutral, { // check if the object exists alreay
 			Pdefn((agent++"durarray").asSymbol, Pseq(durarr, inf));
 			Pdefn((agent++"amparray").asSymbol, Pseq(amparr, inf));
-			Pdef(agent, Pmono(instrument, // XXX instrument
+			Pdef(agent, Pmono(instrument,
 						\dur, Pdefn((agent++"durarray").asSymbol),
 						\noteamp, Pdefn((agent++"amparray").asSymbol)
 			));
@@ -1432,7 +1424,7 @@ XiiLang {
 			Pdefn((agent++"amparray").asSymbol, Pseq(amparr, inf)).quant = [durarr.sum, quantphase, 0, 1];
 			if(newInstrFlag, {
 				proxyspace[agent].free; // needed in order to swap instrument in Pmono
-				Pdef(agent, Pmono(instrument, // XXX instrument
+				Pdef(agent, Pmono(instrument,
 							\dur, Pdefn((agent++"durarray").asSymbol),
 							\noteamp, Pdefn((agent++"amparray").asSymbol)
 				));
@@ -1550,7 +1542,7 @@ XiiLang {
 		}, {
 			amp = agentDict[agent][1].amp;
 			amp = (amp - 0.05).clip(0, 2);
-			" --->    ixi lang : Setting AMP to : ".post; amp.postln;
+			" --->    ixi lang : AMP : ".post; amp.postln;
 			agentDict[agent][1].amp = amp;
 			switch(agentDict[agent][1].mode)
 				{0} { this.playScoreMode0(agent, agentDict[agent][1].durarr, agentDict[agent][1].instrarr, agentDict[agent][1].sustainarr, agentDict[agent][1].attackarr, agentDict[agent][1].quantphase, false); }

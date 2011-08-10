@@ -63,7 +63,7 @@ XiiLangMatrix {
 						}, {
 							doc.string_("", loc, 1);	
 						});
-						if((mod == 8388864) || (mod == 8519938) || (mod == 10486016), { // holding down fn (and optinally shift) opens a coding window
+						if((mod == 8388864) || (mod == 8388608) || (mod == 8519938) || (mod == 10486016), { // holding down fn (and optinally shift) opens a coding window
 							if(matrix[locrow][loccol].instr == "none", { // just insert the synthdef from the instrDict
 								matrix[locrow][loccol].instr  = instrDict[key.asSymbol];
 								// no other info needed.
