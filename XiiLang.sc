@@ -43,6 +43,11 @@ TODO: Check the use of String:drop(1) and String:drop(-1)
 // - morphing
 // add some more effects
 
+/*
+Dependencies:
+TempoClock:sync (by f0)
+*/
+
 XiiLang {	
 	classvar globaldocnum;
 	var <>doc, docnum, oncolor, offcolor, processcolor, proxyspace, groups;
@@ -765,14 +770,22 @@ XiiLang {
 			{"autocoder"}{
 				var agent, mode, instrument, score, line, charloc, cursorPos, density, lines, spaces, nextline;
 				
+				string = string.replace("    ", " ");
+				string = string.replace("   ", " ");
+				string = string.replace("  ", " ");
+				string = string++" "; // add a space in order to find end of agent (if no argument)
+//				[\firstspace, string.findAll(" ")[0]].postln;
+//				[\endspace, string.findAll(" ")[1]].postln; 
+				
+				
 				charloc = doc.selectedRangeLocation;
-				spaces = doc.string.findAll(" ");
-				nextline = if(spaces.indexOfGreaterThan(charloc).isNil, {
-						charloc;
-					},{
-						spaces[spaces.indexOfGreaterThan(charloc)];
-					});
-				charloc = nextline;
+//				spaces = doc.string.findAll(" ");
+//				nextline = if(spaces.indexOfGreaterThan(charloc).isNil, {
+//						charloc;
+//					},{
+//						spaces[spaces.indexOfGreaterThan(charloc)];
+//					});
+//				charloc = nextline;
 				
 				{doc.insertTextRange("\n", charloc, 0)}.defer; 
 				lines = "";
@@ -948,8 +961,9 @@ XiiLang {
 	parsePostfixArgs {arg postfixstring;
 		var sustainstartloc, sustainendloc, sustainstring, sustainarr;
 		var attacksymbols, attackstartloc, attackendloc, attackstring, attackarr;
-		var argDict;
-		
+		var argDict, multiplication, multloc;
+		multiplication = 1;
+
 		argDict = ();
 		argDict[\timestretch] = 1;
 		argDict[\transposition] = 0;
@@ -997,12 +1011,19 @@ XiiLang {
 			sustainstring = "4";
 		}, {
 			sustainstring = postfixstring[sustainstartloc+1..sustainendloc-1];
+			if(sustainstring.contains("~"), {
+				multloc = sustainstring.find("~");
+				sustainstring = postfixstring[sustainstartloc+1..multloc];
+				multiplication = postfixstring[multloc+2..sustainendloc-1].asFloat;
+			})
 		});
 		sustainstring.do({arg dur; var durint;
 			durint = dur.asString.asInteger;
 			if(durint == 0, {durint = 1}); // make sure durint is not 0 - which will crash the language
 			sustainarr = sustainarr.add(TempoClock.default.tempo.reciprocal/durint);
-		 });
+		});
+
+		sustainarr = sustainarr*multiplication;
 		argDict.add(\sustainarr -> sustainarr);
 		
 		// -- attack --
