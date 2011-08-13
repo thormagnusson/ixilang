@@ -42,6 +42,9 @@ TODO: Check the use of String:drop(1) and String:drop(-1)
 // - netclock
 // - morphing
 // add some more effects
+// add the coffee, lsd, cannabis 
+// john >> coffee
+// check swarms.cc
 
 /*
 Dependencies:
@@ -1573,9 +1576,47 @@ XiiLang {
 	}
 	
 	findStringStartEnd {arg doc, pureagentname;
-		var allreturns, stringstart, stringend;
+		var allreturns, stringstart, stringend, tempstringstart;
 		allreturns = doc.string.findAll("\n");
 		
+		try{block{ | break |
+			doc.string.findAll(pureagentname).do({arg loc, i;
+				stringend = allreturns[allreturns.indexOfGreaterThan(loc)];
+				if(doc.string[(loc+pureagentname.size)..stringend].contains("->"), {
+					tempstringstart = loc; //doc.string.find(pureagentname);
+					if(pureagentname == doc.string[tempstringstart..doc.string.findAll("->")[doc.string.findAll("->").indexOfGreaterThan(tempstringstart+1)]-1].tr($ , \), {
+						// the line below will check if it's the same agent in the dict and on the doc. if so, it changes it (in case there are many with same name)
+						if(agentDict[(docnum.asString++pureagentname.asString).asSymbol][1].scorestring == doc.string[loc..stringend-1].asCompileString, {
+							stringstart = tempstringstart;
+							break.value; //  exact match found and we break loop, leaving stringstart and stringend with correct values
+						});
+					});
+				});
+			});
+		}};
+		// if an EXACT agent score has not been found, then apply the action upon an agent with the same name (can happen if future is running and score is changed)
+		if(stringstart == nil, {
+			block{ | break |
+				doc.string.findAll(pureagentname).do({arg loc, i;
+					stringend = allreturns[allreturns.indexOfGreaterThan(loc)];
+					if(doc.string[(loc+pureagentname.size)..stringend].contains("->"), {
+						stringstart = loc; //doc.string.find(pureagentname);
+						if(pureagentname == doc.string[stringstart..doc.string.findAll("->")[doc.string.findAll("->").indexOfGreaterThan(stringstart+1)]-1].tr($ , \), {
+							break.value; //  exact match found and we break loop, leaving stringstart and stringend with correct values
+						});
+					});
+				});
+			};
+		});
+		^[stringstart, stringend];
+	}
+
+/*
+// working
+	findStringStartEnd {arg doc, pureagentname;
+		var allreturns, stringstart, stringend;
+		allreturns = doc.string.findAll("\n");
+		// XXX problem below with future when agent's score changes in mid performance
 		block{ | break |
 			doc.string.findAll(pureagentname).do({arg loc, i;
 				stringend = allreturns[allreturns.indexOfGreaterThan(loc)];
@@ -1593,6 +1634,7 @@ XiiLang {
 		};
 		^[stringstart, stringend];
 	}
+*/
 
 	swapString {arg doc, pureagentname, newscore, modearray;
 		var allreturns, stringstart, stringend, cursorPos, modstring, thisline;
