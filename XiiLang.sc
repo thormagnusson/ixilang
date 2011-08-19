@@ -220,12 +220,10 @@ XiiLang {
 						methodFound = true;
 						break.value(op);
 					});
-					[\suggestedop, suggestedop].postln;
 				}); 
 			});
 			if(methodFound == false, {" --->   ixi lang error : OPERATOR NOT FOUND !!!".postln; });
 		};
-					[\operator, operator].postln;
 		
 		if(english.not, { // this is the only place of non-english code apart from in the init function
 			oldop = operator;
@@ -367,7 +365,6 @@ XiiLang {
 							});
 						});
 						if(argumentarray == [], {argumentarray = [argument.asInteger]});
-						[\FUTUREargumentarray, argumentarray].postln;
 						
 						//if future argument contains many args then put them into a list that will be wrappedAt in the future task
 						
@@ -597,11 +594,12 @@ XiiLang {
 			}
 			{"sequence"}{
 				var spaces, sequenceagent, op, seqagents, typecheck, firsttype, sa, originalstring, originalagents, fullscore;
-				var notearr, durarr, sustainarr, instrarr, amparr, score, instrument, quantphase, newInstrFlag = false;
+				var notearr, durarr, sustainarr, instrarr, attackarr, amparr, score, instrument, quantphase, newInstrFlag = false;
 				typecheck = 0;
 				notearr = [];
 				durarr = [];
 				sustainarr = [];
+				attackarr = [];
 				amparr = [];
 				instrarr = [];
 				score = "";
@@ -619,7 +617,8 @@ XiiLang {
 				sequenceagent = (docnum.asString++sequenceagent).asSymbol; // multidoc support
 				op = string.find("->");
 				seqagents = [];
-				originalagents = [];				
+				originalagents = [];		
+
 				(spaces.size-1).do({arg i; 
 					if(spaces[i] > op, { 
 						seqagents = seqagents.add((docnum.asString++string[spaces[i]+1..spaces[i+1]-1]).asSymbol);
@@ -640,8 +639,10 @@ XiiLang {
 								durarr = durarr ++ agentDict[agent][1].durarr;
 								sustainarr = sustainarr ++ agentDict[agent][1].sustainarr;
 								instrarr = instrarr ++ agentDict[agent][1].instrarr;
+								attackarr	= attackarr ++ agentDict[agent][1].attackarr;
 								score = score ++ agentDict[agent][1].score; // just for creating the score in the doc
 							});
+
 							fullscore = (sa++" -> |"++score++"|");
 							if(agentDict[sequenceagent].isNil, {
 								agentDict[sequenceagent] = [ (), ().add(\amp->0.3), nil];
@@ -654,18 +655,22 @@ XiiLang {
 								agentDict[sequenceagent][1].durarr = durarr;
 								agentDict[sequenceagent][1].sustainarr = sustainarr;
 								agentDict[sequenceagent][1].instrarr = instrarr;
+								agentDict[sequenceagent][1].attackarr = attackarr;
 								agentDict[sequenceagent][1].score = score;
 								agentDict[sequenceagent][1].quantphase = quantphase;
 								doc.string_(doc.string.replace(originalstring, fullscore++"\n"));
-								this.playScoreMode0(sequenceagent, durarr, instrarr, sustainarr, quantphase, newInstrFlag);
+								this.playScoreMode0(sequenceagent, durarr, instrarr, sustainarr, attackarr, quantphase, newInstrFlag);
 						}
 						{1} {
+
 							seqagents.do({arg agent, i;
 								durarr = durarr ++ agentDict[agent][1].durarr;
 								sustainarr = sustainarr ++ agentDict[agent][1].sustainarr;
 								notearr = notearr ++ agentDict[agent][1].notearr;
+								attackarr	= attackarr ++ agentDict[agent][1].attackarr;
 								score = score ++ agentDict[agent][1].score; // just for creating the score in the doc
 							});
+
 							quantphase = agentDict[seqagents[0]][1].quantphase;
 							instrument = agentDict[seqagents[0]][1].instrument;
 							fullscore = (sa++" -> "++ instrument ++"["++score++"]");
@@ -680,15 +685,18 @@ XiiLang {
 								agentDict[sequenceagent][1].durarr = durarr;
 								agentDict[sequenceagent][1].sustainarr = sustainarr;
 								agentDict[sequenceagent][1].notearr = notearr;
+								agentDict[sequenceagent][1].attackarr = attackarr;
 								agentDict[sequenceagent][1].score = score;
 								agentDict[sequenceagent][1].quantphase = quantphase;
+							
 								doc.string_(doc.string.replace(originalstring, fullscore++"\n"));
-								this.playScoreMode1(sequenceagent, notearr, durarr, sustainarr, instrument, quantphase, newInstrFlag);
+								this.playScoreMode1(sequenceagent, notearr, durarr, sustainarr, attackarr, instrument, quantphase, newInstrFlag);
 						}
 						{2} {
 							seqagents.do({arg agent, i;
 								durarr = durarr ++ agentDict[agent][1].durarr;
 								amparr = notearr ++ agentDict[agent][1].amparr;
+								attackarr	= attackarr ++ agentDict[agent][1].attackarr;
 								score = score ++ agentDict[agent][1].score; // just for creating the score in the doc
 							});
 							quantphase = agentDict[seqagents[0]][1].quantphase;
@@ -847,17 +855,19 @@ XiiLang {
 				string = string++" "; // add a space in order to find end of agent (if no argument)
 //				[\firstspace, string.findAll(" ")[0]].postln;
 //				[\endspace, string.findAll(" ")[1]].postln; 
-				
-				
-				charloc = doc.selectedRangeLocation;
-//				spaces = doc.string.findAll(" ");
-//				nextline = if(spaces.indexOfGreaterThan(charloc).isNil, {
+//				charloc = doc.selectedRangeLocation;
+				spaces = doc.string.findAll(" ");
+			//	nextline = if(spaces.indexOfGreaterThan(charloc).isNil, {
 //						charloc;
 //					},{
 //						spaces[spaces.indexOfGreaterThan(charloc)];
 //					});
 //				charloc = nextline;
+//			
+			//	charloc = spaces[spaces.indexOfGreaterThan(charloc)-1];
+				charloc = doc.selectionStart;
 				
+				//charloc = string.findAll(" ")[1]+1;
 				{doc.insertTextRange("\n", charloc, 0)}.defer; 
 				lines = "";
 				string.collect({arg char; if(char.isDecDigit, { lines = lines++char }) });
@@ -927,6 +937,10 @@ XiiLang {
 	
 	parseSnapshot{ arg string;
 		var snapshotname, splitloc, agentDICT;
+
+		string = string.replace("    ", " ");
+		string = string.replace("   ", " ");
+		string = string.replace("  ", " ");
 		string = string.reject({ |c| c.ascii == 10 }); // get rid of char return
 
 		if(string.contains("->"), { // STORE A SNAPSHOT
@@ -948,24 +962,18 @@ XiiLang {
 				pureagentname = agent.asString;
 				pureagentname = pureagentname[1..pureagentname.size-1];
 
+				
 				if(agentDICT[agent].isNil, { 
 					proxyspace[agent].stop; 
 					// proxyspace[agent].objects[0].array[0].mute;
 					allreturns = doc.string.findAll("\n");
 					// the following checks if it's exactly the same agent name (and not confusing joe and joel)
-					block{ | break |
-					doc.string.findAll(pureagentname).do({arg loc, i;
-						stringend = allreturns[allreturns.indexOfGreaterThan(loc)];
-						if(doc.string[(loc+pureagentname.size)..stringend].contains("->"), {
-							stringstart = loc; //doc.string.find(pureagentname);
-							if(pureagentname == doc.string[stringstart..doc.string.findAll("->")[doc.string.findAll("->").indexOfGreaterThan(stringstart+1)]-1].tr($ , \), {
-								break.value; //  exact match found and we break loop, leaving stringstart and stringend with correct values
-							});
-						});
-					});
-					};
+					#stringstart, stringend = this.findStringStartEnd(doc, pureagentname);
+
 					doc.stringColor_(offcolor, stringstart, stringend-stringstart);
 				});
+				
+
 			});
 			
 			// then run the agents in the snapshot and replace strings in doc
@@ -980,31 +988,23 @@ XiiLang {
 					// --  1)  Find the agent in the doc
 					allreturns = doc.string.findAll("\n");
 					// the following checks if it's exactly the same agent name (and not confusing joe and joel)
-					block{ | break |
-					doc.string.findAll(pureagentname).do({arg loc, i;
-						stringend = allreturns[allreturns.indexOfGreaterThan(loc)];
-						if(doc.string[(loc+pureagentname.size)..stringend].contains("->"), {
-							stringstart = loc; //doc.string.find(pureagentname);
-							if(pureagentname == doc.string[stringstart..doc.string.findAll("->")[doc.string.findAll("->").indexOfGreaterThan(stringstart+1)]-1].tr($ , \), {
-								break.value; //  exact match found and we break loop, leaving stringstart and stringend with correct values
-							});
-						});
-					});
-					};
-					
+					#stringstart, stringend = this.findStringStartEnd(doc, pureagentname);
+
 					thisline = doc.string[stringstart..stringend];
 
 					dictscore = agentDictItem[1].scorestring;
 					dictscore = dictscore.reject({ |c| c.ascii == 34 }); // get rid of quotation marks
 
 					// --  2)  Swap the string in the doc
-					
 					// either with the simple swap
 					doc.string_( dictscore, stringstart, stringend-stringstart); // this one keeps text colour
 					doc.stringColor_(oncolor, stringstart, stringend-stringstart);
-						
-					// --  3)  Run the code (parse it) - IF playstate is true
-					
+
+					// --  3)  Run the code (parse it) - IF playstate is true (in case it's been dozed)
+					if(proxyspace[keyagentname].objects[0].array[0].muteCount == 1, {
+						proxyspace[keyagentname].objects[0].array[0].unmute;
+					});
+
 					mode = block{|break| 
 						["|", "[", "{", ")"].do({arg op, i;						var c = dictscore.find(op);
 							if(c.isNil.not, {break.value(i)}); 
@@ -1015,10 +1015,10 @@ XiiLang {
 						{1} { this.parseScoreMode1(dictscore) }
 						{2} { this.parseScoreMode2(dictscore) };
 					proxyspace[keyagentname].play;
-					
+
 					// --  4)  Set the effects that were active when the snapshot was taken
 					
-					10.do({arg i; proxyspace[keyagentname][i+1] =  nil }); // remove all effects (10 max) (+1 as 0 is Pdef)
+					10.do({arg i; proxyspace[keyagentname][i+1] =  nil }); // remove all effects (10 max) (+1, as 0 is Pdef)
 					
 					agentDICT[keyagentname][0].keys.do({arg key, i; 
 						proxyspace[keyagentname][i+1] = \filter -> effectDict[key.asSymbol];
@@ -1681,31 +1681,6 @@ XiiLang {
 		^[stringstart, stringend];
 	}
 
-/*
-// working
-	findStringStartEnd {arg doc, pureagentname;
-		var allreturns, stringstart, stringend;
-		allreturns = doc.string.findAll("\n");
-		// XXX problem below with future when agent's score changes in mid performance
-		block{ | break |
-			doc.string.findAll(pureagentname).do({arg loc, i;
-				stringend = allreturns[allreturns.indexOfGreaterThan(loc)];
-				if(doc.string[(loc+pureagentname.size)..stringend].contains("->"), {
-					stringstart = loc; //doc.string.find(pureagentname);
-					if(pureagentname == doc.string[stringstart..doc.string.findAll("->")[doc.string.findAll("->").indexOfGreaterThan(stringstart+1)]-1].tr($ , \), {
-						// the line below will check if it's the same agent in the dict and on the doc. if so, it changes it (in case there are many with same name)
-						if(agentDict[(docnum.asString++pureagentname.asString).asSymbol][1].scorestring == doc.string[loc..stringend-1].asCompileString, {
-							break.value; //  exact match found and we break loop, leaving stringstart and stringend with correct values
-						});
-						// break.value; //  exact match found and we break loop, leaving stringstart and stringend with correct values
-					});
-				});
-			});
-		};
-		^[stringstart, stringend];
-	}
-*/
-
 	// modearray is an array with three booleans stating if the method can be applied on that mode
 	// newarg is an array with the method and the value(s)
 	swapString {arg doc, pureagentname, newscore, modearray, newarg;
@@ -1750,13 +1725,6 @@ XiiLang {
 					{
 						thisline = thisline[0..thisline.find(newarg[0])]++newarg[1]++thisline[end..thisline.size-1]; // ++"\n";
 					};
-
-//					if(newarg[0] == "^", {
-//						thisline = thisline[0..thisline.find(newarg[0])]++newarg[1]++newarg[0]++thisline[end..thisline.size-1]; // ++"\n";
-//						thisline = thisline.replace("^^", "^");
-//					},{
-//						thisline = thisline[0..thisline.find(newarg[0])]++newarg[1]++thisline[end..thisline.size-1]; // ++"\n";
-//					});
 				});
 			},{
 				switch(newarg[0]) 
@@ -1769,12 +1737,6 @@ XiiLang {
 					{
 						thisline = thisline++newarg[0]++newarg[1]; // no need to replace an operator, just add to the end
 					};
-
-//				if(newarg[0] == "^", {
-//					thisline = thisline++newarg[0]++newarg[1]++newarg[0]; // no need to replace an operator, just add to the end
-//				}, {
-//					thisline = thisline++newarg[0]++newarg[1]; // no need to replace an operator, just add to the end
-//				});
 			});
 		});
 		
@@ -1971,43 +1933,6 @@ XiiLang {
 					 	}.fork(TempoClock.new);
 				 	});
 				}
-/*
-				{"nap"} { // pause for either n secs or n secs:number of times
-					var napdur, separator, times, on;
-					on = true;
-					separator = argument.find(":");
-					if(separator.isNil.not, { // it contains a on/off order
-						napdur = argument[0..separator-1].asInteger;
-						// round to even, so it doesn't leave the stream off
-						times = argument[separator+1..argument.size-1].asInteger.round(2);
-					 	{
-					 		(times*2).do({ // times two as the interface is that it should nap twice 
-					 			if(on, {
-					 				proxyspace[agent].objects[0].array[0].mute;
-					 				agentDict[agent][1].playstate = false;
-							 		{doc.stringColor_(offcolor, stringstart, stringend-stringstart)}.defer;
-					 				on = false;
-					 			}, {
-					 				proxyspace[agent].objects[0].array[0].unmute;
-									agentDict[agent][1].playstate = true;
-							 		{doc.stringColor_(oncolor, stringstart, stringend-stringstart)}.defer;
-					 				on = true;
-					 			});
-						 		napdur.wait;
-				 			});
-					 	}.fork(TempoClock.new);
-					}, { // it is just a nap for n seconds and then reawake
-					 	{
-							argument = argument.asInteger;
-				 			proxyspace[agent].objects[0].array[0].mute;
-							{doc.stringColor_(offcolor, stringstart, stringend-stringstart)}.defer;
-					 		argument.wait;
-				 			proxyspace[agent].objects[0].array[0].unmute;
-							{doc.stringColor_(oncolor, stringstart, stringend-stringstart)}.defer;
-					 	}.fork(TempoClock.new);
-				 	});
-				}
-*/
 				{"shake"} { 
 					// -------- perform the method -----------
 					score = score.scramble;

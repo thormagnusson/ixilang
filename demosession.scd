@@ -19,7 +19,7 @@ future 2b:12 >> shake sob
 
 pia ->  xylo[1 4 23  5  65 4 ]
 ( pia 142
-future 4b:12 >> ( pia 142 1 1214
+future 4b:12 >> ( pia 1 2428 1214
 future 4b:12 >> ^ pia 15 123 19992
 + pia 12
 future 2b:4 >> + pia 7 12 24 0
@@ -45,6 +45,7 @@ snapshot -> four
 snapshot four
 
 matrix 6
+autocoder 2 
 
 save demosession
 kill
