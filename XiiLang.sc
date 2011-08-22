@@ -128,11 +128,11 @@ XiiLang {
 			snapshotDict = IdentityDictionary.new;
 			proxyspace = ProxySpace.new.know_(true);
 		});
-		englishCommands = ["group", "sequence", "future", "snapshot", "->", "))", "((", "|", "[", "{", ")", ".", ">>", "<<", "tempo", 
+		englishCommands = ["group", "sequence", "future", "snapshot", "->", "))", "((", "|", "[", "{", ")", ">>", "<<", "tempo", 
 				"scale", "scalepush", "tuning", "tuningpush", "remind", "help", "tonality", "instr", "tonic", "grid", "kill",  
 				"doze", "perk", "nap", "shake", "swap", ">shift", "<shift", "invert", "expand", "revert", 
 				"up", "down", "yoyo", "order", "suicide", "hotline", "dict", "save", "load", "midiclients", 
-				"midiout", "matrix", "autocoder", "coder", "+", "-", "*", "/", "!", "^", "("];
+				"midiout", "matrix", "autocoder", "coder", "+", "-", "*", "/", "!", "^", "("];  // removed "." XXX
 		
 		if(lang.isNil, { 
 			english = true; // might not need this;
@@ -231,7 +231,7 @@ XiiLang {
 			operator = operator.asString;
 			string = string.replace(oldop, operator);
 		});
-
+		
 		switch(operator)
 			{"dict"}{ // TEMP: only used for debugging
 				"-- Groups : ".postln;
@@ -1057,7 +1057,7 @@ XiiLang {
 				transposition = "";
 				block{|break|
 					postfixstring[i+1..postfixstring.size-1].do({arg item; 
-						if(item.isAlphaNum, {transposition = transposition ++ item }, {break.value});
+						if(item.isAlphaNum || (item == $.), {transposition = transposition ++ item }, {break.value});
 					});
 				};
 				transposition = transposition.asFloat;
@@ -1235,6 +1235,7 @@ XiiLang {
 		timestretch = postfixArgDict.timestretch;
 		silences = postfixArgDict.silences;
 		transposition = postfixArgDict.transposition;
+		[\transposition, transposition].postln;
 		
 		channelicon = score.find("c");
 		midichannel = if(channelicon.isNil.not, { score[channelicon+1..channelicon+3].asInteger - 1 }, { 0 });
@@ -1268,6 +1269,7 @@ XiiLang {
 		});
 		// adding 59 to start with C (and user inputs are 1 as C, 3 as E, 5 as G, etc.)
 		notearr = notearr + tonic + transposition; // if added after the score array
+		[\notearr, notearr].postln;
 		// -------------    the score   -------------------
 		quantphase=0;	
 		spacecount = 0; 
@@ -1699,7 +1701,7 @@ XiiLang {
 					if(thisline.findAll("-").size > 1, {
 						block{|break|
 							thisline[thisline.findAll("-")[1]+1..thisline.size-1].do({arg item, i; 
-								if(item.isAlphaNum, {val = val ++ item }, {end = thisline.findAll("-")[1]+1+i; break.value});
+								if(item.isAlphaNum || (item == $.), {val = val ++ item }, {end = thisline.findAll("-")[1]+1+i; break.value});
 							});
 						};
 						thisline = thisline[0..thisline.findAll("-")[1]]++newarg[1]++thisline[end..thisline.size-1]; // ++"\n";
@@ -1709,7 +1711,7 @@ XiiLang {
 				}, { // this is the MAIN method for replacing operators (for all but "-" as seen above)
 					block{|break|
 						thisline[thisline.find(newarg[0])+1..thisline.size-1].do({arg item, i; 
-							if(item.isAlphaNum || (item == $~), {val = val ++ item }, {end = thisline.find(newarg[0])+1+i; break.value});
+							if(item.isAlphaNum || (item == $~) || (item == $.), {val = val ++ item }, {end = thisline.find(newarg[0])+1+i; break.value});
 						});
 					};
 					
@@ -1782,7 +1784,6 @@ XiiLang {
 						cursorPos = doc.selectionStart; // get cursor pos
 						#stringstart, stringend = this.findStringStartEnd(doc, pureagentname);
 						doc.string_( modstring, stringstart, stringend-stringstart);
-						[\modstring, modstring, \stringendminusstringstart, stringend-stringstart].postln;
 						// for methods that change string sizes, it's good to do the below so cursor is placed correctly
 						doc.selectRange(cursorPos+(modstring.size-(stringend-stringstart))); // set cursor pos again
 						switch(scoremode)
@@ -1812,7 +1813,6 @@ XiiLang {
 		var splitloc, methodstring, spaces, agent, method, pureagentname;
 		var thisline, modstring, stringstart, allreturns, stringend, scorerange, score, scoremode, scorestringsuffix;
 		var argument, argsuffix, cursorPos;
-				
 		splitloc = string.find(" ");
 		methodstring = string[0..splitloc-1].tr($ , \); // get the name of the agent
 		method = methodstring[0..methodstring.size-1];
@@ -1823,8 +1823,7 @@ XiiLang {
 		pureagentname = agent; // the name of the agent is different in code (0john) and in doc (john) (for multidoc support)
 		agent = (docnum.asString++agent).asSymbol;
 		if( spaces.size > 1, { argument = string[spaces[1]..spaces[spaces.size-1]] }); // is there an argument?
-		
-		
+
 		// HERE CHECK IF IT'S A GROUP THEN PERFORM A DO LOOP (for each member of the group)
 		if(groups.at(agent).isNil.not, { // the "agent" is a group
 			groups.at(agent).do({arg agentx, i;
@@ -2013,22 +2012,22 @@ XiiLang {
 					this.decreaseAmp(pureagentname++"((");
 				}
 				{"+"} { 
-					argument = argument.asInteger;
+					argument = argument.asFloat;
 					// -------- perform the method -----------
 					this.swapString(doc, pureagentname, score, [true, true, true], ["+", argument]);
 				}
 				{"-"} { 
-					argument = argument.asInteger;
+					argument = argument.asFloat;
 					// -------- perform the method -----------
 					this.swapString(doc, pureagentname, score, [true, true, true], ["-", argument]);
 				}
 				{"*"} { 
-					argument = argument.asInteger;
+					argument = argument.asFloat;
 					// -------- perform the method -----------
 					this.swapString(doc, pureagentname, score, [true, true, true], ["*", argument]);
 				}
 				{"/"} { 
-					argument = argument.asInteger;
+					argument = argument.asFloat;
 					// -------- perform the method -----------
 					this.swapString(doc, pureagentname, score, [true, true, true], ["/", argument]);
 				}
@@ -2038,7 +2037,6 @@ XiiLang {
 					this.swapString(doc, pureagentname, score, [true, true, true], ["!", argument]);
 				}
 				{"("} { 
-					"bracket!!!!!!!!!!!!!!!".postln;
 					//argument = argument.asInteger;
 					argument = argument.tr($ ,\);
 					// -------- perform the method -----------
