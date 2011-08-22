@@ -27,8 +27,10 @@ p.p17 {margin: 0.0px 0.0px 0.0px 57.0px; text-indent: -57.0px; font: 14.0px Helv
 p.p18 {margin: 0.0px 0.0px 0.0px 0.0px; font: 9.0px Monaco; color: #cd1713}
 p.p19 {margin: 0.0px 0.0px 0.0px 0.0px; font: 9.0px Monaco; color: #102ac3}
 p.p20 {margin: 0.0px 0.0px 0.0px 0.0px; font: 9.0px Monaco}
-p.p21 {margin: 0.0px 0.0px 0.0px 0.0px; font: 9.0px Monaco; color: #cd1713; min-height: 12.0px}
-p.p22 {margin: 0.0px 0.0px 0.0px 0.0px; font: 9.0px Monaco; color: #737373}
+p.p21 {margin: 0.0px 0.0px 0.0px 0.0px; font: 9.0px Monaco; color: #000000; min-height: 12.0px}
+p.p22 {margin: 0.0px 0.0px 0.0px 0.0px; font: 9.0px Monaco; color: #000000}
+p.p23 {margin: 0.0px 0.0px 0.0px 0.0px; font: 9.0px Monaco; color: #cd1713; min-height: 12.0px}
+p.p24 {margin: 0.0px 0.0px 0.0px 0.0px; font: 9.0px Monaco; color: #737373}
 span.s1 {font: 18.0px Helvetica}
 span.s2 {color: #000000}
 span.s3 {text-decoration: underline}
@@ -321,10 +323,17 @@ span.Apple-tab-span {white-space:pre}
 <p class="p20">jarret<span class="Apple-converted-space">  <span class="Apple-tab-span">	</span></span>-&gt; <span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>midi[1 <span class="Apple-converted-space">  </span>4 <span class="Apple-converted-space">  </span>2<span class="Apple-converted-space">  </span>1<span class="Apple-converted-space">      </span>]c5 <span class="Apple-tab-span">	</span><span class="s8">// sending out midi info on channel 5</span></p>
 <p class="p3"><br></p>
 <p class="p18"><span class="s2">a -&gt; (135)<span class="Apple-tab-span">	</span></span>// a chord can be defined in brackets and assigned to a character (one letter only)</p>
-<p class="p3"><br></p>
+<p class="p21"><br></p>
 <p class="p18"><span class="s2">jarret -&gt; piano[1 <span class="Apple-converted-space">  </span>3 <span class="Apple-converted-space">  </span>5 <span class="Apple-converted-space">      </span>a<span class="Apple-converted-space">        </span>]<span class="Apple-tab-span">	</span></span>// the chord is then played inside the score</p>
-<p class="p3"><br></p>
-<p class="p3"><br></p>
+<p class="p21"><br></p>
+<p class="p18"><span class="s2">a -&gt; $17 <span class="Apple-tab-span">	</span></span>// 17 semitones above the fundamental</p>
+<p class="p21"><br></p>
+<p class="p18"><span class="s2">b -&gt; $24<span class="Apple-tab-span">	</span></span>// two octaves above</p>
+<p class="p21"><br></p>
+<p class="p18"><span class="s2">c -&gt; (158ab)<span class="Apple-tab-span">	</span></span>// a chord with a tonic, a fifth, an octave, a third, and two octave above</p>
+<p class="p21"><br></p>
+<p class="p22">bb -&gt; piano[1 2 3 a b c c ]</p>
+<p class="p21"><br></p>
 <p class="p18">// percussive score</p>
 <p class="p18"><span class="s2">ringo<span class="Apple-converted-space">    </span>-&gt; <span class="Apple-converted-space">            </span>|o <span class="Apple-converted-space">  </span>x<span class="Apple-converted-space">    </span>o<span class="Apple-converted-space">    </span>x <span class="Apple-converted-space">  </span>|<span class="Apple-tab-span">	</span></span>// here o is mapped to a bass drum and x to a snare drum</p>
 <p class="p3"><br></p>
@@ -377,11 +386,11 @@ span.Apple-tab-span {white-space:pre}
 <p class="p18"><span class="s2">snapshot one<span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span></span>// recall the snapshot</p>
 <p class="p3"><br></p>
 <p class="p18"><span class="s2">swap jimi<span class="Apple-converted-space">  <span class="Apple-tab-span">	</span></span></span>// swap jimi's score</p>
-<p class="p21"><br></p>
+<p class="p23"><br></p>
 <p class="p18"><span class="s2">+ jimi 12 <span class="Apple-tab-span">	</span></span>// add 12 as an argument to the score (transposing octave up)</p>
-<p class="p21"><br></p>
+<p class="p23"><br></p>
 <p class="p18"><span class="s2">^ jimi 1842 <span class="Apple-tab-span">	</span></span>// setting the amplitude arguments of jimi</p>
-<p class="p21"><br></p>
+<p class="p23"><br></p>
 <p class="p18"><span class="s2">future 2b:12 &gt;&gt; + jimi 7 12 0 <span class="Apple-tab-span">	</span></span>// every 2 bars, transpose jimi's score to the tailing arguments<span class="Apple-converted-space"> </span></p>
 <p class="p3"><br></p>
 <p class="p18"><span class="s2">snapshot -&gt; two <span class="Apple-tab-span">	</span></span>// take a snapshot of the agent states</p>
@@ -403,7 +412,7 @@ span.Apple-tab-span {white-space:pre}
 <p class="p3"><br></p>
 <p class="p18">// when creating an agent, the string has to go in</p>
 <p class="p18"><span class="s10">"aa -&gt; xylo[2 3 4 ]"</span><span class="s2">.ixilang(0, newagent:</span><span class="s9">true</span><span class="s2">) </span>// 1st arg: document nr, 2nd arg: new agent</p>
-<p class="p22">"axa -&gt; xylo[2 3 4 8 3 ]"<span class="s2">.ixilang( newagent:</span><span class="s9">true</span><span class="s2">)</span></p>
+<p class="p24">"axa -&gt; xylo[2 3 4 8 3 ]"<span class="s2">.ixilang( newagent:</span><span class="s9">true</span><span class="s2">)</span></p>
 <p class="p3"><br></p>
 <p class="p18">// if doc number is nil, a new window is created.</p>
 <p class="p3"><br></p>

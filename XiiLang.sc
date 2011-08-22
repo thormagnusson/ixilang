@@ -31,7 +31,7 @@ TODO: Check the use of String:drop(1) and String:drop(-1)
 // added multiplication of sustain (1242~8) - here the whole part note (1) is 8 times as long
 // amplitude control added as a verb (can be used with future then:   future 1:10 >> (( john    - which would fade the agent john down)
 // adding scheme-like functions for post score arguments - also working with future
-
+// microtonal transposition in melodic mode
 
 // FIXED BUG: snapshots do not perk up agents that have been dozed
 // FIXED BUG: Snapshots do not recall the effect state
@@ -60,7 +60,7 @@ TempoClock:sync (by f0)
 XiiLang {	
 	classvar globaldocnum;
 	var <>doc, docnum, oncolor, offcolor, processcolor, proxyspace, groups;
-	var agentDict, instrDict, ixiInstr, effectDict, chordDict, snapshotDict; //, effectRegDict; //, codeDict;
+	var agentDict, instrDict, ixiInstr, effectDict, varDict, snapshotDict; //, effectRegDict; //, codeDict;
 	var scale, tuning, chosenscale, tonic;
 	var midiclient, eventtype, suicidefork;
 	var langCommands, englishCommands, language, english;
@@ -91,12 +91,12 @@ XiiLang {
 		processcolor = Color.yellow;
 		if(dicts.isNil, {
 			agentDict = IdentityDictionary.new; // dicts are sent from "load"
-			chordDict = IdentityDictionary.new;
+			varDict = IdentityDictionary.new;
 			snapshotDict = IdentityDictionary.new; // dicts are sent from "load"
 			groups = ();
 		},{
 			agentDict = dicts[0]; // dicts are sent from "load"
-			chordDict = IdentityDictionary.new;
+			varDict = IdentityDictionary.new;
 			snapshotDict = dicts[1]; // dicts are sent from "load"
 			groups = dicts[2];
 			docnum = dicts[3];
@@ -124,11 +124,11 @@ XiiLang {
 			this.makeEffectDict;
 			groups = ();
 			agentDict = IdentityDictionary.new;
-			chordDict = IdentityDictionary.new;
+			//varDict = IdentityDictionary.new; // I might uncomment this line
 			snapshotDict = IdentityDictionary.new;
 			proxyspace = ProxySpace.new.know_(true);
 		});
-		englishCommands = ["group", "sequence", "future", "snapshot", "->", "))", "((", "|", "[", "{", ")", ">>", "<<", "tempo", 
+		englishCommands = ["group", "sequence", "future", "snapshot", "->", "))", "((", "|", "[", "{", ")", "$", ">>", "<<", "tempo", 
 				"scale", "scalepush", "tuning", "tuningpush", "remind", "help", "tonality", "instr", "tonic", "grid", "kill",  
 				"doze", "perk", "nap", "shake", "swap", ">shift", "<shift", "invert", "expand", "revert", 
 				"up", "down", "yoyo", "order", "suicide", "hotline", "dict", "save", "load", "midiclients", 
@@ -231,7 +231,7 @@ XiiLang {
 			operator = operator.asString;
 			string = string.replace(oldop, operator);
 		});
-		
+	
 		switch(operator)
 			{"dict"}{ // TEMP: only used for debugging
 				"-- Groups : ".postln;
@@ -280,7 +280,7 @@ XiiLang {
 			{"->"}{
 				var mode;
 				mode = block{|break| 
-					["|", "[", "{", ")"].do({arg op, i;						var c = string.find(op);
+					["|", "[", "{", ")", "$"].do({arg op, i;						var c = string.find(op);
 						if(c.isNil.not, {break.value(i)}); 
 					});
 				};
@@ -288,7 +288,8 @@ XiiLang {
 					{0} { this.parseScoreMode0(string) }
 					{1} { this.parseScoreMode1(string) }
 					{2} { this.parseScoreMode2(string) }
-					{3} { this.parseChord(string) };
+					{3} { this.parseChord(string, \c) }
+					{4} { this.parseChord(string, \n) };
 			}
 			{"|"}{ // the following four are here in case user is not using agent assignment (->)
 				this.parseScoreMode0(string);
@@ -299,9 +300,13 @@ XiiLang {
 			{"{"}{
 				this.parseScoreMode2(string);
 			}
-			{")"}{
-				this.parseChord(string);
-			}
+//			{")"}{
+//				this.parseChord(string);
+//			}
+//			{"±"}{
+//				"in here".postln;
+//				this.parseChord(string);
+//			}
 			{"future"}{
 				// future 8:4 >> swap thor // every 8 SECONDS the action is performed (here 4 times)
 				// future 4b:4 >> swap thor // every 8 BARS the action is performed (here 4 times)
@@ -1235,7 +1240,6 @@ XiiLang {
 		timestretch = postfixArgDict.timestretch;
 		silences = postfixArgDict.silences;
 		transposition = postfixArgDict.transposition;
-		[\transposition, transposition].postln;
 		
 		channelicon = score.find("c");
 		midichannel = if(channelicon.isNil.not, { score[channelicon+1..channelicon+3].asInteger - 1 }, { 0 });
@@ -1255,7 +1259,7 @@ XiiLang {
 			var scalenote, thisnote, chord;
 			thisnote = note.asString.asInteger; // if thisnote is 0 then it's a chord (since "a".asInteger becomes 0)
 			if(thisnote == 0, { // if it is a CHORD
-				chord = chordDict[note.asSymbol];
+				chord = varDict[note.asSymbol];
 				if(chord.isNil, { // if using a chord (item in dict) that does not exist (say x) - to prevent error posting
 					notearr = notearr.add('\s');
 				}, {	
@@ -1269,7 +1273,7 @@ XiiLang {
 		});
 		// adding 59 to start with C (and user inputs are 1 as C, 3 as E, 5 as G, etc.)
 		notearr = notearr + tonic + transposition; // if added after the score array
-		[\notearr, notearr].postln;
+
 		// -------------    the score   -------------------
 		quantphase=0;	
 		spacecount = 0; 
@@ -1400,22 +1404,40 @@ XiiLang {
 		this.playScoreMode2(agent, amparr, durarr, instrument, quantphase, newInstrFlag); 
 	}	
 	
-	parseChord {arg string;
-		var chordstartloc, splitloc, chordstring, chord, chordname;
+	parseChord {arg string, mode;
+		var splitloc, chordstring, chord, varname;
+		var chordstartloc;
 		string = string[0..string.size-1].tr($ , \); // get rid of spaces until score
-		chordstartloc = string.find("(");
 		splitloc = string.find("->");
-		chordname = string[0..splitloc-1]; // get the name of the agent
-		if(chordname.interpret.isInteger, { // PERCUSSIVE MODE ------------ NOT WORKING - Pseq(\instrument does not expand)
+		varname = string[0..splitloc-1]; // get the name of the var
+
+//		if(mode == \c, {
+//			chordstartloc = string.find("(");
+//		},{
+//			chordstartloc = string.find("±");
+//		});
+		if(varname.interpret.isInteger, { // PERCUSSIVE MODE ------------ NOT WORKING - Pseq(\instrument does not expand)
 			chordstring = string[splitloc+3..string.size-3];
 			chord = [];
 			chordstring.do({arg instr; chord = chord.add(instrDict[instr.asSymbol]) });
-			chordDict[chordname.asSymbol] = chord; 
+			varDict[varname.asSymbol] = chord; 
 		}, { // MELODIC MODE
-			chordstring = string[splitloc+3..string.size-3];
-			chord = [];
-			chordstring.do({arg note; chord = chord.add(scale[note.asString.asInteger-1]) });
-			chordDict[chordname.asSymbol] = chord; 
+			if(mode == \c, {
+				chordstring = string[splitloc+3..string.size-2];
+				chord = [];
+				chordstring.do({arg note; 
+					if(note.isAlpha, {
+						"---------- is a var".postln;
+						chord = chord.add(varDict[note.asSymbol]);
+					},{
+						chord = chord.add(scale[note.asString.asInteger-1]);
+					});
+				});
+				varDict[varname.asSymbol] = chord;
+			},{
+				chordstring = string[splitloc+3..string.size-1];
+				varDict[varname.asSymbol] = chordstring.asInteger;
+			});
 		});
 	}	
 
