@@ -831,9 +831,11 @@ XiiLang {
 			}
 			{"midiout"}{
 				var nrstart, destination;
+				"-----------   MIDI OUT    ------------ ".postln;
 				nrstart = string.find("t")+1;
 				destination = string[nrstart..string.size-1].asInteger;
 				midiclient = MIDIOut(destination);
+				"---> You set the MIDI out to : ".post; MIDIClient.destinations[destination].postln;
 				MIDIClockOut(destination).play; // XXX experimental
 			}
 			{"matrix"}{
