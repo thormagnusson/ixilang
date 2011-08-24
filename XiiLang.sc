@@ -132,7 +132,7 @@ XiiLang {
 				"scale", "scalepush", "tuning", "tuningpush", "remind", "help", "tonality", "instr", "tonic", "grid", "kill",  
 				"doze", "perk", "nap", "shake", "swap", ">shift", "<shift", "invert", "expand", "revert", 
 				"up", "down", "yoyo", "order", "suicide", "hotline", "dict", "save", "load", "midiclients", 
-				"midiout", "matrix", "autocoder", "coder", "+", "-", "*", "/", "!", "^", "("];  // removed "." XXX
+				"midiout", "matrix", "autocoder", "coder", "+", "-", "*", "/", "!", "^", "(", "hash", "beer", "coffee", "LSD", "detox"];  // removed "." XXX
 		
 		if(lang.isNil, { 
 			english = true; // might not need this;
@@ -291,15 +291,15 @@ XiiLang {
 					{3} { this.parseChord(string, \c) }
 					{4} { this.parseChord(string, \n) };
 			}
-			{"|"}{ // the following four are here in case user is not using agent assignment (->)
-				this.parseScoreMode0(string);
-			}
-			{"["}{
-				this.parseScoreMode1(string);
-			}
-			{"{"}{
-				this.parseScoreMode2(string);
-			}
+//			{"|"}{ // the following four are here in case user is not using agent assignment (->)
+//				this.parseScoreMode0(string);
+//			}
+//			{"["}{
+//				this.parseScoreMode1(string);
+//			}
+//			{"{"}{
+//				this.parseScoreMode2(string);
+//			}
 //			{")"}{
 //				this.parseChord(string);
 //			}
@@ -767,6 +767,22 @@ XiiLang {
 			{"order"}{
 				this.parseMethod(string);			
 			}
+			{"hash"}{
+				this.parseMethod(string);			
+			}
+			{"beer"}{
+				this.parseMethod(string);			
+			}
+			{"coffee"}{
+				this.parseMethod(string);			
+			}
+			{"LSD"}{
+				this.parseMethod(string);			
+			}
+			{"detox"}{
+				this.parseMethod(string);			
+			}
+			// scheme-like verbs
 			{"+"}{
 				this.parseMethod(string);			
 			}
@@ -818,6 +834,7 @@ XiiLang {
 				nrstart = string.find("t")+1;
 				destination = string[nrstart..string.size-1].asInteger;
 				midiclient = MIDIOut(destination);
+				MIDIClockOut(destination).play; // XXX experimental
 			}
 			{"matrix"}{
 				var spaces, size=8, direction=\x;
@@ -1427,7 +1444,6 @@ XiiLang {
 				chord = [];
 				chordstring.do({arg note; 
 					if(note.isAlpha, {
-						"---------- is a var".postln;
 						chord = chord.add(varDict[note.asSymbol]);
 					},{
 						chord = chord.add(scale[note.asString.asInteger-1]);
@@ -2024,7 +2040,51 @@ XiiLang {
 					score = score.collect({arg char; 0.5.coin.if({char.toUpper},{char.toLower})});
 					this.swapString(doc, pureagentname, score, [true, false, false]);
 				}
-				
+				{"hash"} {
+					"smoking hash".postln;
+					argument = if(argument.asFloat == 0, { 0.1 }, { argument.asFloat/10 });
+					[\argument, argument].postln;
+					Pdef(agent.asSymbol).align([argument, argument, argument])
+					// -------- perform the method -----------
+				}
+				{"beer"} {
+					var durarr, sum, copy, summed, newdurs;
+					"drinking beer".postln;
+					argument = if(argument.asFloat == 0, { 0.1 }, { argument.asFloat/10 });
+					// drunk
+					[\argument, argument].postln;
+					durarr = agentDict[agent][1].durarr;
+					sum = durarr.sum;
+					copy = [];
+					durarr.do({arg item, i; copy = copy.add(item+(argument.rand2)) });
+					summed = copy.asArray.normalizeSum * sum;
+					durarr.size.do({arg i; durarr[i] = copy[i] });
+				}
+				{"coffee"} {
+					"coffee !!! ".postln;
+					argument = if(argument.asFloat == 0, { -0.01 }, { (argument.asFloat/100)* -1 });
+					[\argument, argument].postln;
+					Pdef(agent.asSymbol).align([argument, argument])
+				}
+				{"LSD"} {
+					var durarr, sum, copy, summed, newdurs, last, arraybutlastsum;
+					"dropping LSD".postln;
+					argument = if(argument.asFloat == 0, { 0.1 }, { argument.asFloat/10 });
+					[\argument, argument].postln;
+					durarr = agentDict[agent][1].durarr;
+					sum = durarr.sum;
+					copy = [];
+					durarr.do({arg item, i; copy = copy.add(item+(argument.rand)) });
+					//summed = copy.asArray.normalizeSum * sum;
+					arraybutlastsum = copy[0..copy.size-2].sum;
+					last = sum-arraybutlastsum;
+					copy[copy.size-1] = last;
+					[\copy, copy].postln;
+					durarr.size.do({arg i; durarr[i] = abs(copy[i]) }); // make it absolote, so in the end (if too spaced) timing suffers
+				}				
+				{"detox"} {
+					this.swapString(doc, pureagentname, score, [true, true, true]);
+				}				
 				// below are Scheme like methods with operator in front of the agent
 				
 				{"))"} { // in future mode, agents can increase and decrease volume

@@ -275,6 +275,9 @@ XiiLangInstr {
 			Out.ar(out, Pan2.ar(signal*env, pan, amp));
 		}).add;
 		
+		SynthDef(\impulse, { // no amp atm
+			Out.ar(0, Impulse.ar(0)!2)
+		}).add;
 
 
 		// ----------------------------------------------------------------------------------
@@ -364,7 +367,7 @@ Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) 
 		// rubbish! MdaPiano does not support microtonality !!! 
 		SynthDef(\piano, { |out=0, freq=440, gate=1, sustain = 0.9, amp=0.3|
 			var sig = MdaPiano.ar(freq, gate, decay:(sustain*2), release: (sustain*6), stereo: 0.3, sustain: 0);
-			var env = EnvGen.kr(Env.adsr(0.01, sustain, sustain/2, 0.3), gate, doneAction:2);
+			var env = EnvGen.kr(Env.adsr(0.01, sustain*4, sustain*2, 0.3), gate, doneAction:2);
 			Out.ar(out, sig * (amp*0.35)*env);
 		}).add;
 
@@ -439,28 +442,28 @@ Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) 
 
 		SynthDef(\xylo, { |out=0, freq=440, amp=0.3, sustain=0.5, pan=0, gate=1|
 			var sig = StkBandedWG.ar(freq, instr:1, mul:3);
-			var env = EnvGen.kr(Env.adsr(0.0001, sustain, sustain/2, 0.3), gate, doneAction:2);
+			var env = EnvGen.kr(Env.adsr(0.0001, sustain, sustain*0.8, 0.3), gate, doneAction:2);
 			Out.ar(out, Pan2.ar(sig, pan, env * amp));
 		}).add;
 
 		SynthDef(\softwg, { |out=0, freq=440, gate=1, amp=0.3, sustain=0.5, pan=0|
 			var sig = StkBandedWG.ar(freq, instr:1, mul:3);
-			var env = EnvGen.kr(Env.adsr(0.0001, sustain, sustain*0.8, 0.3), gate, doneAction:2);
+			var env = EnvGen.kr(Env.adsr(0.0001, sustain, sustain, 0.3), gate, doneAction:2);
 			Out.ar(out, Pan2.ar(sig, pan, env*amp));
 		}).add;
 
-		SynthDef(\sines, {arg out=0, freq=440, dur=1, amp=0.3, pan=0;
+		SynthDef(\sines, {arg out=0, freq=440, dur=1, sustain=0.5, amp=0.3, pan=0;
 		        var x, env;
-		        env = EnvGen.kr(Env.perc(0.01, 220/freq, amp), doneAction:2);
+		        env = EnvGen.kr(Env.perc(0.01, sustain, amp), doneAction:2);
 		        x = Mix.ar(Array.fill(8, {SinOsc.ar(freq*IRand(1,10),0, 0.08)}));
 		        x = LPF.ar(x, 20000);
 		        x = Pan2.ar(x,pan);
 		        Out.ar(out, x*env);
 		}).add;
 		
-		SynthDef(\synth, {arg out=0, freq=440, dur=1, amp=0.3, pan=0, gate=1;
+		SynthDef(\synth, {arg out=0, freq=440, dur=1, sustain=0.5, amp=0.3, pan=0, gate=1;
 		        var x, env;
-			   env = EnvGen.kr(Env.adsr, gate, doneAction:2);
+			   env = EnvGen.kr(Env.adsr(0.0001, sustain, sustain*0.8, 0.3), gate, doneAction:2);
 		        x = Mix.ar([FSinOsc.ar(freq, pi/2, 0.5), Pulse.ar(freq, Rand(0.3,0.5), 0.5)]);
 		        x = LPF.ar(x, 20000);
 		        x = Pan2.ar(x,pan);
@@ -495,7 +498,7 @@ Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) 
 
 		SynthDef(\glass, {arg out=0, freq=440, dur=1, sustain=0.5, amp=0.3, pan=0;
 		        var x, env;
-		        env = EnvGen.kr(Env.perc(0.0001, sustain*2), doneAction:2);
+		        env = EnvGen.kr(Env.perc(0.0001, sustain*4), doneAction:2);
 		        x = Decay2.ar(Resonz.ar(Impulse.ar(0.01), freq*4, 0.005), 0.001, sustain*2, 3);
 		        x = Pan2.ar(x,pan);
 		        Out.ar(out, LeakDC.ar(x)*env*amp*50);
