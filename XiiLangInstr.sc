@@ -18,111 +18,114 @@ XiiLangInstr {
 		
 		// ---------------------- sample based instruments -----------------------------
 		if(loadsamples, {		
-		samplePaths = ("sounds/ixilang/"++project++"/*").pathMatch;
-		sampleNames = samplePaths.collect({ |path| path.basename.splitext[0]});
+			samplePaths = ("sounds/ixilang/"++project++"/*").pathMatch;
+			samplePaths = samplePaths.reject({ |path| path.basename.splitext[1] == "scd" }); // not including the keymapping files
+			samplePaths = samplePaths.reject({ |path| path.basename.splitext[1] == "ixi" }); // not including the keymapping files
+			sampleNames = samplePaths.collect({ |path| path.basename.splitext[0]});
+			
+			if(samplePaths == [], {
+				"-------------------------- ERROR ---------------------------".postln;
+				"ixi lang : You need to create an 'ixilang' folder within your 'sounds' folder. \nIn there, you create your project folders, such as 'default'.\n For example: /sounds/ixilang/default. \nSee the XiiLang.html help file".postln;
+				"------------------------------------------------------------".postln;
 		
-		if(samplePaths == [], {
-			"-------------------------- ERROR ---------------------------".postln;
-			"ixi lang : You need to create an 'ixilang' folder within your 'sounds' folder. \nIn there, you create your project folders, such as 'default'.\n For example: /sounds/ixilang/default. \nSee the XiiLang.html help file".postln;
-			"------------------------------------------------------------".postln;
+			}, {
+			
+			// there might be more samples in the folder than the 52 keys of the keyboard, so load them as well
+			nrOfSampleSynthDefs = if(sampleNames.size < 52, {52}, {sampleNames.size});
+			
+			/*
+			samplePaths.do({arg filepath, i;
+				var file, chnum;
+				file = SoundFile.new;
+				file.openRead(filepath);
+				chnum = file.numChannels;
+				file.close;
+				SynthDef(sampleNames[i].asSymbol, {arg out=0, freq=440, amp=0.3, pan=0;
+						var buffer, player, env, signal;
+						buffer = Buffer.read(Server.default, filepath);
+						player= if(chnum==1, { 
+							PlayBuf.ar(1, buffer, (freq.cpsmidi-60).midiratio)!2 }, {
+							PlayBuf.ar(2, buffer, (freq.cpsmidi-60).midiratio)});
+						env = EnvGen.ar(Env.perc(0.01, 0.4), doneAction:2);
+						signal = player * env * amp;
+						Out.ar(out, signal);
+				}).add;
+			});
+			*/
+			
+			/*
+			samplePaths.do({arg filepath, i;
+				var file, chnum;
+				file = SoundFile.new;
+				file.openRead(filepath);
+				chnum = file.numChannels;
+				file.close;
+				SynthDef(sampleNames[i].asSymbol, {arg out=0, freq=440, amp=0.3, pan=0, noteamp=1, dur;
+						var buffer, player, env, signal;
+						buffer = Buffer.read(Server.default, filepath);
+						player= Select.ar(noteamp,
+							[ // playMode 2 - the sample player mode
+							if(chnum==1, { 
+							LoopBuf.ar(1, buffer, (freq.cpsmidi-60).midiratio, 1, 0, 0, 44100*60*10)!2 }, {
+							LoopBuf.ar(2, buffer, (freq.cpsmidi-60).midiratio, 1, 0, 0, 44100*60*10)})
+							* EnvGen.ar(Env.linen(0.0001, 60*60, 0.0001))
+							, // playMode 1 - the rhythmic mode
+							if(chnum==1, { 
+							PlayBuf.ar(1, buffer, (freq.cpsmidi-60).midiratio)!2 }, {
+							PlayBuf.ar(2, buffer, (freq.cpsmidi-60).midiratio)})
+							* EnvGen.ar(Env.perc(0.01, 0.4))
+							]);
+						// I use DetectSilence rather than doneAction in Env.perc, as a doneAction in Env.perc
+						// would also be running (in Select) thus killing the synth even in {} mode
+						// I therefore add 0.02 so the 
+						DetectSilence.ar(player, 0.001, 0.1, 2);
+						//signal = player * amp * Lag.kr(noteamp, dur); // works better without lag
+						signal = player * amp * noteamp;
+						Out.ar(out, signal);
+				}).add;
+			});
+			*/
+			
+			// 52 is the number of keys (lower and uppercase letters) supported
+			nrOfSampleSynthDefs.do({arg i;
+				var file, chnum, filepath;
+				filepath = samplePaths.wrapAt(i);
+				file = SoundFile.new;
+				file.openRead(filepath);
+				chnum = file.numChannels;
+				file.close;
+				SynthDef(sampleNames.wrapAt(i).asSymbol, {arg out=0, freq=440, amp=0.3, pan=0, noteamp=1, sustain=0.4;
+						var buffer, player, env, signal, killer;
+						buffer = Buffer.read(Server.default, filepath);
+						player= Select.ar(noteamp,
+							[ // playMode 2 - the sample player mode
+							if(chnum==1, { 
+							LoopBuf.ar(1, buffer, (freq.cpsmidi-60).midiratio, 1, 0, 0, 44100*60*10)!2 }, {
+							LoopBuf.ar(2, buffer, (freq.cpsmidi-60).midiratio, 1, 0, 0, 44100*60*10)})
+							* EnvGen.ar(Env.linen(0.0001, 60*60, 0.0001))
+							, // playMode 1 - the rhythmic mode
+							if(chnum==1, { 
+							PlayBuf.ar(1, buffer, (freq.cpsmidi-60).midiratio)!2 }, {
+							PlayBuf.ar(2, buffer, (freq.cpsmidi-60).midiratio)})
+							* EnvGen.ar(Env.perc(0.01, sustain))
+							]);
+						
+						// I use DetectSilence rather than doneAction in Env.perc, as a doneAction in Env.perc
+						// would also be running (in Select) thus killing the synth even in {} mode
+						// I therefore add 0.02 so the 
+						DetectSilence.ar(player, 0.001, 0.1, 2);
+						//signal = player * amp * Lag.kr(noteamp, dur); // works better without lag
+						signal = player * amp * noteamp;
+						Out.ar(out, signal);
+				}).add;
+			});
 	
-		}, {
-		
-		// there might be more samples in the folder than the 52 keys of the keyboard, so load them as well
-		nrOfSampleSynthDefs = if(sampleNames.size < 52, {52}, {sampleNames.size});
-		
-		/*
-		samplePaths.do({arg filepath, i;
-			var file, chnum;
-			file = SoundFile.new;
-			file.openRead(filepath);
-			chnum = file.numChannels;
-			file.close;
-			SynthDef(sampleNames[i].asSymbol, {arg out=0, freq=440, amp=0.3, pan=0;
-					var buffer, player, env, signal;
-					buffer = Buffer.read(Server.default, filepath);
-					player= if(chnum==1, { 
-						PlayBuf.ar(1, buffer, (freq.cpsmidi-60).midiratio)!2 }, {
-						PlayBuf.ar(2, buffer, (freq.cpsmidi-60).midiratio)});
-					env = EnvGen.ar(Env.perc(0.01, 0.4), doneAction:2);
-					signal = player * env * amp;
-					Out.ar(out, signal);
-			}).add;
-		});
-		*/
-		
-		/*
-		samplePaths.do({arg filepath, i;
-			var file, chnum;
-			file = SoundFile.new;
-			file.openRead(filepath);
-			chnum = file.numChannels;
-			file.close;
-			SynthDef(sampleNames[i].asSymbol, {arg out=0, freq=440, amp=0.3, pan=0, noteamp=1, dur;
-					var buffer, player, env, signal;
-					buffer = Buffer.read(Server.default, filepath);
-					player= Select.ar(noteamp,
-						[ // playMode 2 - the sample player mode
-						if(chnum==1, { 
-						LoopBuf.ar(1, buffer, (freq.cpsmidi-60).midiratio, 1, 0, 0, 44100*60*10)!2 }, {
-						LoopBuf.ar(2, buffer, (freq.cpsmidi-60).midiratio, 1, 0, 0, 44100*60*10)})
-						* EnvGen.ar(Env.linen(0.0001, 60*60, 0.0001))
-						, // playMode 1 - the rhythmic mode
-						if(chnum==1, { 
-						PlayBuf.ar(1, buffer, (freq.cpsmidi-60).midiratio)!2 }, {
-						PlayBuf.ar(2, buffer, (freq.cpsmidi-60).midiratio)})
-						* EnvGen.ar(Env.perc(0.01, 0.4))
-						]);
-					// I use DetectSilence rather than doneAction in Env.perc, as a doneAction in Env.perc
-					// would also be running (in Select) thus killing the synth even in {} mode
-					// I therefore add 0.02 so the 
-					DetectSilence.ar(player, 0.001, 0.1, 2);
-					//signal = player * amp * Lag.kr(noteamp, dur); // works better without lag
-					signal = player * amp * noteamp;
-					Out.ar(out, signal);
-			}).add;
-		});
-		*/
-		
-		// 52 is the number of keys (lower and uppercase letters) supported
-		nrOfSampleSynthDefs.do({arg i;
-			var file, chnum, filepath;
-			filepath = samplePaths.wrapAt(i);
-			file = SoundFile.new;
-			file.openRead(filepath);
-			chnum = file.numChannels;
-			file.close;
-			SynthDef(sampleNames.wrapAt(i).asSymbol, {arg out=0, freq=440, amp=0.3, pan=0, noteamp=1, sustain=0.4;
-					var buffer, player, env, signal, killer;
-					buffer = Buffer.read(Server.default, filepath);
-					player= Select.ar(noteamp,
-						[ // playMode 2 - the sample player mode
-						if(chnum==1, { 
-						LoopBuf.ar(1, buffer, (freq.cpsmidi-60).midiratio, 1, 0, 0, 44100*60*10)!2 }, {
-						LoopBuf.ar(2, buffer, (freq.cpsmidi-60).midiratio, 1, 0, 0, 44100*60*10)})
-						* EnvGen.ar(Env.linen(0.0001, 60*60, 0.0001))
-						, // playMode 1 - the rhythmic mode
-						if(chnum==1, { 
-						PlayBuf.ar(1, buffer, (freq.cpsmidi-60).midiratio)!2 }, {
-						PlayBuf.ar(2, buffer, (freq.cpsmidi-60).midiratio)})
-						* EnvGen.ar(Env.perc(0.01, sustain))
-						]);
-					
-					// I use DetectSilence rather than doneAction in Env.perc, as a doneAction in Env.perc
-					// would also be running (in Select) thus killing the synth even in {} mode
-					// I therefore add 0.02 so the 
-					DetectSilence.ar(player, 0.001, 0.1, 2);
-					//signal = player * amp * Lag.kr(noteamp, dur); // works better without lag
-					signal = player * amp * noteamp;
-					Out.ar(out, signal);
-			}).add;
-		});
-
+			});
 		});
 		/*
 		 Synth(\machine)
 		*/
-
+		
 		// ---------------------- synthesized instruments -----------------------------
 		
 		SynthDef(\impulse, { arg out=0, pan=0, amp=1;
@@ -510,7 +513,7 @@ Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) 
 		}).add;
 
 		//^this.makeInstrDict; // changed such that the class returns its instance (not the dict)
-		});
+
 	}
 	
 	makeInstrDict{ // this is where keys are mapped to instruments (better done by hand and design)
@@ -530,6 +533,9 @@ Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) 
 		}, {
 			instrDict = Object.readArchive("sounds/ixilang/"++project++"/_keyMapping.ixi");
 		});
+		
+		"The keys of your keyboard are mapped to these samples :".postln;
+		Post << this.getPercussiveInstr;
 		
 		^instrDict;		
 	

@@ -459,6 +459,7 @@ XiiLang {
 					TempoClock.default.tempo = newtemp;
 					try {matrixArray.do({arg matrix; matrix.setTempo_(newtemp) }) };
 				});
+				"---> Setting tempo to : ".post; (newtemp*60).postln;
 			}
 			{"scale"}{
 				var scalestart, scalestr;

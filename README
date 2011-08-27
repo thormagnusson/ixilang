@@ -7,3 +7,23 @@ The ixi lang live coding environment is a simple visual system presenting a high
 
 Download SuperCollider first and then use ixi lang.
 
+
+If you are new to all this here are the basic instructions:
+
+SuperCollider is here:
+http://supercollider.sourceforge.net/downloads/
+
+ixi lang is here:
+https://github.com/ixiaudio/ixilang
+
+You also need the sc3-plugins from here:
+http://supercollider.sourceforge.net/downloads/ (choose the Universal Binary)
+
+1) Put SuperCollider somewhere on your system.
+2) Start SuperCollider.
+3) You will now have a SuperCollider folder within your "~/Library/Application Support/" folder.
+4) Create an "Extensions" folder in there and drop the ixilang classes into that folder.
+5) Drag the sc3-plugins folder into the "Extensions" folder as well.
+6) Quit and start SuperCollider again and boot the server that is "default" (you can choose either).
+7) Type XiiLang() in a new SC document (Apple+N) and evaluate that line (with the cursor in it) with SHIFT+RETURN (buttons pressed in that order)
+8) Now follow the instructions of ixi lang in the XiiLang.html helpfile.
