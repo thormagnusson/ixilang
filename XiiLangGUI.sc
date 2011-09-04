@@ -107,10 +107,7 @@ XiiLangGUI  {
 
 		mappingwinfunc = {
 			var win, column, letters, instrDict, dictFound;
-			column = 0;
-			letters = "AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz";
-
-			if(Object.readArchive(projectpath++"/_keyMapping.ixi").isNil, { // check if there is an existing mapping file
+			if(Object.readArchive(projectpath++"/_keyMapping.ixi").isNil, {
 				instrDict = IdentityDictionary.new;
 				dictFound = false;
 			}, {
@@ -118,10 +115,22 @@ XiiLangGUI  {
 				dictFound = true;
 			});
 		
+			XiiLangInstr.new(projectname);
+		
+			column = 0;
+			letters = "AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz";
 			win = SCWindow.new("mapping keyboard keys to samples - project: "+projectname.quote, Rect(710,410, 460, 760), resizable:false).front;
 		
+			win.view.keyDownAction_({arg view, cha, modifiers, unicode, keycode;
+				if(letters.includes(cha), {
+					{Synth(instrDict[cha.asSymbol])}.value;
+				});
+			});
+
 			letters.do({arg char, i; var j, mapname;
-				if(dictFound.not, { instrDict[char.asSymbol] = filenames.wrapAt(i) });
+				if(dictFound.not, {
+					instrDict[char.asSymbol] = filenames.wrapAt(i);
+				});
 				column = (i/26).floor*220;
 				j = i % 26;
 				SCStaticText(win, Rect(15+column, ((j+1)*26)+1, 200, 15)).background_(Color.grey.alpha_(0.5));
@@ -130,6 +139,23 @@ XiiLangGUI  {
 					.action_({arg view; 
 						mapname.string_(filenames[view.value]);
 						instrDict[char.asSymbol] = filenames[view.value];
+					})
+					.keyDownAction_({arg view, cha, modifiers, unicode, keycode; 
+						switch(keycode)
+							{123}{ view.valueAction_(view.value-1) }
+							{124}{ view.valueAction_(view.value+1) }
+							{126}{ view.valueAction_(view.value-1) }
+							{125}{ view.valueAction_(view.value+1) }
+							{51}{ 
+								win.view.children.do({arg vw, i;
+									if(vw === view, {
+										if(i>3, {
+											win.view.children[i-4].focus(true);
+										})
+									})
+								})
+							}
+							{36}{ Synth(instrDict[char.asSymbol]) };
 					});
 				SCStaticText(win, Rect(45+column, (j+1)*26, 70, 16))
 					.string_(char++" ->")
@@ -140,15 +166,24 @@ XiiLangGUI  {
 									instrDict[char.asSymbol];
 								}, {
 									filenames.wrapAt(i);
-								});
+								})
 							)
 							.font_(Font("Monaco", 11));
 			});
 			
+			SCStaticText(win, Rect(15, 710, 200, 40))
+				.background_(Color.grey.alpha_(0.5))
+				.string_(" Use arrow keys, TAB, Delete and \n ENTER to navigate sample library")
+				.font_(Font("Monaco", 9));
+		
 			SCButton(win, Rect(235, 710, 200, 20))
 				.states_([["save mapping file", Color.black, Color.green.alpha_(0.2)]])
-				.action_({ instrDict.writeArchive(projectpath++"/_keyMapping.ixi") })
+				.action_({ 
+					instrDict.writeArchive(projectpath++"/_keyMapping.ixi");
+				})
 				.font_(Font("Helvetica", 11));
+															win.view.children[1].focus(true);
+
 		}
 
 	}
