@@ -32,12 +32,16 @@ TODO: Check the use of String:drop(1) and String:drop(-1)
 // amplitude control added as a verb (can be used with future then:   future 1:10 >> (( john    - which would fade the agent john down)
 // adding scheme-like functions for post score arguments - also working with future
 // microtonal transposition in melodic mode
+// intoxicants
+// added XiiLangGUI() for mapping keys and for starting in .app mode
+
 
 // FIXED BUG: snapshots do not perk up agents that have been dozed
 // FIXED BUG: Snapshots do not recall the effect state
 // FIXED BUG: single character percussive mode agents wont >shift
 // FIXED BUG: future bug
 // FIXED BUG: the active agent is found by comparing strings in dict and on doc. (in case of many agents on doc with same name)
+// FIXED BUG: location of cursor when above agent and using future
 
 // Add: ptpd support for netclocks
 // Êsudo ./ptpd -cd
@@ -56,6 +60,10 @@ TODO: Check the use of String:drop(1) and String:drop(-1)
 Dependencies:
 TempoClock:sync (by f0)
 */
+
+// todo: make a XiiLang.gui where users map their sounds and choose a project
+// XiiLangGUI.new
+// add slide (from Array helpfile)
 
 XiiLang {	
 	classvar globaldocnum;
@@ -128,11 +136,12 @@ XiiLang {
 			snapshotDict = IdentityDictionary.new;
 			proxyspace = ProxySpace.new.know_(true);
 		});
-		englishCommands = ["group", "sequence", "future", "snapshot", "->", "))", "((", "|", "[", "{", ")", "$", ">>", "<<", "tempo", 
-				"scale", "scalepush", "tuning", "tuningpush", "remind", "help", "tonality", "instr", "tonic", "grid", "kill",  
-				"doze", "perk", "nap", "shake", "swap", ">shift", "<shift", "invert", "expand", "revert", 
-				"up", "down", "yoyo", "order", "suicide", "hotline", "dict", "save", "load", "midiclients", 
-				"midiout", "matrix", "autocoder", "coder", "+", "-", "*", "/", "!", "^", "(", "hash", "beer", "coffee", "LSD", "detox"];  // removed "." XXX
+		englishCommands = ["group", "sequence", "future", "snapshot", "->", "))", "((", "|", "[", "{", ")", 
+				"$", ">>", "<<", "tempo", "scale", "scalepush", "tuning", "tuningpush", "remind", "help", 
+				"tonality", "instr", "tonic", "grid", "kill", "doze", "perk", "nap", "shake", "swap", ">shift", 
+				"<shift", "invert", "expand", "revert", "up", "down", "yoyo", "order", "suicide", "hotline", 
+				"dict", "save", "load", "midiclients", "midiout", "matrix", "autocoder", "coder", "+", "-", 
+				"*", "/", "!", "^", "(", "hash", "beer", "coffee", "LSD", "detox", "new"];  // removed "." XXX
 		
 		if(lang.isNil, { 
 			english = true; // might not need this;
@@ -386,16 +395,17 @@ XiiLang {
 												      seconds.wait;
 												});
 												{ 
-												cursorPos = doc.selectionStart; // get cursor pos
+												// XXX TEMP: NOT necessary to set cursor here?
+												//cursorPos = doc.selectionStart; // get cursor pos
 												this.parseMethod(command+agentx+argumentarray.wrapAt(i).asString); // do command
-												doc.selectRange(cursorPos); // set cursor pos again
+												//doc.selectRange(cursorPos); // set cursor pos again
 												}.defer;
 											});
 										}.fork(TempoClock.new)
 								);
 								}.value;
 							});
-						}, { // it is a real agent, not a group, then we ADD THE EFFECT
+						}, { // it is a real agent, not a group, then we ADD 
 							agentDict[agent][2] = agentDict[agent][2].add( 
 								{ 
 									times.do({arg i; 
@@ -405,9 +415,10 @@ XiiLang {
 										      seconds.wait;
 										});
 										{ 
-										cursorPos = doc.selectionStart; // get cursor pos
+										// XXX TEMP: NOT necessary to set cursor here?
+										//cursorPos = doc.selectionStart; // get cursor pos
 										this.parseMethod(command+pureagent+argumentarray.wrapAt(i).asString); // do command
-										doc.selectRange(cursorPos); // set cursor pos again
+										//doc.selectRange(cursorPos); // set cursor pos again
 										}.defer;
 									});
 									// agentDict[agent][2] = nil; // set it back to nil after routine is finished
@@ -535,7 +546,7 @@ XiiLang {
 				this.getMethodsList;		
 			}
 			{"help"}{
-				this.getMethodsList;		
+				XiiLang.openHelpFile;		
 			}
 			{"tonality"}{
 				var doc;
@@ -942,6 +953,9 @@ XiiLang {
 						this.opInterpreter(line);
 					});
 				}.fork(TempoClock.new);
+			}
+			{"new"}{
+				XiiLangGUI.new(projectname);
 			}
 			;
 		}
@@ -1814,26 +1828,33 @@ XiiLang {
 				modstring = thisline[0..scorerange[0]]++newscore++scorestringsuffix;
 				modstring = modstring.reject({ |c| c.ascii == 10 }); // get rid of \n
 				{
-					{
+					{ // make the agent yellow
 						cursorPos = doc.selectionStart; // get cursor pos
 						#stringstart, stringend = this.findStringStartEnd(doc, pureagentname);
 						doc.stringColor_(processcolor, stringstart, stringend-stringstart);
 						doc.selectRange(cursorPos); // set cursor pos again
 					}.defer;
 					0.3.wait;
-					{
+					{ // swap agent's strings
 						cursorPos = doc.selectionStart; // get cursor pos
 						#stringstart, stringend = this.findStringStartEnd(doc, pureagentname);
+						
 						doc.string_( modstring, stringstart, stringend-stringstart);
+
 						// for methods that change string sizes, it's good to do the below so cursor is placed correctly
-						doc.selectRange(cursorPos+(modstring.size-(stringend-stringstart))); // set cursor pos again
+						// if cursorPos < stringend, then the same location, else calcultate new location cf. new string size
+						if(cursorPos<stringend, {
+							doc.selectRange(cursorPos); // set cursor pos again
+						}, {
+							doc.selectRange(cursorPos+(modstring.size-(stringend-stringstart))); // set cursor pos again
+						});
 						switch(scoremode)
 							{0} { if(agentDict[agent][1].playstate, {this.parseScoreMode0(modstring)}) }
 							{1} { if(agentDict[agent][1].playstate, {this.parseScoreMode1(modstring)}) }
 							{2} { if(agentDict[agent][1].playstate, {this.parseScoreMode2(modstring)}) }
 					}.defer;
 					0.3.wait;
-					{
+					{ // make agent white again
 						cursorPos = doc.selectionStart; // get cursor pos
 						#stringstart, stringend = this.findStringStartEnd(doc, pureagentname); // this will cause error since the agent string will have changed
 						doc.stringColor_(oncolor, stringstart, stringend-stringstart);
@@ -1868,7 +1889,7 @@ XiiLang {
 		// HERE CHECK IF IT'S A GROUP THEN PERFORM A DO LOOP (for each member of the group)
 		if(groups.at(agent).isNil.not, { // the "agent" is a group
 			groups.at(agent).do({arg agentx, i;
-				this.parseMethod(method+agentx+argument); // recursive calling of same method
+				this.parseMethod(method+agentx+argument); // recursive calling of this method
 			});
 		}, { // it is a real agent, not a group
 			
