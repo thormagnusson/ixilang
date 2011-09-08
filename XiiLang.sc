@@ -1118,22 +1118,24 @@ XiiLang {
 		// -- sustain --
 		sustainstartloc = postfixstring.find("(");
 		sustainendloc = postfixstring.find(")");
+		//[\sustainstartloc, sustainstartloc, \sustainendloc, sustainendloc].postln;
 		if(sustainstartloc.isNil, {
 			sustainstring = "4";
 		}, {
 			sustainstring = postfixstring[sustainstartloc+1..sustainendloc-1];
 			if(sustainstring.contains("~"), {
-				multloc = sustainstring.find("~");
-				sustainstring = postfixstring[sustainstartloc+1..multloc];
-				multiplication = postfixstring[multloc+2..sustainendloc-1].asFloat;
+				multloc = postfixstring.find("~");
+				sustainstring = postfixstring[sustainstartloc+1..multloc-1];
+				multiplication = postfixstring[multloc+1..sustainendloc-1].asFloat;
 			})
 		});
 		sustainstring.do({arg dur; var durint;
 			durint = dur.asString.asInteger;
 			if(durint == 0, {durint = 1}); // make sure durint is not 0 - which will crash the language
-			sustainarr = sustainarr.add(TempoClock.default.tempo.reciprocal/durint);
+//			sustainarr = sustainarr.add(TempoClock.default.tempo.reciprocal/durint); // a bug !!!
+			sustainarr = sustainarr.add(durint.reciprocal);
 		});
-
+		
 		sustainarr = sustainarr*multiplication;
 		argDict.add(\sustainarr -> sustainarr);
 		
@@ -1150,6 +1152,7 @@ XiiLang {
 			attackarr = attackarr.add(att.asString.asInteger/9); // values range from 0 to 1.0
 		 });
 		argDict.add(\attackarr -> attackarr);
+		//"----------- ARGDICT IS ________  ".post; argDict.postln;
 		^argDict;
 	}
 
