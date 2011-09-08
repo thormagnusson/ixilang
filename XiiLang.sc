@@ -42,6 +42,8 @@ TODO: Check the use of String:drop(1) and String:drop(-1)
 // FIXED BUG: future bug
 // FIXED BUG: the active agent is found by comparing strings in dict and on doc. (in case of many agents on doc with same name)
 // FIXED BUG: location of cursor when above agent and using future
+// FIXED BUG: nap and perk would not work in concrete mode
+
 
 // Add: ptpd support for netclocks
 // Êsudo ./ptpd -cd
@@ -54,7 +56,6 @@ TODO: Check the use of String:drop(1) and String:drop(-1)
 // add some more effects
 // add the coffee, lsd, cannabis 
 // john >> coffee
-// check swarms.cc
 
 /*
 Dependencies:
@@ -371,14 +372,14 @@ XiiLang {
 						argumentarray = [];
 						tempstring = "";
 						argument.do({arg item; 
-							if(item.isAlphaNum, {
+							if(item.isAlphaNum || (item == $~), {
 								tempstring = tempstring ++ item;
 							}, {
-								if(tempstring != "", {argumentarray = argumentarray.add(tempstring.asInteger)}); 
-								tempstring ="" 
+								if(tempstring != "", {argumentarray = argumentarray.add(tempstring)}); // removed .asInteger here  XXX !!! could cause bugs
+								tempstring ="";
 							});
 						});
-						if(argumentarray == [], {argumentarray = [argument.asInteger]});
+						if(argumentarray == [], {argumentarray = [argument]}); // removed .asInteger here XXX !!! could cause bugs
 						
 						//if future argument contains many args then put them into a list that will be wrappedAt in the future task
 						
@@ -1559,6 +1560,7 @@ XiiLang {
 	playScoreMode2 {arg agent, amparr, durarr, instrument, quantphase, newInstrFlag;
 		// ------------ play function --------------
 		if(proxyspace[agent].isNeutral, { // check if the object exists alreay
+			"Post 1".postln;
 			Pdefn((agent++"durarray").asSymbol, Pseq(durarr, inf));
 			Pdefn((agent++"amparray").asSymbol, Pseq(amparr, inf));
 			Pdef(agent, Pmono(instrument,
@@ -1569,9 +1571,11 @@ XiiLang {
 			proxyspace[agent] = Pdef(agent);
 			proxyspace[agent].play;
 		},{
+			"Post 2".postln;
 			Pdefn((agent++"durarray").asSymbol, Pseq(durarr, inf)).quant = [durarr.sum, quantphase, 0, 1];
 			Pdefn((agent++"amparray").asSymbol, Pseq(amparr, inf)).quant = [durarr.sum, quantphase, 0, 1];
 			if(newInstrFlag, {
+				"Post 3".postln;
 				proxyspace[agent].free; // needed in order to swap instrument in Pmono
 				Pdef(agent, Pmono(instrument,
 							\dur, Pdefn((agent++"durarray").asSymbol),
@@ -1924,6 +1928,10 @@ XiiLang {
 				{"doze"} {// pause stream
 					if(agentDict[agent][1].playstate == true, {
 						agentDict[agent][1].playstate = false;
+						if(agentDict[agent][1].mode == 2, { // mode 2 would not mute/unmute
+							proxyspace[agent].stop;
+						});
+						proxyspace[agent].objects[0].array.postln;
 						proxyspace[agent].objects[0].array[0].mute;
 				 		doc.stringColor_(offcolor, stringstart, stringend-stringstart);
 					})
@@ -1931,6 +1939,9 @@ XiiLang {
 				{"perk"} { // restart stream
 					if(agentDict[agent][1].playstate == false, {
 						agentDict[agent][1].playstate = true;
+						if(agentDict[agent][1].mode == 2, { // mode 2 would not mute/unmute
+							proxyspace[agent].play;
+						});
 						proxyspace[agent].objects[0].array[0].unmute;
 				 		doc.stringColor_(oncolor, stringstart, stringend-stringstart);
 					});
@@ -1954,11 +1965,17 @@ XiiLang {
 					 	{
 					 		(times*2).do({ // times two as the interface is that it should nap twice 
 					 			if(on, {
+									if(agentDict[agent][1].mode == 2, { // mode 2 would not mute/unmute
+										proxyspace[agent].stop;
+									});
 					 				proxyspace[agent].objects[0].array[0].mute;
 					 				agentDict[agent][1].playstate = false;
 							 		{doc.stringColor_(offcolor, stringstart, stringend-stringstart)}.defer;
 					 				on = false;
 					 			}, {
+									if(agentDict[agent][1].mode == 2, { // mode 2 would not mute/unmute
+										proxyspace[agent].play;
+									});
 					 				proxyspace[agent].objects[0].array[0].unmute;
 									agentDict[agent][1].playstate = true;
 							 		{doc.stringColor_(oncolor, stringstart, stringend-stringstart)}.defer;
@@ -1982,12 +1999,19 @@ XiiLang {
 								barmode = false; // is the future working in seconds or bars ?
 								napdur = argument.asFloat;
 							});
+																			if(agentDict[agent][1].mode == 2, { // mode 2 would not mute/unmute
+								proxyspace[agent].stop;
+							});
+				 			
 				 			proxyspace[agent].objects[0].array[0].mute;
 							{doc.stringColor_(offcolor, stringstart, stringend-stringstart)}.defer;
 							if(barmode, { 
 							      ((napdur*agentDict[agent][1].durarr.sum)/TempoClock.default.tempo).wait; 
 							},{
 							      napdur.wait;
+							});
+							if(agentDict[agent][1].mode == 2, { // mode 2 would not mute/unmute
+								proxyspace[agent].play;
 							});
 				 			proxyspace[agent].objects[0].array[0].unmute;
 							{doc.stringColor_(oncolor, stringstart, stringend-stringstart)}.defer;
