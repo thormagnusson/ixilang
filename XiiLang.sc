@@ -65,6 +65,8 @@ TempoClock:sync (by f0)
 // todo: make a XiiLang.gui where users map their sounds and choose a project
 // XiiLangGUI.new
 // add slide (from Array helpfile)
+// add slide (from Array helpfile)
+
 
 XiiLang {	
 	classvar globaldocnum;
