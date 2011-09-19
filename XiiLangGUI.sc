@@ -106,7 +106,8 @@ XiiLangGUI  {
 		};
 
 		mappingwinfunc = {
-			var win, column, letters, instrDict, dictFound;
+			var win, column, letters, instrDict, dictFound, savebutt;
+			
 			if(Object.readArchive(projectpath++"/_keyMapping.ixi").isNil, {
 				instrDict = IdentityDictionary.new;
 				dictFound = false;
@@ -125,6 +126,11 @@ XiiLangGUI  {
 				if(letters.includes(cha), {
 					{Synth(instrDict[cha.asSymbol])}.value;
 				});
+				letters.do({arg char, i; // thanks julio
+					if(char == cha, {
+						win.view.children[1+(i*4)].focus(true);
+					});
+				});
 			});
 
 			letters.do({arg char, i; var j, mapname;
@@ -139,13 +145,14 @@ XiiLangGUI  {
 					.action_({arg view; 
 						mapname.string_(filenames[view.value]);
 						instrDict[char.asSymbol] = filenames[view.value];
+						savebutt.value_(0);
 					})
 					.keyDownAction_({arg view, cha, modifiers, unicode, keycode; 
 						switch(keycode)
-							{123}{ view.valueAction_(view.value-1) }
-							{124}{ view.valueAction_(view.value+1) }
-							{126}{ view.valueAction_(view.value-1) }
-							{125}{ view.valueAction_(view.value+1) }
+							{123}{ view.valueAction_(view.value-1); savebutt.value_(0); }
+							{124}{ view.valueAction_(view.value+1); savebutt.value_(0); }
+							{126}{ view.valueAction_(view.value-1); savebutt.value_(0); }
+							{125}{ view.valueAction_(view.value+1); savebutt.value_(0); }
 							{51}{ 
 								win.view.children.do({arg vw, i;
 									if(vw === view, {
@@ -176,10 +183,11 @@ XiiLangGUI  {
 				.string_(" Use arrow keys, TAB, Delete and \n ENTER to navigate sample library")
 				.font_(Font("Monaco", 9));
 		
-			SCButton(win, Rect(235, 710, 200, 20))
-				.states_([["save mapping file", Color.black, Color.green.alpha_(0.2)]])
+			savebutt = SCButton(win, Rect(235, 710, 200, 20))
+				.states_([["save mapping file", Color.black, Color.green.alpha_(0.2)], ["saved", Color.black, Color.clear]])
 				.action_({ 
 					instrDict.writeArchive(projectpath++"/_keyMapping.ixi");
+					" ---> ixi lang NOTE: You need to restart your session for the new mapping to take function".postln;
 				})
 				.font_(Font("Helvetica", 11));
 															win.view.children[1].focus(true);

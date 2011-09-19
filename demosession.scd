@@ -24,6 +24,10 @@ future 4b:12 >> ^ pia 15 123 19992
 + pia 12
 future 2b:4 >> + pia 7 12 24 0
 
+a -> (135)
+b -> $-7
+sob -> synth[1  a  1  b   35 ](818188)
+
 snapshot -> two
 snapshot one
 snapshot two
@@ -31,12 +35,14 @@ snapshot two
 pia >> distort >> techno
 scalepush iwato
 instruments
+
 bob -> bar[1   4   6   2   ]
 / bob 4
 future 0.1:12 >> (( bob
 future 0.1:12 >> )) bob
 doze bob
 perk bob
+
 group woody -> sos sob
 future 4:12 >> shake woody
 snapshot -> three
@@ -45,7 +51,7 @@ snapshot -> four
 snapshot four
 
 matrix 6
-autocoder 2 
+autocode 2 
 
 save demosession
 kill

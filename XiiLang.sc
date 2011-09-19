@@ -26,7 +26,7 @@ TODO: Check the use of String:drop(1) and String:drop(-1)
 // coder (keys)
 // save and load sessions (need to put into help file)
 // suicide hotline added (you can now change your mind, in case performance has picked up)
-// automatic code writing (autocoder 4)
+// automatic code writing (autocode 4)
 // future now works in bars as well as in seconds
 // added multiplication of sustain (1242~8) - here the whole part note (1) is 8 times as long
 // amplitude control added as a verb (can be used with future then:   future 1:10 >> (( john    - which would fade the agent john down)
@@ -68,10 +68,25 @@ TempoClock:sync (by f0)
 // add slide (from Array helpfile)
 
 
+// TODO: add "scale oo minor" i.e. set scale of specific agent
+// Then I can do future 3:12 >> scale oo minor major iwato
+// The same for tuning, but the verb has to be tune (not polymorphic like scale - which can be a verb)
+// TODO: add synthdefs to the mapping file. One might want to use drum synthesis or any synthdef (two separate drop downs though)
+// john -> string[1  2  3  4  5  6  7  9  ] // fix bug
+
+// add transposition for percussive mode
+
+//IDEA: how about visualising the actions of the user in ixi lang. Data visualise it. Compare the automation and user data. 
+//IDEA2: Use autuconductor to apply actions to different agents.
+//IDEA3: Make a history class for ixi lang. Then create a system that plays back.
+// Starting to add scoreArray now.
+
+
+
 XiiLang {	
 	classvar globaldocnum;
 	var <>doc, docnum, oncolor, offcolor, processcolor, proxyspace, groups;
-	var agentDict, instrDict, ixiInstr, effectDict, varDict, snapshotDict; //, effectRegDict; //, codeDict;
+	var agentDict, instrDict, ixiInstr, effectDict, varDict, snapshotDict, scoreArray; //, effectRegDict; //, codeDict;
 	var scale, tuning, chosenscale, tonic;
 	var midiclient, eventtype, suicidefork;
 	var langCommands, englishCommands, language, english;
@@ -105,6 +120,7 @@ XiiLang {
 			varDict = IdentityDictionary.new;
 			snapshotDict = IdentityDictionary.new; // dicts are sent from "load"
 			groups = ();
+			scoreArray = []; // the score (timeline of the performance)
 		},{
 			agentDict = dicts[0]; // dicts are sent from "load"
 			varDict = IdentityDictionary.new;
@@ -128,6 +144,7 @@ XiiLang {
 		this.envirSetup( txt, newdoc, project );
 		ixiInstr = XiiLangInstr.new(project);
 		instrDict = ixiInstr.makeInstrDict;
+		SynthDescLib.read;
 		proxyspace = ProxySpace.new.know_(true);
 
 		CmdPeriod.add({
@@ -138,13 +155,14 @@ XiiLang {
 			//varDict = IdentityDictionary.new; // I might uncomment this line
 			snapshotDict = IdentityDictionary.new;
 			proxyspace = ProxySpace.new.know_(true);
+			scoreArray = [];
 		});
 		englishCommands = ["group", "sequence", "future", "snapshot", "->", "))", "((", "|", "[", "{", ")", 
 				"$", ">>", "<<", "tempo", "scale", "scalepush", "tuning", "tuningpush", "remind", "help", 
 				"tonality", "instr", "tonic", "grid", "kill", "doze", "perk", "nap", "shake", "swap", ">shift", 
 				"<shift", "invert", "expand", "revert", "up", "down", "yoyo", "order", "suicide", "hotline", 
-				"dict", "save", "load", "midiclients", "midiout", "matrix", "autocoder", "coder", "+", "-", 
-				"*", "/", "!", "^", "(", "hash", "beer", "coffee", "LSD", "detox", "new"];  // removed "." XXX
+				"dict", "save", "load", "midiclients", "midiout", "matrix", "autocode", "coder", "+", "-", 
+				"*", "/", "!", "^", "(", "hash", "beer", "coffee", "LSD", "detox", "new", "savescore", "playscore"];  // removed "." XXX
 		
 		if(lang.isNil, { 
 			english = true; // might not need this;
@@ -197,7 +215,7 @@ XiiLang {
 				if(keycode==123, { // not 124, 125, 
 					this.freeAgent(string);
 				}, {
-					this.opInterpreter(string);	
+					this.opInterpreter(string);
 				});				
 			});		
 		});
@@ -217,7 +235,9 @@ XiiLang {
 	opInterpreter {arg string;
 		var oldop, operator; // the various operators of the language
 		var methodFound = false;
+		[\string, string].postln;
 		string = string.reject({ |c| c.ascii == 10 }); // get rid of char return XXX TESTING (before Helsinki GIG) 
+		scoreArray = scoreArray.add([Main.elapsedTime, string]); // recording the performance
 		operator = block{|break| // better NOT mess with the order of the following... (operators using -> need to be before "->")
 			langCommands.do({arg op; var suggestedop, space;
 				var c = string.find(op);
@@ -254,6 +274,9 @@ XiiLang {
 				
 				"-- snapshotDicts : ".postln;
 				Post << snapshotDict; "\n".postln;
+				
+				"-- scoreArray : ".postln;
+				Post << scoreArray; "\n".postln;
 			}
 			{"save"}{ 
 				var sessionstart, sessionend, session, sessionsfolderpath;
@@ -345,6 +368,7 @@ XiiLang {
 					});
 					times = string[colon+1..commandstart-1].asInteger;
 					if(string[commandstart+3..commandstart+10] == "snapshot", { // it's the "choose snapshot" future
+						if(snapshotDict.size > 1, {
 						snapshotDict[\futures].stop;
 						snapshotDict[\futures] = // don't need to store the name, just a unique name
 							{ 
@@ -362,6 +386,9 @@ XiiLang {
 									}.defer;
 								}) 
 							}.fork(TempoClock.new) // not using default clock, since new tempo affects wait (strange?/bug?)
+						}, {
+							" ---> ixi lang: you haven't stored more than one snapshot!".postln;
+						});
 					}, {
 					//	agentstart = string.findAll(" ")[string.findAll(" ").size-2];
 					//	agentend = string.findAll(" ")[string.findAll(" ").size-1]; 
@@ -400,6 +427,7 @@ XiiLang {
 												{ 
 												// XXX TEMP: NOT necessary to set cursor here?
 												//cursorPos = doc.selectionStart; // get cursor pos
+																								scoreArray = scoreArray.add([Main.elapsedTime, command+agentx+argumentarray.wrapAt(i).asString]); 
 												this.parseMethod(command+agentx+argumentarray.wrapAt(i).asString); // do command
 												//doc.selectRange(cursorPos); // set cursor pos again
 												}.defer;
@@ -420,6 +448,7 @@ XiiLang {
 										{ 
 										// XXX TEMP: NOT necessary to set cursor here?
 										//cursorPos = doc.selectionStart; // get cursor pos
+																						scoreArray = scoreArray.add([Main.elapsedTime, command+pureagent+argumentarray.wrapAt(i).asString]); 
 										this.parseMethod(command+pureagent+argumentarray.wrapAt(i).asString); // do command
 										//doc.selectRange(cursorPos); // set cursor pos again
 										}.defer;
@@ -430,6 +459,7 @@ XiiLang {
 						});
 					});
 				}, { // removing future scheduling
+					"removing future".postln;
 					agentstart = string.findAll(" ")[1];
 					agentend = string.findAll(" ")[2]; 
 					agent = string[agentstart+1..agentend-1];
@@ -885,7 +915,7 @@ XiiLang {
 					});
 				});
 			}			
-			{"autocoder"}{
+			{"autocode"}{
 				var agent, mode, instrument, score, line, charloc, cursorPos, density, lines, spaces, nextline;
 				
 				string = string.replace("    ", " ");
@@ -959,6 +989,41 @@ XiiLang {
 			}
 			{"new"}{
 				XiiLangGUI.new(projectname);
+			}
+			{"savescore"}{
+				var sessionstart, sessionend, session, sessionsfolderpath;
+				string = string.replace("    ", " ");
+				string = string.replace("   ", " ");
+				string = string.replace("  ", " ");
+				string = string++" "; // add a space in order to find end of agent (if no argument)
+				sessionstart = string.findAll(" ")[0];
+				sessionend = string.findAll(" ")[1]; 
+				session = string[sessionstart+1..sessionend-1];
+				sessionsfolderpath = String.scDir++"/ixilang/";
+				if(sessionsfolderpath.pathMatch==[], {
+					("mkdir -p" + sessionsfolderpath.quote).unixCmd;
+					"ixi-lang NOTE: an ixilang folder was not found for saving sessions - It was created in the SuperCollider folder".postln;
+				});
+				scoreArray.writeArchive(sessionsfolderpath++session++".scr");
+			}
+			{"playscore"}{
+				
+				var sessionstart, sessionend, session, score;
+				string = string.replace("    ", " ");
+				string = string.replace("   ", " ");
+				string = string.replace("  ", " ");
+				string = string++" "; // add a space in order to find end of agent (if no argument)
+				sessionstart = string.findAll(" ")[0];
+				sessionend = string.findAll(" ")[1]; 
+				session = string[sessionstart+1..sessionend-1];
+				//doc.onClose; // call this to end all agents and groups in this particular doc if it has been running agents
+				[\session, session].postln;
+				("ixilang/"++session++".scr").postln;
+				score = Object.readArchive("ixilang/"++session++".scr");
+				score.postln;
+				//doc.string = string;
+				//XiiLang.new( projectname, key, true, false, language, [agentDict, snapshotDict, groups, docnum]);
+				
 			}
 			;
 		}
@@ -1057,6 +1122,7 @@ XiiLang {
 						{1} { this.parseScoreMode1(dictscore) }
 						{2} { this.parseScoreMode2(dictscore) };
 					proxyspace[keyagentname].play;
+					scoreArray = scoreArray.add([Main.elapsedTime, dictscore]); 
 
 					// --  4)  Set the effects that were active when the snapshot was taken
 					
@@ -1064,8 +1130,8 @@ XiiLang {
 					
 					agentDICT[keyagentname][0].keys.do({arg key, i; 
 						proxyspace[keyagentname][i+1] = \filter -> effectDict[key.asSymbol];
+						scoreArray = scoreArray.add([Main.elapsedTime, pureagentname + ">>" + key]); 
 					});
-
 				});
 			})
 		});
@@ -1476,6 +1542,8 @@ XiiLang {
 			},{
 				chordstring = string[splitloc+3..string.size-1];
 				varDict[varname.asSymbol] = chordstring.asInteger;
+				"in here".postln;
+				chordstring.asInteger.postln;
 			});
 		});
 	}	
@@ -1884,6 +1952,9 @@ XiiLang {
 		var splitloc, methodstring, spaces, agent, method, pureagentname;
 		var thisline, modstring, stringstart, allreturns, stringend, scorerange, score, scoremode, scorestringsuffix;
 		var argument, argsuffix, cursorPos;
+		//[\parseMethodString, string].postln;
+		//scoreArray = scoreArray.add([Main.elapsedTime, string]); 
+		
 		splitloc = string.find(" ");
 		methodstring = string[0..splitloc-1].tr($ , \); // get the name of the agent
 		method = methodstring[0..methodstring.size-1];
@@ -2246,8 +2317,10 @@ XiiLang {
  future	: set events in future (arg sec:times (4:4) or bars:times (4b:4))
  group	: define a group
  sequence	: define a sequence
- scale	: set scale
- tuning 	: set tuning
+ scale	: set the scale for next agents
+ tuning 	: set the tuning for next agents
+ scalepush  : set the scale for all running agents
+ tuningpush : set the tuning for all running agents
  grid  	: draw a line every n spaces 
  remind	: get this document
  instr 	: info on available instruments

@@ -113,7 +113,7 @@ XiiLangInstr {
 						// I use DetectSilence rather than doneAction in Env.perc, as a doneAction in Env.perc
 						// would also be running (in Select) thus killing the synth even in {} mode
 						// I therefore add 0.02 so the 
-						DetectSilence.ar(player, 0.001, 0.1, 2);
+						DetectSilence.ar(player, 0.001, 0.5, 2);
 						//signal = player * amp * Lag.kr(noteamp, dur); // works better without lag
 						signal = player * amp * noteamp;
 						Out.ar(out, signal);
@@ -128,11 +128,12 @@ XiiLangInstr {
 		
 		// ---------------------- synthesized instruments -----------------------------
 		
-		SynthDef(\impulse, { arg out=0, pan=0, amp=1;
-			var x, imp;
+		SynthDef(\impulse, { arg out=0, gate=1, pan=0, amp=1;
+			var x, imp, killenv;
+			killenv = EnvGen.ar(Env.adsr(0.0000001, 1, 0.2), gate, doneAction:2);
 			imp = Impulse.ar(1);
-			x = Pan2.ar(imp * EnvGen.ar(Env.perc(0.0000001, 0.2), doneAction:2), pan) * amp;
-			Out.ar(out, LeakDC.ar(x));
+			x = Pan2.ar(imp * EnvGen.ar(Env.perc(0.0000001, 0.2)), pan) * amp;
+			Out.ar(out, LeakDC.ar(Limiter.ar(x)));
 		}).add;
 		
 		SynthDef(\kick,{ arg out=0, pan=0, amp=0.3, mod_freq = 2.6, mod_index = 5, sustain = 0.4, beater_noise_level = 0.025;
@@ -278,10 +279,10 @@ XiiLangInstr {
 			Out.ar(out, Pan2.ar(signal*env, pan, amp));
 		}).add;
 		
-		SynthDef(\impulse, { // no amp atm
-			Out.ar(0, Impulse.ar(0)!2)
-		}).add;
-
+//		SynthDef(\impulse, { // no amp atm
+//			Out.ar(0, Impulse.ar(0)!2)
+//		}).add;
+//
 
 		// ----------------------------------------------------------------------------------
 		// ------------------------------- melodic instruments  -----------------------------
