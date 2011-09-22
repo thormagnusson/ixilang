@@ -105,8 +105,8 @@ XiiLangInstr {
 							* EnvGen.ar(Env.linen(0.0001, 60*60, 0.0001))
 							, // playMode 1 - the rhythmic mode
 							if(chnum==1, { 
-							PlayBuf.ar(1, buffer, (freq.cpsmidi-60).midiratio)!2 }, {
-							PlayBuf.ar(2, buffer, (freq.cpsmidi-60).midiratio)})
+							PlayBuf.ar(1, buffer, (freq.cpsmidi-60).midiratio) }, {
+							PlayBuf.ar(2, buffer, (freq.cpsmidi-60).midiratio).sum})
 							* EnvGen.ar(Env.perc(0.01, sustain))
 							]);
 						
@@ -116,7 +116,7 @@ XiiLangInstr {
 						DetectSilence.ar(player, 0.001, 0.5, 2);
 						//signal = player * amp * Lag.kr(noteamp, dur); // works better without lag
 						signal = player * amp * noteamp;
-						Out.ar(out, signal);
+						Out.ar(out, Pan2.ar(signal, pan));
 				}).add;
 			});
 	
