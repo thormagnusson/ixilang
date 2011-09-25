@@ -100,8 +100,8 @@ XiiLangInstr {
 						player= Select.ar(noteamp,
 							[ // playMode 2 - the sample player mode
 							if(chnum==1, { 
-							LoopBuf.ar(1, buffer, (freq.cpsmidi-60).midiratio, 1, 0, 0, 44100*60*10)!2 }, {
-							LoopBuf.ar(2, buffer, (freq.cpsmidi-60).midiratio, 1, 0, 0, 44100*60*10)})
+							LoopBuf.ar(1, buffer, (freq.cpsmidi-60).midiratio, 1, 0, 0, 44100*60*10) }, {
+							LoopBuf.ar(2, buffer, (freq.cpsmidi-60).midiratio, 1, 0, 0, 44100*60*10).sum})
 							* EnvGen.ar(Env.linen(0.0001, 60*60, 0.0001))
 							, // playMode 1 - the rhythmic mode
 							if(chnum==1, { 

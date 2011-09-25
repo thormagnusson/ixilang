@@ -35,6 +35,7 @@ TODO: Check the use of String:drop(1) and String:drop(-1)
 // intoxicants
 // added XiiLangGUI() for mapping keys and for starting in .app mode
 // added record and play score (to repeat performances)
+// added panning arguments as postfix
 
 
 // FIXED BUG: snapshots do not perk up agents that have been dozed
@@ -80,7 +81,8 @@ TempoClock:sync (by f0)
 //IDEA3: Make a history class for ixi lang. Then create a system that plays back.
 // Starting to add scoreArray now.
 
-
+// Add color customisation to GUI
+// todo: add more postfix args to concrete mode (pitch, panning, etc)
 
 XiiLang {	
 	classvar globaldocnum;
@@ -167,9 +169,9 @@ XiiLang {
 		englishCommands = ["group", "sequence", "future", "snapshot", "->", "))", "((", "|", "[", "{", ")", 
 				"$", ">>", "<<", "tempo", "scale", "scalepush", "tuning", "tuningpush", "remind", "help", 
 				"tonality", "instr", "tonic", "grid", "kill", "doze", "perk", "nap", "shake", "swap", ">shift", 
-				"<shift", "invert", "expand", "revert", "up", "down", "yoyo", "order", "suicide", "hotline", 
-				"dict", "save", "load", "midiclients", "midiout", "matrix", "autocode", "coder", "+", "-", 
-				"*", "/", "!", "^", "(", "hash", "beer", "coffee", "LSD", "detox", "new", "savescore", "playscore"];  // removed "." XXX
+				"<shift", "invert", "expand", "revert", "up", "down", "yoyo", "order", "dict", "save", "load", 
+				"midiclients", "midiout", "matrix", "autocode", "coder", "+", "-", "*", "/", "!", "^", "(", "<",
+				"hash", "beer", "coffee", "LSD", "detox", "new", "savescore", "playscore", "suicide", "hotline"];  // removed "." XXX
 		
 		if(lang.isNil, { 
 			english = true; // might not need this;
@@ -246,7 +248,7 @@ XiiLang {
 	opInterpreter {arg string;
 		var oldop, operator; // the various operators of the language
 		var methodFound = false;
-		[\string, string].postln;
+		//[\string, string].postln;
 		string = string.reject({ |c| c.ascii == 10 }); // get rid of char return XXX TESTING (before Helsinki GIG) 
 		scoreArray = scoreArray.add([Main.elapsedTime, string]); // recording the performance
 		operator = block{|break| // better NOT mess with the order of the following... (operators using -> need to be before "->")
@@ -655,13 +657,14 @@ XiiLang {
 			}
 			{"sequence"}{
 				var spaces, sequenceagent, op, seqagents, typecheck, firsttype, sa, originalstring, originalagents, fullscore;
-				var notearr, durarr, sustainarr, instrarr, attackarr, amparr, score, instrument, quantphase, newInstrFlag = false;
+				var notearr, durarr, sustainarr, instrarr, attackarr, amparr, panarr, score, instrument, quantphase, newInstrFlag = false;
 				typecheck = 0;
 				notearr = [];
 				durarr = [];
 				sustainarr = [];
 				attackarr = [];
 				amparr = [];
+				panarr = [];
 				instrarr = [];
 				score = "";
 				originalstring = string;
@@ -701,6 +704,7 @@ XiiLang {
 								sustainarr = sustainarr ++ agentDict[agent][1].sustainarr;
 								instrarr = instrarr ++ agentDict[agent][1].instrarr;
 								attackarr	= attackarr ++ agentDict[agent][1].attackarr;
+								panarr	= panarr ++ agentDict[agent][1].panarr;
 								score = score ++ agentDict[agent][1].score; // just for creating the score in the doc
 							});
 
@@ -717,10 +721,11 @@ XiiLang {
 								agentDict[sequenceagent][1].sustainarr = sustainarr;
 								agentDict[sequenceagent][1].instrarr = instrarr;
 								agentDict[sequenceagent][1].attackarr = attackarr;
+								agentDict[sequenceagent][1].panarr = panarr;
 								agentDict[sequenceagent][1].score = score;
 								agentDict[sequenceagent][1].quantphase = quantphase;
 								doc.string_(doc.string.replace(originalstring, fullscore++"\n"));
-								this.playScoreMode0(sequenceagent, durarr, instrarr, sustainarr, attackarr, quantphase, newInstrFlag);
+								this.playScoreMode0(sequenceagent, durarr, instrarr, sustainarr, attackarr, panarr, quantphase, newInstrFlag);
 						}
 						{1} {
 
@@ -747,11 +752,12 @@ XiiLang {
 								agentDict[sequenceagent][1].sustainarr = sustainarr;
 								agentDict[sequenceagent][1].notearr = notearr;
 								agentDict[sequenceagent][1].attackarr = attackarr;
+								agentDict[sequenceagent][1].panarr = panarr;
 								agentDict[sequenceagent][1].score = score;
 								agentDict[sequenceagent][1].quantphase = quantphase;
 							
 								doc.string_(doc.string.replace(originalstring, fullscore++"\n"));
-								this.playScoreMode1(sequenceagent, notearr, durarr, sustainarr, attackarr, instrument, quantphase, newInstrFlag);
+								this.playScoreMode1(sequenceagent, notearr, durarr, sustainarr, attackarr, panarr, instrument, quantphase, newInstrFlag);
 						}
 						{2} {
 							seqagents.do({arg agent, i;
@@ -772,10 +778,11 @@ XiiLang {
 								agentDict[sequenceagent][1].instrument = instrument;
 								agentDict[sequenceagent][1].durarr = durarr;
 								agentDict[sequenceagent][1].amparr = amparr;
+								agentDict[sequenceagent][1].panarr = panarr;
 								agentDict[sequenceagent][1].score = score;
 								agentDict[sequenceagent][1].quantphase = quantphase;
 								doc.string_(doc.string.replace(originalstring, fullscore++"\n"));
-								this.playScoreMode2(sequenceagent, amparr, durarr, instrument, quantphase, newInstrFlag);
+								this.playScoreMode2(sequenceagent, amparr, durarr, panarr, instrument, quantphase, newInstrFlag);
 						};
 				});				
 			}
@@ -857,6 +864,9 @@ XiiLang {
 			{"("}{
 				this.parseMethod(string);			
 			}
+			{"<"}{
+				this.parseMethod(string);			
+			}
 			{"^"}{
 				this.parseMethod(string);			
 			}
@@ -871,7 +881,10 @@ XiiLang {
 					suicidefork = fork{
 						inf.do({
 						["---  WILL I DIE NOW? ---", "---  HAS IT COME TO AN END?  ---", "---  WHEN WILL I DIE?  ---", "---  MORRISSEY  ---", "---  ACTUALLY, WAIT A MINUTE...  ---", "---  I'VE HAD IT  ---", "---  THIS IS THE END  ---", "---  I'M PATHETIC  ---"].choose.postln;
-						if((chance/100).coin, { 0.exit }); // kill supercollider
+						if((chance/100).coin, { 
+							this.opInterpreter("savescore" + ("suicide@"++Date.getDate.stamp.asString)); // save score first 
+							0.exit; // kill supercollider
+						}); 
 						time.wait;
 						});
 					};
@@ -1202,6 +1215,8 @@ XiiLang {
 		var argDict, multiplication, multloc;
 		multiplication = 1;
 
+[\postfixstring, postfixstring].postln;
+
 		argDict = ();
 		argDict[\timestretch] = 1;
 		argDict[\transposition] = 0;
@@ -1280,18 +1295,20 @@ XiiLang {
 		 });
 		argDict.add(\attackarr -> attackarr);
 
-
 		// -- panning --
-		pansymbol = postfixstring.findAll("<");
+		pansymbol = postfixstring.find("<");
+		[\pansymbol, pansymbol].postln;
 		if(pansymbol.isNil, {
-			panstring = "4";
+			panstring = "5";
 		}, {
 			panstartloc = postfixstring.find("<");
-			panendloc = postfixstring.findAll(">")[1];
+			panendloc = postfixstring.find(">");
+			[\panstartloc, panstartloc, \panendloc, panendloc].postln;
 			panstring = postfixstring[panstartloc+1..panendloc-1];
+			[\panstring, panstring].postln;
 		});
 		panstring.do({arg pan; 
-			panarr = panarr.add(pan.asString.asInteger/9*2-1); // values range from -1.0 to 1.0
+			panarr = panarr.add(pan.asString.asInteger.linlin(1, 9, -1, 1)); // 1 to 9 are mapped to panning of -1.0 to 1.0
 		 });
 		 [\______panarr, panarr].postln;
 		argDict.add(\panarr -> panarr);
@@ -1308,15 +1325,26 @@ XiiLang {
 		var startWempty = false;
 		var newInstrFlag = false;
 		var postfixArgDict;
-		
+		var prestring, scorestartloc;
 		scorestring = string.reject({arg char; char.ascii == 10 }); // to store in agentDict
 		
-		string = string.reject({arg char; (char==$-) || (char==$>) || (char.ascii == 10) }); // no need for this here
-		splitloc = string.find("|");
-		agentstring = string[0..splitloc-1].tr($ , \); // get the name of the agent
+	//	string = string.reject({arg char; (char==$-) || (char==$>) || (char.ascii == 10) }); // no need for this here
+	//	string = string.reject({arg char; (char==$-) || (char.ascii == 10) }); // no need for this here
+		
+		scorestartloc = string.find("|");
+		prestring = string[0..scorestartloc-1].tr($ , \); // get rid of spaces until score
+		splitloc = prestring.find("->");
+		agent = prestring[0..splitloc-1]; // get the name of the agent
+		//instrument = prestring[splitloc+2..prestring.size];
+		//agent = (docnum.asString++agent).asSymbol;
 
-		agent = agentstring[0..agentstring.size-1];
-		score = string[splitloc+1..string.size-1];
+		//splitloc = string.find("|");
+		//agentstring = string[0..splitloc-1].tr($ , \); // get the name of the agent
+		
+		//agent = agentstring[0..agentstring.size-1];
+		[\agent, agent].postln;
+		
+		score = string[scorestartloc+1..string.size-1];
 		endchar = score.find("|"); // the index (int) of the end op in the string
 
 		// -- parse the postfix args (after the score)
@@ -1835,10 +1863,10 @@ XiiLang {
 			agentDict[agent][1].amp = amp;
 			switch(agentDict[agent][1].mode)
 				{0} { this.playScoreMode0(agent, agentDict[agent][1].durarr, agentDict[agent][1].instrarr, agentDict[agent][1].sustainarr, 
-						agentDict[agent][1].attackarr, agentDict[agent][1].quantphase, false); }
+						agentDict[agent][1].attackarr, agentDict[agent][1].panarr, agentDict[agent][1].quantphase, false); }
 				{1} { 
 					this.playScoreMode1(agent, agentDict[agent][1].notearr, agentDict[agent][1].durarr, agentDict[agent][1].sustainarr, 
-						agentDict[agent][1].attackarr, agentDict[agent][1].instrument, agentDict[agent][1].quantphase, false, 
+						agentDict[agent][1].attackarr, agentDict[agent][1].panarr, agentDict[agent][1].instrument, agentDict[agent][1].quantphase, false, 
 						agentDict[agent][1].midichannel); }
 				{2} { Pdef(agent).set(\amp, amp) };
 		});
@@ -1863,8 +1891,8 @@ XiiLang {
 			" --->    ixi lang : AMP : ".post; amp.postln;
 			agentDict[agent][1].amp = amp;
 			switch(agentDict[agent][1].mode)
-				{0} { this.playScoreMode0(agent, agentDict[agent][1].durarr, agentDict[agent][1].instrarr, agentDict[agent][1].sustainarr, agentDict[agent][1].attackarr, agentDict[agent][1].quantphase, false); }
-				{1} { this.playScoreMode1(agent, agentDict[agent][1].notearr, agentDict[agent][1].durarr, agentDict[agent][1].sustainarr, agentDict[agent][1].attackarr, agentDict[agent][1].instrument, agentDict[agent][1].quantphase, false, agentDict[agent][1].midichannel); }
+				{0} { this.playScoreMode0(agent, agentDict[agent][1].durarr, agentDict[agent][1].instrarr, agentDict[agent][1].sustainarr, agentDict[agent][1].attackarr, agentDict[agent][1].panarr, agentDict[agent][1].quantphase, false); }
+				{1} { this.playScoreMode1(agent, agentDict[agent][1].notearr, agentDict[agent][1].durarr, agentDict[agent][1].sustainarr, agentDict[agent][1].attackarr, agentDict[agent][1].panarr, agentDict[agent][1].instrument, agentDict[agent][1].quantphase, false, agentDict[agent][1].midichannel); }
 				{2} { Pdef(agent).set(\amp, amp) };
 		});
 	}
@@ -1946,6 +1974,10 @@ XiiLang {
 						thisline = thisline[0..thisline.find(newarg[0])]++newarg[1]++")"++thisline[end..thisline.size-1]; // ++"\n";
 						thisline = thisline.replace("((", "(").replace("))", ")");
 					} 
+					{"<"} {
+						thisline = thisline[0..thisline.find(newarg[0])]++newarg[1]++">"++thisline[end..thisline.size-1]; // ++"\n";
+						thisline = thisline.replace("<<", "<").replace(">>", ">");
+					} 
 					{
 						thisline = thisline[0..thisline.find(newarg[0])]++newarg[1]++thisline[end..thisline.size-1]; // ++"\n";
 					};
@@ -1957,6 +1989,9 @@ XiiLang {
 					} 
 					{"("} {
 						thisline = thisline++newarg[0]++newarg[1]++")"; // no need to replace an operator, just add to the end
+					} 
+					{"<"} {
+						thisline = thisline++newarg[0]++newarg[1]++">"; // no need to replace an operator, just add to the end
 					} 
 					{
 						thisline = thisline++newarg[0]++newarg[1]; // no need to replace an operator, just add to the end
@@ -2342,6 +2377,11 @@ XiiLang {
 					argument = argument.asInteger;
 					// -------- perform the method -----------
 					this.swapString(doc, pureagentname, score, [true, true, true], ["^", argument]);
+				}
+				{"<"} { 
+					argument = argument.asInteger;
+					// -------- perform the method -----------
+					this.swapString(doc, pureagentname, score, [true, true, true], ["<", argument]);
 				}
 				{"order"} { // put things in order in time
 
