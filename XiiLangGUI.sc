@@ -2,8 +2,8 @@ XiiLangGUI  {
 
 	var win, projectname, key;
 	var ixilogo, keyboard, keystring, midivalstring;
-	var project, projectpath, projectsList;
-	var filenames;
+	var projectview, projectpath, projectsList;
+	var filenames, synthdesclib, synthdefnames, project;
 	
 	*new { arg projectnamearg;
 		^super.new.initGUIXii(projectnamearg);
@@ -37,7 +37,7 @@ XiiLangGUI  {
 
 		SCStaticText(win, Rect(40, 110, 50, 16)).string_("projects :");
 		
-		project = SCListView(win, Rect(40, 135, 100, 100))
+		projectview = SCListView(win, Rect(40, 135, 100, 100))
 			.items_(projectsList)
 			.value_(projectsList.indexOfEqual(projectname))
 			.action_({arg view; 
@@ -106,13 +106,20 @@ XiiLangGUI  {
 		};
 
 		mappingwinfunc = {
-			var win, column, letters, instrDict, dictFound, savebutt;
+			var win, column, letters, synthDefDict, dictFound, savebutt;
+
+		
+		synthdesclib = SynthDescLib(projectname.asSymbol);
+		("sounds/ixilang/"++projectname++"/synthdefs.scd").loadPath;
+		SynthDescLib.read;
+		synthdefnames = SynthDescLib.getLib(projectname.asSymbol).synthDescs.keys.asArray;
+		[\synthdefnames, synthdefnames].postln;
 			
 			if(Object.readArchive(projectpath++"/_keyMapping.ixi").isNil, {
-				instrDict = IdentityDictionary.new;
+				synthDefDict = IdentityDictionary.new;
 				dictFound = false;
 			}, {
-				instrDict = Object.readArchive(projectpath++"/_keyMapping.ixi");
+				synthDefDict = Object.readArchive(projectpath++"/_keyMapping.ixi");
 				dictFound = true;
 			});
 		
@@ -124,7 +131,7 @@ XiiLangGUI  {
 		
 			win.view.keyDownAction_({arg view, cha, modifiers, unicode, keycode;
 				if(letters.includes(cha), {
-					{Synth(instrDict[cha.asSymbol])}.value;
+					{Synth(synthDefDict[cha.asSymbol])}.value;
 				});
 				letters.do({arg char, i; // thanks julio
 					if(char == cha, {
@@ -135,7 +142,7 @@ XiiLangGUI  {
 
 			letters.do({arg char, i; var j, mapname;
 				if(dictFound.not, {
-					instrDict[char.asSymbol] = filenames.wrapAt(i);
+					synthDefDict[char.asSymbol] = filenames.wrapAt(i);
 				});
 				column = (i/26).floor*220;
 				j = i % 26;
@@ -144,7 +151,7 @@ XiiLangGUI  {
 					.items_(filenames)
 					.action_({arg view; 
 						mapname.string_(filenames[view.value]);
-						instrDict[char.asSymbol] = filenames[view.value];
+						synthDefDict[char.asSymbol] = filenames[view.value];
 						savebutt.value_(0);
 					})
 					.keyDownAction_({arg view, cha, modifiers, unicode, keycode; 
@@ -162,15 +169,39 @@ XiiLangGUI  {
 									})
 								})
 							}
-							{36}{ Synth(instrDict[char.asSymbol]) };
+							{36}{ Synth(synthDefDict[char.asSymbol]) };
 					});
-				SCStaticText(win, Rect(45+column, (j+1)*26, 70, 16))
+				SCPopUpMenu(win, Rect(34+column, (j+1)*26, 15, 16))
+					.items_(synthdefnames)
+					.action_({arg view; 
+						mapname.string_(synthdefnames[view.value]);
+						synthDefDict[char.asSymbol] = synthdefnames[view.value];
+						savebutt.value_(0);
+					})
+					.keyDownAction_({arg view, cha, modifiers, unicode, keycode; 
+						switch(keycode)
+							{123}{ view.valueAction_(view.value-1); savebutt.value_(0); }
+							{124}{ view.valueAction_(view.value+1); savebutt.value_(0); }
+							{126}{ view.valueAction_(view.value-1); savebutt.value_(0); }
+							{125}{ view.valueAction_(view.value+1); savebutt.value_(0); }
+							{51}{ 
+								win.view.children.do({arg vw, i;
+									if(vw === view, {
+										if(i>3, {
+											win.view.children[i-5].focus(true);
+										})
+									})
+								})
+							}
+							{36}{ Synth(synthDefDict[char.asSymbol]) };
+					});
+				SCStaticText(win, Rect(58+column, (j+1)*26, 70, 16))
 					.string_(char++" ->")
 					.font_(Font("Monaco", 11));
-				mapname = SCStaticText(win, Rect(81+column, (j+1)*26, 140, 16))
+				mapname = SCStaticText(win, Rect(96+column, (j+1)*26, 140, 16))
 							.string_(
 								if(dictFound, {
-									instrDict[char.asSymbol];
+									synthDefDict[char.asSymbol];
 								}, {
 									filenames.wrapAt(i);
 								})
@@ -186,7 +217,7 @@ XiiLangGUI  {
 			savebutt = SCButton(win, Rect(235, 710, 200, 20))
 				.states_([["save mapping file", Color.black, Color.green.alpha_(0.2)], ["saved", Color.black, Color.clear]])
 				.action_({ 
-					instrDict.writeArchive(projectpath++"/_keyMapping.ixi");
+					synthDefDict.writeArchive(projectpath++"/_keyMapping.ixi");
 					" ---> ixi lang NOTE: You need to restart your session for the new mapping to take function".postln;
 				})
 				.font_(Font("Helvetica", 11));

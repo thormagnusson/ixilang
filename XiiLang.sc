@@ -233,8 +233,8 @@ XiiLang {
 			});		
 		});
 		doc.onClose_({
-			doc.background_(Color.white); // for some reason this is not saved when the doc is closed/saved
-			doc.stringColor_(Color.black);	
+			//doc.background_(Color.white); // for some reason this is not saved when the doc is closed/saved
+			//doc.stringColor_(Color.black);	
 			proxyspace.end(4);  // free all proxies
 			agentDict.do({arg agent;
 				agent[2].stop;
@@ -290,6 +290,7 @@ XiiLang {
 				
 				"-- scoreArray : ".postln;
 				Post << scoreArray; "\n".postln;
+
 			}
 			{"save"}{ 
 				var sessionstart, sessionend, session, sessionsfolderpath;
@@ -2507,6 +2508,7 @@ ixiInstr.getPercussiveInstr
 }
 
 
+
 XiiLangSingleton {
 	classvar <>windowsList;
 	
@@ -2549,4 +2551,21 @@ XiiLangSingleton {
 	}
 }		
 
+/*
+// temp
++ SynthDef {
+	
+	add { arg libname = \global, completionMsg, keepDef = true;
+		var	lib, desc = this.asSynthDesc(libname, keepDef);
+		"adding synthdef".postln;
+		libname ?? { libname = \global };
+		lib = SynthDescLib.getLib(libname);
+		lib.servers.do { |each|
+			each.value.sendMsg("/d_recv", this.asBytes, completionMsg.value(each))
+		};
+		XiiLang.addSynthDef(name);
+	}
 
+}
+
+*/

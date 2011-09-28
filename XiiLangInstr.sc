@@ -4,13 +4,25 @@ XiiLangInstr {
 	classvar instrDict;
 	var project;
 	var sampleNames, samplePaths, nrOfSampleSynthDefs;
-	
+	var defaultsynthdesclib, synthdesclib;
+
 	*new {| project, loadsamples=true |
 		^super.new.initXiiLangInstr(project, loadsamples);
 		}
 		
 	initXiiLangInstr {| argproject, loadsamples |	
 		project = argproject;
+		defaultsynthdesclib = SynthDescLib(\xiilang);
+
+	
+		// ----------------------------------------------------------------------------------
+		// --------------------------- unique project synthdefs  ----------------------------
+		// ----------------------------------------------------------------------------------
+
+		synthdesclib = SynthDescLib(project.asSymbol);
+		("sounds/ixilang/"++project++"/synthdefs.scd").loadPath;
+
+
 	
 		// ----------------------------------------------------------------------------------
 		// ---------------------------- percussive instruments  -----------------------------
@@ -134,7 +146,7 @@ XiiLangInstr {
 			imp = Impulse.ar(1);
 			x = Pan2.ar(imp * EnvGen.ar(Env.perc(0.0000001, 0.2)), pan) * amp;
 			Out.ar(out, LeakDC.ar(Limiter.ar(x)));
-		}).add;
+		}).add(\xiilang);
 		
 		SynthDef(\kick,{ arg out=0, pan=0, amp=0.3, mod_freq = 2.6, mod_index = 5, sustain = 0.4, beater_noise_level = 0.025;
 			var pitch_contour, drum_osc, drum_lpf, drum_env;
@@ -155,7 +167,7 @@ XiiLangInstr {
 			beater_env = beater_lpf * EnvGen.ar(Env.perc(0.000001, 1), doneAction: 2);
 			kick_mix = Mix.new([drum_env, beater_env]) * 2 * amp;
 			Out.ar(out, Pan2.ar(kick_mix, pan))
-		}).add;
+		}).add(\xiilang);
 
 		SynthDef(\kick2, {	arg out=0, amp=0.3, sustain=0.26, pan=0;
 			var env0, env1, env1m, son;
@@ -172,7 +184,7 @@ XiiLangInstr {
 			son = son.clip2(1);
 			
 			Out.ar(out, Pan2.ar(son * amp));
-		}).add;		
+		}).add(\xiilang);
 				
 		SynthDef(\kick3, { arg out=0, amp=0.3, pan=0, dur=0.35, high=150, sustain = 0.4, low=33, phase=1.5;
 			var signal;
@@ -180,7 +192,7 @@ XiiLangInstr {
 			//signal = signal * EnvGen.ar(Env.new([1,0],[dur]), gate, doneAction:2);
 			signal = signal * EnvGen.ar(Env.perc(0.0001, sustain), doneAction:2);
 			Out.ar(out, Pan2.ar(signal, pan));
-		}).add;
+		}).add(\xiilang);
 		
 		SynthDef(\snare, {arg out=0, amp=0.3, pan=0, sustain = 0.04, drum_mode_level = 0.15,
 			snare_level = 50, snare_tightness = 1200, freq = 305;
@@ -208,14 +220,14 @@ XiiLangInstr {
 			snare_reson = Resonz.ar(snare_brf_4, snare_tightness, mul: snare_level) ;
 			snare_drum_mix = Mix.new([drum_mode_mix, snare_reson]) * amp;
 			Out.ar(out, [snare_drum_mix, snare_drum_mix])
-		}).add;
+		}).add(\xiilang);
 				
 		SynthDef(\brushsnare, {|out= 0, bpfreq= 5000, amp= 1, pan= 0|
 			var env, noise;
 			env = EnvGen.kr(Env.perc(0.001, 0.1), 1, amp, doneAction:2);
 			noise = BPF.ar(PinkNoise.ar(3), bpfreq * (env*8.5));
 			Out.ar(out, Pan2.ar(noise*env, pan));
-		}).add;
+		}).add(\xiilang);
 		
 		SynthDef(\bar, {arg out = 0, pan=0, freq = 6000, sustain = 0.2, amp=0.3;
 			var root_cymbal, root_cymbal_square, root_cymbal_pmosc;
@@ -237,7 +249,7 @@ XiiLangInstr {
 			body_hpf = HPF.ar(in: root_cymbal, freq: Line.kr(9000, 12000, sustain),mul: body_env, add: 0);
 			cymbal_mix = Mix.new([initial_bpf, body_hpf]) * amp;
 			Out.ar(out, Pan2.ar(cymbal_mix, pan))
-		}).add;
+		}).add(\xiilang);
 
 		SynthDef(\clap, {arg out=0, pan=0, amp=0.3, filterfreq=50, rq=0.01;
 			var env, signal, attack,Ê noise, hpf1, hpf2;
@@ -253,7 +265,7 @@ XiiLangInstr {
 			signal = FreeVerb.ar(signal, 0.23, 0.15, 0.2);
 			Out.ar(out, Pan2.ar(signal * amp, pan));
 			DetectSilence.ar(signal, doneAction:2);
-		}).add;
+		}).add(\xiilang);
 		
 		SynthDef(\hat, { arg out=0, pan=0, amp=0.3;
 			var sig;
@@ -263,21 +275,21 @@ XiiLangInstr {
 			// (i.e. FAILURE n_set Node not found)
 			sig = WhiteNoise.ar(amp) * EnvGen.ar(Env.perc(0.00001, 0.01));
 			Out.ar(out, Pan2.ar(sig, pan));
-		}).add;
+		}).add(\xiilang);
 
 		SynthDef(\cling, {arg out=0, amp=0.3, sustain=0.3, pan=0;
 			var signal, env;
 			env = EnvGen.ar(Env.perc(0.000001, sustain), doneAction:2);
 			signal = SinOsc.ar(3000).squared;
 			Out.ar(out, Pan2.ar(signal*env, pan, amp));
-		}).add;
+		}).add(\xiilang);
 		
 		SynthDef(\cling2, {arg out=0, amp=0.3, sustain=0.5, pan=0;
 			var signal, env;
 			env = EnvGen.ar(Env.perc(0.000001, sustain), doneAction:2);
 			signal = LFSaw.ar(2000).squared;
 			Out.ar(out, Pan2.ar(signal*env, pan, amp));
-		}).add;
+		}).add(\xiilang);
 		
 //		SynthDef(\impulse, { // no amp atm
 //			Out.ar(0, Impulse.ar(0)!2)
@@ -304,7 +316,7 @@ Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) 
 			// envelope
 			env = EnvGen.kr(Env.adsr, gate, doneAction:2);
 			Out.ar( out, (car * env * amp)!2)
-		}).add;
+		}).add(\xiilang);
 
 
 		SynthDef(\bling, { arg out=0, pan=0, amp=0.3, sustain=0.5, freq=999;
@@ -314,7 +326,7 @@ Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) 
 			imp = Decay2.ar(imp, 0.01, 0.5, MoogFF.ar(VarSaw.ar(freq, 0.8, 0.5), freq*12, 3.6) );
 			x = Pan2.ar(imp * EnvGen.ar(env, doneAction:2), pan) * amp*4;
 			Out.ar(out, LeakDC.ar(x));
-		}).add;
+		}).add(\xiilang);
 
 		/*
 		SynthDef(\bass, {arg out, freq=220, amp=0.4;
@@ -330,7 +342,7 @@ Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) 
 			env = EnvGen.ar(Env.adsr(0.01, sustain, sustain/2, 0.3), gate, doneAction:2);
 			signal = MoogFF.ar(Saw.ar([freq/2, (freq/2)+0.8],  amp*2), freq*2, 3.4) * env;
 			Out.ar(out, signal*env);
-		}).add;
+		}).add(\xiilang);
 
 
 		/*
@@ -351,7 +363,7 @@ Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) 
 			var env = EnvGen.kr(Env.adsr(0.01, 0.2, amp*0.8, 0.3), gate, doneAction:2);
 			signal = MoogFF.ar(Saw.ar([freq, freq+2], 1), 7*freq, 3.3) * env;
 			Out.ar(out, signal);
-		}).add;
+		}).add(\xiilang);
 		/*
 		 Synth(\moog, [\freq, 344])
 		*/
@@ -363,7 +375,7 @@ Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) 
 		        				Array.fill(6, {SinOsc.ar(freq*Rand(-5,5).round(0.125), 0, Rand(0.02,0.1))}));
 		        //x = BPF.ar(x, freq, 4.91);
 		        Out.ar(out, x!2*env*amp);
-		}).add;
+		}).add(\xiilang);
 		/*
 		 Synth(\bell, [\freq, 344])
 		*/
@@ -373,13 +385,13 @@ Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) 
 			var sig = MdaPiano.ar(freq, gate, decay:(sustain*2), release: (sustain*6), stereo: 0.3, sustain: 0);
 			var env = EnvGen.kr(Env.adsr(0.01, sustain*4, sustain*2, 0.3), gate, doneAction:2);
 			Out.ar(out, sig * (amp*0.35)*env);
-		}).add;
+		}).add(\xiilang);
 
 		SynthDef(\clarinet, { |out=0, freq=440, gate=1, sustain=0.3, amp=0.3|
 			var sig = StkClarinet.ar(freq, 44, 2, 77, 2, 88);
 			var env = EnvGen.kr(Env.adsr(0.01, sustain, sustain/2, 0.3), gate, doneAction:2);
 			Out.ar(out, sig * env * amp * 0.6 !2 );
-		}).add;
+		}).add(\xiilang);
 
 		SynthDef(\klang, {arg out=0, amp=0.3, t_trig=1, sustain=0.4, freq=100, gate=1, rq=0.004;
 			var env, signal;
@@ -392,7 +404,7 @@ Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) 
 			signal = Decay2.ar(signal, 0.4, 0.8, signal);
 			signal = Limiter.ar(Resonz.ar(signal, freq, rq*0.5), 0.9);
 			Out.ar(out, (signal*env)*(amp*6)!2);
-		}).add;
+		}).add(\xiilang);
 
 		SynthDef(\elbass, {arg out=0, amp=0.3, t_trig=1, sustain=0.5, freq=100, gate=1, rq=0.004;
 			var env, signal;
@@ -404,7 +416,7 @@ Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) 
 			signal = RHPF.ar(signal, freq, rq) + RHPF.ar(signal, freq*0.5, rq);
 			signal = Decay2.ar(signal, 0.4, 0.3, signal);
 			Out.ar(out, (signal*env)*(amp*0.65)!2);
-		}).add;
+		}).add(\xiilang);
 
 		SynthDef(\marimba, {arg out=0, amp=0.3, t_trig=1, sustain=0.5, gate=1, freq=100, rq=0.006;
 			var env, signal;
@@ -416,7 +428,7 @@ Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) 
 			signal = RHPF.ar(signal*0.8, freq, rq) + DelayC.ar(RHPF.ar(signal*0.9, freq*0.99999, rq*0.999), 0.02, 0.01223);
 			signal = Decay2.ar(signal, 0.4, 0.3, signal);
 			Out.ar(out, (signal*env)*(amp*0.65)!2);
-		}).add;
+		}).add(\xiilang);
 
 		SynthDef(\marimba2, {arg out=0, amp=0.3, t_trig=1, freq=100, sustain=0.5, gate=1, rq=0.006;
 			var env, signal;
@@ -429,7 +441,7 @@ Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) 
 			//signal = Decay2.ar(signal, 0.4, 0.3, signal);
 			signal = Decay2.ar(signal, 0.4, 0.3, signal*SinOsc.ar(freq)); // modulating
 			Out.ar(out, (signal*env)*(amp*0.65)!2);
-		}).add;
+		}).add(\xiilang);
 
 		SynthDef(\wood, {arg out=0, amp=0.3, pan=0, sustain=0.5, t_trig=1, freq=100, rq=0.06;
 			var env, signal;
@@ -442,19 +454,19 @@ Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) 
 			signal = Limiter.ar(Resonz.ar(signal, freq, rq*0.5), 0.9);
 			env = EnvGen.kr(Env.perc(0.00001, sustain, amp), doneAction:2);
 			Out.ar(out, Pan2.ar(signal, pan)*env);
-		}).add;
+		}).add(\xiilang);
 
 		SynthDef(\xylo, { |out=0, freq=440, amp=0.3, sustain=0.5, pan=0, gate=1|
 			var sig = StkBandedWG.ar(freq, instr:1, mul:3);
 			var env = EnvGen.kr(Env.adsr(0.0001, sustain, sustain*0.8, 0.3), gate, doneAction:2);
 			Out.ar(out, Pan2.ar(sig, pan, env * amp));
-		}).add;
+		}).add(\xiilang);
 
 		SynthDef(\softwg, { |out=0, freq=440, gate=1, amp=0.3, sustain=0.5, pan=0|
 			var sig = StkBandedWG.ar(freq, instr:1, mul:3);
 			var env = EnvGen.kr(Env.adsr(0.0001, sustain, sustain, 0.3), gate, doneAction:2);
 			Out.ar(out, Pan2.ar(sig, pan, env*amp));
-		}).add;
+		}).add(\xiilang);
 
 		SynthDef(\sines, {arg out=0, freq=440, dur=1, sustain=0.5, amp=0.3, pan=0;
 		        var x, env;
@@ -463,7 +475,7 @@ Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) 
 		        x = LPF.ar(x, 20000);
 		        x = Pan2.ar(x,pan);
 		        Out.ar(out, x*env);
-		}).add;
+		}).add(\xiilang);
 		
 		SynthDef(\synth, {arg out=0, freq=440, dur=1, sustain=0.5, amp=0.3, pan=0, gate=1;
 		        var x, env;
@@ -472,7 +484,7 @@ Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) 
 		        x = LPF.ar(x, 20000);
 		        x = Pan2.ar(x,pan);
 		        Out.ar(out, LeakDC.ar(x)*env*amp*0.8);
-		}).add;
+		}).add(\xiilang);
 
 		SynthDef(\string, {arg out=0, freq=440, pan=0, sustain=0.5, amp=0.3;
 			var pluck, period, string;
@@ -482,7 +494,7 @@ Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) 
 			string = LeakDC.ar(LPF.ar(Pan2.ar(string, pan), 12000)) * amp;
 			DetectSilence.ar(string, doneAction:2);
 			Out.ar(out, string)
-		}).add;
+		}).add(\xiilang);
 
 		SynthDef(\drop, {arg out=0, freq=440, dur=1, amp=0.3, sustain=0.5, pan=0;
 		        var x, env;
@@ -490,7 +502,7 @@ Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) 
 		        x = Resonz.ar(PinkNoise.ar(1), freq*4, 0.005);
 		        x = Pan2.ar(x,pan);
 		        Out.ar(out, LeakDC.ar(x)*env*amp*70);
-		}).add;
+		}).add(\xiilang);
 		
 		SynthDef(\crackle, {arg out=0, freq=440, dur=1, sustain=0.5, amp=0.3, pan=0;
 		        var x, env;
@@ -498,7 +510,7 @@ Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) 
 		        x = Resonz.ar(Crackle.ar(1.95, 2), freq*4, 0.1);
 		        x = Pan2.ar(x,pan);
 		        Out.ar(out, LeakDC.ar(x)*env*amp*8);
-		}).add;
+		}).add(\xiilang);
 
 		SynthDef(\glass, {arg out=0, freq=440, dur=1, sustain=0.5, amp=0.3, pan=0;
 		        var x, env;
@@ -506,12 +518,12 @@ Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) 
 		        x = Decay2.ar(Resonz.ar(Impulse.ar(0.01), freq*4, 0.005), 0.001, sustain*2, 3);
 		        x = Pan2.ar(x,pan);
 		        Out.ar(out, LeakDC.ar(x)*env*amp*50);
-		}).add;
+		}).add(\xiilang);
 
 		SynthDef(\sine, {arg out=0, gate=1, freq=440, dur=1, sustain=0.5, amp=0.3, pan=0;
 			var env = EnvGen.kr(Env.adsr(0.0001, sustain, sustain/2, 0.3), gate, doneAction:2);
 			Out.ar(out, Pan2.ar(SinOsc.ar(freq), pan, env * amp));
-		}).add;
+		}).add(\xiilang);
 
 		//^this.makeInstrDict; // changed such that the class returns its instance (not the dict)
 
@@ -565,20 +577,31 @@ Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) 
 		^string;
 	}
 
-	getMelodicInstr {
-		^["bling", "piano", "elbass", "marimba", "marimba2", "clarinet", "klang", 
-		"wood", "xylo", "softwg", "bass", "moog", "bell", "sines", "synth", 
-		"string", "drop", "crackle", "glass"].asCompileString
-	}
-	
-	returnMelodicInstr {
-		^["bling", "piano", "elbass", "marimba", "marimba2", "clarinet", "klang", 
-		"wood", "xylo", "softwg", "bass", "moog", "bell", "sines", "synth", 
-		"string", "drop", "crackle", "glass"]
-	}
 	returnPercussiveInstr {
 		^instrDict.atAll(instrDict.order);
 	}
+
+	getMelodicInstr {
+//		^["bling", "piano", "elbass", "marimba", "marimba2", "clarinet", "klang", 
+//		"wood", "xylo", "softwg", "bass", "moog", "bell", "sines", "synth", 
+//		"string", "drop", "crackle", "glass"].asCompileString
+		
+		^SynthDescLib.getLib(project.asSymbol).synthDescs.keys.asArray
+			++
+		SynthDescLib.getLib(\xiilang).synthDescs.keys.asArray;
+		
+	}
+
+	
+	returnMelodicInstr {
+//		^["bling", "piano", "elbass", "marimba", "marimba2", "clarinet", "klang", 
+//		"wood", "xylo", "softwg", "bass", "moog", "bell", "sines", "synth", 
+//		"string", "drop", "crackle", "glass"]
+		^SynthDescLib.getLib(project.asSymbol).synthDescs.keys.asArray
+			++
+		SynthDescLib.getLib(\xiilang).synthDescs.keys.asArray;
+	}
+
 }
 
 		
