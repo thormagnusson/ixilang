@@ -65,7 +65,6 @@ TempoClock:sync (by f0)
 */
 
 // add slide (from Array helpfile)
-// add slide (from Array helpfile)
 
 
 // TODO: add "scale oo minor" i.e. set scale of specific agent
@@ -154,6 +153,7 @@ XiiLang {
 		ixiInstr = XiiLangInstr.new(project);
 		instrDict = ixiInstr.makeInstrDict;
 		SynthDescLib.read;
+//		Server.default.notify(false);
 		proxyspace = ProxySpace.new.know_(true);
 
 		CmdPeriod.add({
@@ -2496,12 +2496,23 @@ XiiLang {
 		doc.string_("
 	    --    ixi lang instruments    --
  
- ------  melodic instruments  ------\n\n"++
-ixiInstr.getMelodicInstr // calling an XiiLangInstr instance
+ ------  synthesis instruments  ------\n\n"++
+ 
+"project synthdefs:\n\n" ++
+ 
+ixiInstr.getProjectSynthesisSynthdefs // calling an XiiLangInstr instance
+
+++ "\n\nixi lang synthdefs:\n\n" ++
+
+ixiInstr.getXiiLangSynthesisSynthdefs // calling an XiiLangInstr instance
+
 ++
-"\n\n ------  percussive instruments  ------\n\n"
+
+"\n\n ------  sample instruments  ------\n\n"
+
 ++
-ixiInstr.getPercussiveInstr
+
+ixiInstr.getSamplesSynthdefs
 	);
 	}
 	

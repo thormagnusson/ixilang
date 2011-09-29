@@ -113,7 +113,7 @@ XiiLangGUI  {
 		("sounds/ixilang/"++projectname++"/synthdefs.scd").loadPath;
 		SynthDescLib.read;
 		synthdefnames = SynthDescLib.getLib(projectname.asSymbol).synthDescs.keys.asArray;
-		[\synthdefnames, synthdefnames].postln;
+		// [\synthdefnames, synthdefnames].postln;
 			
 			if(Object.readArchive(projectpath++"/_keyMapping.ixi").isNil, {
 				synthDefDict = IdentityDictionary.new;
@@ -127,18 +127,23 @@ XiiLangGUI  {
 		
 			column = 0;
 			letters = "AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz";
-			win = SCWindow.new("mapping keyboard keys to samples - project: "+projectname.quote, Rect(710,410, 460, 760), resizable:false).front;
+			win = SCWindow.new("mapping keyboard keys to samples - project: "+projectname.quote, Rect(710,410, 460, 766), resizable:false).front;
 		
 			win.view.keyDownAction_({arg view, cha, modifiers, unicode, keycode;
 				if(letters.includes(cha), {
-					{Synth(synthDefDict[cha.asSymbol])}.value;
+					{Synth(synthDefDict[cha.asSymbol], [\freq, 60.midicps])}.value;
 				});
 				letters.do({arg char, i; // thanks julio
 					if(char == cha, {
-						win.view.children[1+(i*4)].focus(true);
+						win.view.children[((1+i)*5)].focus(true);
 					});
 				});
 			});
+
+			SCStaticText(win, Rect(19, 8, 20, 15)).string_("1");
+			SCStaticText(win, Rect(37, 8, 20, 15)).string_("2");
+			SCStaticText(win, Rect(240, 8, 20, 15)).string_("1");
+			SCStaticText(win, Rect(258, 8, 20, 15)).string_("2");
 
 			letters.do({arg char, i; var j, mapname;
 				if(dictFound.not, {
@@ -147,6 +152,7 @@ XiiLangGUI  {
 				column = (i/26).floor*220;
 				j = i % 26;
 				SCStaticText(win, Rect(15+column, ((j+1)*26)+1, 200, 15)).background_(Color.grey.alpha_(0.5));
+				// sample synthdefs
 				SCPopUpMenu(win, Rect(15+column, (j+1)*26, 15, 16))
 					.items_(filenames)
 					.action_({arg view; 
@@ -163,37 +169,42 @@ XiiLangGUI  {
 							{51}{ 
 								win.view.children.do({arg vw, i;
 									if(vw === view, {
-										if(i>3, {
+										if(i>4, {
 											win.view.children[i-4].focus(true);
 										})
 									})
 								})
 							}
-							{36}{ Synth(synthDefDict[char.asSymbol]) };
+							{36}{ Synth(synthDefDict[char.asSymbol], [\freq, 60.midicps]) };
 					});
+				// synthesis synthdefs
 				SCPopUpMenu(win, Rect(34+column, (j+1)*26, 15, 16))
 					.items_(synthdefnames)
 					.action_({arg view; 
-						mapname.string_(synthdefnames[view.value]);
-						synthDefDict[char.asSymbol] = synthdefnames[view.value];
-						savebutt.value_(0);
+						if(synthdefnames.size!=0, {
+							mapname.string_(synthdefnames[view.value]);
+							synthDefDict[char.asSymbol] = synthdefnames[view.value];
+							savebutt.value_(0);
+						});
 					})
 					.keyDownAction_({arg view, cha, modifiers, unicode, keycode; 
-						switch(keycode)
-							{123}{ view.valueAction_(view.value-1); savebutt.value_(0); }
-							{124}{ view.valueAction_(view.value+1); savebutt.value_(0); }
-							{126}{ view.valueAction_(view.value-1); savebutt.value_(0); }
-							{125}{ view.valueAction_(view.value+1); savebutt.value_(0); }
-							{51}{ 
-								win.view.children.do({arg vw, i;
-									if(vw === view, {
-										if(i>3, {
-											win.view.children[i-5].focus(true);
+						if(synthdefnames.size!=0, {
+							switch(keycode)
+								{123}{ view.valueAction_(view.value-1); savebutt.value_(0); }
+								{124}{ view.valueAction_(view.value+1); savebutt.value_(0); }
+								{126}{ view.valueAction_(view.value-1); savebutt.value_(0); }
+								{125}{ view.valueAction_(view.value+1); savebutt.value_(0); }
+								{51}{ 
+									win.view.children.do({arg vw, i;
+										if(vw === view, {
+											if(i>3, {
+												win.view.children[i-1].focus(true);
+											})
 										})
 									})
-								})
-							}
-							{36}{ Synth(synthDefDict[char.asSymbol]) };
+								}
+								{36}{ {{var x; x = Synth(synthDefDict[char.asSymbol], [\freq, 60.midicps]); 2.wait; x.release; }.fork}.value };
+						});
 					});
 				SCStaticText(win, Rect(58+column, (j+1)*26, 70, 16))
 					.string_(char++" ->")
@@ -209,9 +220,9 @@ XiiLangGUI  {
 							.font_(Font("Monaco", 11));
 			});
 			
-			SCStaticText(win, Rect(15, 710, 200, 40))
+			SCStaticText(win, Rect(15, 710, 200, 45))
 				.background_(Color.grey.alpha_(0.5))
-				.string_(" Use arrow keys, TAB, Delete and \n ENTER to navigate sample library")
+				.string_(" Use arrow keys, TAB, Delete and \n ENTER to navigate sample library\n 1 = samples, 2 = synths")
 				.font_(Font("Monaco", 9));
 		
 			savebutt = SCButton(win, Rect(235, 710, 200, 20))

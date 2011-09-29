@@ -456,11 +456,12 @@ Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) 
 			Out.ar(out, Pan2.ar(signal, pan)*env);
 		}).add(\xiilang);
 
-		SynthDef(\xylo, { |out=0, freq=440, amp=0.3, sustain=0.5, pan=0, gate=1|
+		SynthDef(\xylo, { |out=0, freq=440, gate=1, amp=0.3, sustain=0.5, pan=0|
 			var sig = StkBandedWG.ar(freq, instr:1, mul:3);
-			var env = EnvGen.kr(Env.adsr(0.0001, sustain, sustain*0.8, 0.3), gate, doneAction:2);
+			var env = EnvGen.kr(Env.adsr(0.0001, sustain, sustain, 0.3), gate, doneAction:2);
 			Out.ar(out, Pan2.ar(sig, pan, env * amp));
-		}).add(\xiilang);
+		}).add;
+//		}).add(\xiilang);
 
 		SynthDef(\softwg, { |out=0, freq=440, gate=1, amp=0.3, sustain=0.5, pan=0|
 			var sig = StkBandedWG.ar(freq, instr:1, mul:3);
@@ -525,6 +526,8 @@ Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) 
 			Out.ar(out, Pan2.ar(SinOsc.ar(freq), pan, env * amp));
 		}).add(\xiilang);
 
+		//{SynthDescLib.all[\xiilang].read; SynthDescLib.read}.defer(2);
+
 		//^this.makeInstrDict; // changed such that the class returns its instance (not the dict)
 
 	}
@@ -548,13 +551,13 @@ Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) 
 		});
 		
 		"The keys of your keyboard are mapped to these samples :".postln;
-		Post << this.getPercussiveInstr;
+		Post << this.getSamplesSynthdefs;
 		
 		^instrDict;		
 	
 	}
 	
-	getPercussiveInstr {
+	getSamplesSynthdefs {
 		var string, sortedkeys, sortedvals;
 		/*
 		dict = instrDict.getPairs;
@@ -581,24 +584,26 @@ Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) 
 		^instrDict.atAll(instrDict.order);
 	}
 
-	getMelodicInstr {
+	getXiiLangSynthesisSynthdefs {
 //		^["bling", "piano", "elbass", "marimba", "marimba2", "clarinet", "klang", 
 //		"wood", "xylo", "softwg", "bass", "moog", "bell", "sines", "synth", 
 //		"string", "drop", "crackle", "glass"].asCompileString
 		
-		^SynthDescLib.getLib(project.asSymbol).synthDescs.keys.asArray
-			++
-		SynthDescLib.getLib(\xiilang).synthDescs.keys.asArray;
+		^SynthDescLib.getLib(\xiilang).synthDescs.keys.asArray.sort;
+
 		
 	}
 
+	getProjectSynthesisSynthdefs {
+		^SynthDescLib.getLib(project.asSymbol).synthDescs.keys.asArray.sort;
+	}
 	
 	returnMelodicInstr {
 //		^["bling", "piano", "elbass", "marimba", "marimba2", "clarinet", "klang", 
 //		"wood", "xylo", "softwg", "bass", "moog", "bell", "sines", "synth", 
 //		"string", "drop", "crackle", "glass"]
 		^SynthDescLib.getLib(project.asSymbol).synthDescs.keys.asArray
-			++
+			++ 
 		SynthDescLib.getLib(\xiilang).synthDescs.keys.asArray;
 	}
 
