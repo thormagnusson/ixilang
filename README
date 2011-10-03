@@ -1,7 +1,7 @@
 XiiLang			a live coding language interpreter	-  version 3 : August 2011
 
 http://www.ixi-audio.net
-feedback to: thor[]ixi
+feedback to: thor[]ixi...
 
 The ixi lang live coding environment is a simple visual system presenting a high entry-level control over synth definitions and samples in SuperCollider. The core idea is to represent events in a spatial layout, thus merging musical code and musical scores. The score is active, i.e., if a method is performed upon the score, it changes in real time.
 

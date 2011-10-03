@@ -4,7 +4,8 @@ XiiLangGUI  {
 	var ixilogo, keyboard, keystring, midivalstring;
 	var projectview, projectpath, projectsList;
 	var filenames, synthdesclib, synthdefnames, project;
-	
+	var recorder;
+
 	*new { arg projectnamearg;
 		^super.new.initGUIXii(projectnamearg);
 	}
@@ -14,16 +15,16 @@ XiiLangGUI  {
 		
 		//projectname = "default";
 		//projectpath = "sounds/ixilang/default/";
-		projectsList = "sounds/ixilang/*".pathMatch.collect({arg n; n.basename});
+		projectsList = "ixilang/*".pathMatch.collect({arg n; n.basename});
 		projectname = projectnamearg ? projectsList[0];
 	//	[\projectname, projectname].postln;
-		projectpath = "sounds/ixilang/"++projectname;
-		filenames = (projectpath++"/*").pathMatch;
+		projectpath = "ixilang/"++projectname;
+		filenames = (projectpath++"/samples/*").pathMatch;
 		filenames = filenames.collect({arg file; file.basename});
 		filenames = filenames.reject({ |file| file.splitext[1] == "scd" }); // not including the keymapping files
 		filenames = filenames.reject({ |file| file.splitext[1] == "ixi" }); // not including the keymapping files
 		filenames = filenames.collect({arg file; file.splitext[0]});
-
+	
 		key = "C";
 
 		ixilogo = [ // the ixi logo
@@ -37,14 +38,14 @@ XiiLangGUI  {
 
 		SCStaticText(win, Rect(40, 110, 50, 16)).string_("projects :");
 		
-		projectview = SCListView(win, Rect(40, 135, 100, 100))
+		projectview = SCListView(win, Rect(40, 135, 120, 100))
 			.items_(projectsList)
 			.value_(projectsList.indexOfEqual(projectname))
 			.action_({arg view; 
 				projectname = projectsList[view.value] ;
-				projectpath = "sounds/ixilang/*".pathMatch[view.value];
-				projectsList = "sounds/ixilang/*".pathMatch.collect({arg n; n.basename});
-				filenames = (projectpath++"*").pathMatch;
+				projectpath = "ixilang/*".pathMatch[view.value];
+				projectsList = "ixilang/*".pathMatch.collect({arg n; n.basename});
+				filenames = (projectpath++"/samples/*").pathMatch;
 				filenames = filenames.collect({arg file; file.basename});
 		//		[\projectname, projectname, \projectpath, projectpath].postln;
 				filenames = filenames.reject({ |file| file.splitext[1] == "scd" }); // not including the keymapping files
@@ -52,9 +53,21 @@ XiiLangGUI  {
 				filenames = filenames.collect({arg file; file.splitext[0]});
 			});
 		
-		SCButton(win, Rect(40, 250, 100, 20))
+		SCButton(win, Rect(40, 250, 80, 20))
 			.states_([["project folder", Color.black, Color.gray]])
 			.action_({ ("open "++projectpath).unixCmd})
+			.font_(Font("Helvetica", 11));
+
+		SCButton(win, Rect(124, 250, 36, 20))
+			.states_([["rec", Color.black, Color.red.alpha_(0.2)], ["stop", Color.black, Color.red.alpha_(0.4)]])
+			.action_({arg butt;
+				if(butt.value == 1, {
+					recorder = XiiLangRecord(Server.default, 0, 2, 'aiff', 'int16');
+					recorder.start(projectpath++"/recordings/"++projectname++"_"++Date.getDate.stamp.asString++".aif");
+				}, {
+					recorder.stop;
+				});
+			})
 			.font_(Font("Helvetica", 11));
 
 		keyboard = MIDIKeyboard(win, Rect(190, 135, 280, 60), 3, 48)
@@ -76,18 +89,23 @@ XiiLangGUI  {
 			.string_("Put short samples into a folder within the ixilang sounds folder.\nThe name you give that folder becomes the project name. \nYou can map the keys on your keyboard to the sample names.\n\nIf you just want to test, without creating a mapping for a new \nproject, press 'start session'.")
 			.font_(Font("Helvetica", 10));
 
-		SCButton(win, Rect(190, 250, 80, 20))
+		SCButton(win, Rect(190, 250, 65, 20))
+			.states_([["colors", Color.black, Color.gray]])
+			.action_({ XiiLangColors.new(projectname) })
+			.font_(Font("Helvetica", 11));
+
+		SCButton(win, Rect(262, 250, 65, 20))
 			.states_([["map keys", Color.black, Color.gray]])
 			.action_({ mappingwinfunc.value })
 			.font_(Font("Helvetica", 11));
 		
-		SCButton(win, Rect(290, 250, 80, 20))
-			.states_([["ixi lang help", Color.black, Color.gray]])
+		SCButton(win, Rect(334, 250, 65, 20))
+			.states_([["help", Color.black, Color.gray]])
 			.action_({ XiiLang.openHelpFile })
 			.font_(Font("Helvetica", 11));
 
-		SCButton(win, Rect(390, 250, 80, 20))
-			.states_([["start session", Color.black, Color.green.alpha_(0.2)]])
+		SCButton(win, Rect(406, 250, 65, 20))
+			.states_([["start", Color.black, Color.green.alpha_(0.2)]])
 			.action_({ 
 				XiiLang.new(projectname, key, true, true);
 			})
@@ -107,10 +125,10 @@ XiiLangGUI  {
 
 		mappingwinfunc = {
 			var win, column, letters, synthDefDict, dictFound, savebutt;
-
+			var ixiLangInstr;
 		
 		synthdesclib = SynthDescLib(projectname.asSymbol);
-		("sounds/ixilang/"++projectname++"/synthdefs.scd").loadPath;
+		("ixilang/"++projectname++"/synthdefs.scd").loadPath;
 		SynthDescLib.read;
 		synthdefnames = SynthDescLib.getLib(projectname.asSymbol).synthDescs.keys.asArray;
 		// [\synthdefnames, synthdefnames].postln;
@@ -123,12 +141,15 @@ XiiLangGUI  {
 				dictFound = true;
 			});
 		
-			XiiLangInstr.new(projectname);
+			ixiLangInstr = XiiLangInstr.new(projectname);
 		
 			column = 0;
 			letters = "AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz";
 			win = SCWindow.new("mapping keyboard keys to samples - project: "+projectname.quote, Rect(710,410, 460, 766), resizable:false).front;
-		
+			win.onClose_({
+				"freeing buffers".postln;
+				ixiLangInstr.freeBuffers;			
+			});
 			win.view.keyDownAction_({arg view, cha, modifiers, unicode, keycode;
 				if(letters.includes(cha), {
 					{Synth(synthDefDict[cha.asSymbol], [\freq, 60.midicps])}.value;
@@ -229,7 +250,7 @@ XiiLangGUI  {
 				.states_([["save mapping file", Color.black, Color.green.alpha_(0.2)], ["saved", Color.black, Color.clear]])
 				.action_({ 
 					synthDefDict.writeArchive(projectpath++"/_keyMapping.ixi");
-					" ---> ixi lang NOTE: You need to restart your session for the new mapping to take function".postln;
+					" ---> ixi lang NOTE: You need to restart your session for the new mapping to take function (Press the green 'Start session' button".postln;
 				})
 				.font_(Font("Helvetica", 11));
 															win.view.children[1].focus(true);

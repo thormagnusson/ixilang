@@ -5,7 +5,8 @@ XiiLangInstr {
 	var project;
 	var sampleNames, samplePaths, nrOfSampleSynthDefs;
 	var defaultsynthdesclib, synthdesclib;
-
+	var bufferPool;
+	
 	*new {| project, loadsamples=true |
 		^super.new.initXiiLangInstr(project, loadsamples);
 		}
@@ -13,14 +14,14 @@ XiiLangInstr {
 	initXiiLangInstr {| argproject, loadsamples |	
 		project = argproject;
 		defaultsynthdesclib = SynthDescLib(\xiilang);
-
+		bufferPool = [];
 	
 		// ----------------------------------------------------------------------------------
 		// --------------------------- unique project synthdefs  ----------------------------
 		// ----------------------------------------------------------------------------------
 
 		synthdesclib = SynthDescLib(project.asSymbol);
-		("sounds/ixilang/"++project++"/synthdefs.scd").loadPath;
+		("ixilang/"++project++"/synthdefs.scd").loadPath;
 
 
 	
@@ -30,14 +31,14 @@ XiiLangInstr {
 		
 		// ---------------------- sample based instruments -----------------------------
 		if(loadsamples, {		
-			samplePaths = ("sounds/ixilang/"++project++"/*").pathMatch;
+			samplePaths = ("ixilang/"++project++"/samples/*").pathMatch;
 			samplePaths = samplePaths.reject({ |path| path.basename.splitext[1] == "scd" }); // not including the keymapping files
 			samplePaths = samplePaths.reject({ |path| path.basename.splitext[1] == "ixi" }); // not including the keymapping files
 			sampleNames = samplePaths.collect({ |path| path.basename.splitext[0]});
 			
 			if(samplePaths == [], {
 				"-------------------------- ERROR ---------------------------".postln;
-				"ixi lang : You need to create an 'ixilang' folder within your 'sounds' folder. \nIn there, you create your project folders, such as 'default'.\n For example: /sounds/ixilang/default. \nSee the XiiLang.html help file".postln;
+				"ixi lang : You need to create an 'ixilang' folder within your 'sounds' folder. \nIn there, you create your project folders, such as 'default'.\n For example: ixilang/sounds/default. \nSee the XiiLang.html help file".postln;
 				"------------------------------------------------------------".postln;
 		
 			}, {
@@ -108,18 +109,22 @@ XiiLangInstr {
 				file.close;
 				SynthDef(sampleNames.wrapAt(i).asSymbol, {arg out=0, freq=440, amp=0.3, pan=0, noteamp=1, sustain=0.4;
 						var buffer, player, env, signal, killer;
-						buffer = Buffer.read(Server.default, filepath);
-						player= Select.ar(noteamp,
+						bufferPool = bufferPool.add(buffer = Buffer.read(Server.default, filepath));
+						player = Select.ar(noteamp,
 							[ // playMode 2 - the sample player mode
 							if(chnum==1, { 
-							LoopBuf.ar(1, buffer, (freq.cpsmidi-60).midiratio, 1, 0, 0, 44100*60*10) }, {
-							LoopBuf.ar(2, buffer, (freq.cpsmidi-60).midiratio, 1, 0, 0, 44100*60*10).sum})
-							* EnvGen.ar(Env.linen(0.0001, 60*60, 0.0001))
+								LoopBuf.ar(1, buffer, (freq.cpsmidi-60).midiratio, 1, 0, 0, 44100*60*10) 
+							}, {
+								LoopBuf.ar(2, buffer, (freq.cpsmidi-60).midiratio, 1, 0, 0, 44100*60*10).sum
+							})
+								* EnvGen.ar(Env.linen(0.0001, 60*60, 0.0001))
 							, // playMode 1 - the rhythmic mode
 							if(chnum==1, { 
-							PlayBuf.ar(1, buffer, (freq.cpsmidi-60).midiratio) }, {
-							PlayBuf.ar(2, buffer, (freq.cpsmidi-60).midiratio).sum})
-							* EnvGen.ar(Env.perc(0.01, sustain))
+								PlayBuf.ar(1, buffer, (freq.cpsmidi-60).midiratio) 
+							}, {
+								PlayBuf.ar(2, buffer, (freq.cpsmidi-60).midiratio).sum
+							})
+								* EnvGen.ar(Env.perc(0.01, sustain))
 							]);
 						
 						// I use DetectSilence rather than doneAction in Env.perc, as a doneAction in Env.perc
@@ -460,8 +465,8 @@ Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) 
 			var sig = StkBandedWG.ar(freq, instr:1, mul:3);
 			var env = EnvGen.kr(Env.adsr(0.0001, sustain, sustain, 0.3), gate, doneAction:2);
 			Out.ar(out, Pan2.ar(sig, pan, env * amp));
-		}).add;
-//		}).add(\xiilang);
+//		}).add;
+		}).add(\xiilang);
 
 		SynthDef(\softwg, { |out=0, freq=440, gate=1, amp=0.3, sustain=0.5, pan=0|
 			var sig = StkBandedWG.ar(freq, instr:1, mul:3);
@@ -538,7 +543,7 @@ Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) 
 		// else, the instrDict is created by mapping random sound files onto the letters
 		
 		var file;
-		if(Object.readArchive("sounds/ixilang/"++project++"/_keyMapping.ixi").isNil, {
+		if(Object.readArchive("ixilang/"++project++"/keyMapping.ixi").isNil, {
 			instrDict = IdentityDictionary.new;
 			[\A, \a, \B, \b, \C, \c, \D, \d, \E, \e, \F, \f, \G, \g, \H, \h, \I, \i, \J, \j,
 			\K, \k, \L, \l, \M, \m, \N, \n, \O, \o, \P, \p, \Q, \q, \R, \r, \S, \s, \T, \t,
@@ -547,7 +552,7 @@ Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) 
 			});
 			" --->    ixi lang : No key mappings were found, so sounds will be randomly assigned to keys - see helpfile".postln;
 		}, {
-			instrDict = Object.readArchive("sounds/ixilang/"++project++"/_keyMapping.ixi");
+			instrDict = Object.readArchive("ixilang/"++project++"/keyMapping.ixi");
 		});
 		
 		"The keys of your keyboard are mapped to these samples :".postln;
@@ -607,6 +612,9 @@ Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) 
 		SynthDescLib.getLib(\xiilang).synthDescs.keys.asArray;
 	}
 
+	freeBuffers {
+		bufferPool.do({arg buffer; buffer.free;});	
+	}
 }
 
 		
@@ -620,7 +628,7 @@ Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) 
 	1) Put this code into a document together with your sound samples in the project folder
 	2) Enter the names of your soundfiles mapped to the keys (without the file ending)
 	3) Highlight all (Apple + a)
-	4) Hit SHIFT + RETURN (this will generate the _keyMappings.ixi file in your project folder)
+	4) Hit SHIFT + RETURN (this will generate the keyMappings.ixi file in your project folder)
 	*/
 
 
@@ -707,6 +715,6 @@ Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) 
 		instrDict[\Z] = \viromachine;	
 		instrDict[\z] = \yoyo;	
 		
-		instrDict.writeArchive("sounds/ixilang/"++project++"/_keyMapping.ixi");
+		instrDict.writeArchive("sounds/ixilang/"++project++"/keyMapping.ixi");
 
 	*/

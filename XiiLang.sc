@@ -3,7 +3,7 @@
 
 GPL license (c) thor magnusson - ixi audio, 2009-2011
 
-// XiiLang.new("project", "key") - "project" stands for the name of the folder where soundfiles are kept. in this folder a _keyMapping.ixi file can be found that maps letters to sounds. if there is no file, then the mapping will be random
+// XiiLang.new("project", "key") - "project" stands for the name of the folder where soundfiles are kept. in this folder a keyMapping.ixi file can be found that maps letters to sounds. if there is no file, then the mapping will be random
 
 TODO: Add parameter effect control
 TODO: Check the use of String:drop(1) and String:drop(-1)
@@ -82,10 +82,12 @@ TempoClock:sync (by f0)
 
 // Add color customisation to GUI
 // todo: add more postfix args to concrete mode (pitch, panning, etc)
+// TODO: free buffer on document close - should create a freebuffers method in XiiLangInstr class
+
 
 XiiLang {	
 	classvar globaldocnum;
-	var <>doc, docnum, oncolor, offcolor, processcolor, proxyspace, groups, score;
+	var <>doc, docnum, doccolor, oncolor, activecolor, offcolor, deadcolor, proxyspace, groups, score;
 	var agentDict, instrDict, ixiInstr, effectDict, varDict, snapshotDict, scoreArray; //, effectRegDict; //, codeDict;
 	var scale, tuning, chosenscale, tonic;
 	var midiclient, eventtype, suicidefork;
@@ -120,9 +122,12 @@ XiiLang {
 		scale = chosenscale.degrees.add(12); // this is in degrees
 		tuning = \et12; // default tuning
 		tonic = 60 + [\C, \Cs, \D, \Ds, \E, \F, \Fs, \G, \Gs, \A, \As, \B].indexOf(key.toUpper.asSymbol); // midinote 60 is the default
-		oncolor = Color.white;
-		offcolor = Color.green;
-		processcolor = Color.yellow;
+//		// color scheme
+//		oncolor = Color.white;
+//		offcolor = Color.green;
+//		activecolor = Color.yellow;
+//		doccolor = Color.black;
+		
 		if(dicts.isNil, {
 			agentDict = IdentityDictionary.new; // dicts are sent from "load"
 			varDict = IdentityDictionary.new;
@@ -211,8 +216,22 @@ XiiLang {
 		}, {
 			doc = Document.current;
 		});
+		
+		// color scheme
+		try{ // check if the color file exists
+			#doccolor, oncolor, activecolor, offcolor, deadcolor = Object.readArchive("ixilang/"++project++"/colors.ixi")
+		};
+		if(doccolor.isNil, { 
+			"here".postln;
+			doccolor = Color.black;
+			oncolor = Color.white;
+			activecolor = Color.yellow;
+			offcolor = Color.green;
+			deadcolor = Color.red;
+		});
+		
 		doc.bounds_(Rect(400,400, 1000, 600));
-		doc.background_(Color.black);
+		doc.background_(doccolor);
 		doc.stringColor_(oncolor);
 		if(txt == false, { doc.string_("") });
 		doc.name_("ixi lang   -   project :" + project.quote + "  -   window nr:" + docnum.asString);
@@ -233,6 +252,8 @@ XiiLang {
 			});		
 		});
 		doc.onClose_({
+			// xxx free buffers
+			//ixiInstr.freeBuffers; // not good as playscore reads a new doc (NEED TO FIX)
 			//doc.background_(Color.white); // for some reason this is not saved when the doc is closed/saved
 			//doc.stringColor_(Color.black);	
 			proxyspace.end(4);  // free all proxies
@@ -242,6 +263,12 @@ XiiLang {
 			});
 			snapshotDict[\futures].stop; 
 		});
+		
+		if(("ixilang/"++project++"/scores").pathMatch==[], {
+			("mkdir -p" + ("ixilang/"++project++"/scores")).unixCmd; // create the scores folder
+			"ixi-lang NOTE: a scores folder was not found for saving scores - It was created".postln;
+		});	
+
 	}
 	
 	// the interpreter of thie ixi lang - here operators are overwritten
@@ -306,10 +333,10 @@ XiiLang {
 					("mkdir -p" + sessionsfolderpath.quote).unixCmd;
 					"ixi-lang NOTE: an ixilang folder was not found for saving sessions - It was created in the SuperCollider folder".postln;
 				});
-				[projectname, key, language, doc.string, agentDict, snapshotDict, groups, docnum].writeArchive(sessionsfolderpath++session++".ils");
+				[projectname, key, language, doc.string, agentDict, snapshotDict, groups, docnum].writeArchive(sessionsfolderpath++projectname++"/templates/"++session++".ils");
 			}
 			{"load"}{
-				var sessionstart, sessionend, session, key, language, projectname;
+				var sessionstart, sessionend, session, key, language, project;
 				var tempAgentDict, tempSnapshotDict;
 				string = string.replace("    ", " ");
 				string = string.replace("   ", " ");
@@ -319,9 +346,9 @@ XiiLang {
 				sessionend = string.findAll(" ")[1]; 
 				session = string[sessionstart+1..sessionend-1];
 				doc.onClose; // call this to end all agents and groups in this particular doc if it has been running agents
-				#projectname, key, language, string, agentDict, snapshotDict, groups, docnum = Object.readArchive("ixilang/"++session++".ils");
+				#project, key, language, string, agentDict, snapshotDict, groups, docnum = Object.readArchive("ixilang/"++projectname++"/templates/"++session++".ils");
 				doc.string = string;
-				XiiLang.new( projectname, key, true, false, language, [agentDict, snapshotDict, groups, docnum]);
+				XiiLang.new( project, key, true, false, language, [agentDict, snapshotDict, groups, docnum]);
 			}
 			{"snapshot"}{
 				this.parseSnapshot(string);
@@ -884,6 +911,7 @@ XiiLang {
 						["---  WILL I DIE NOW? ---", "---  HAS IT COME TO AN END?  ---", "---  WHEN WILL I DIE?  ---", "---  MORRISSEY  ---", "---  ACTUALLY, WAIT A MINUTE...  ---", "---  I'VE HAD IT  ---", "---  THIS IS THE END  ---", "---  I'M PATHETIC  ---"].choose.postln;
 						if((chance/100).coin, { 
 							this.opInterpreter("savescore" + ("suicide@"++Date.getDate.stamp.asString)); // save score first 
+							2.wait;
 							0.exit; // kill supercollider
 						}); 
 						time.wait;
@@ -1027,15 +1055,27 @@ XiiLang {
 				sessionend = string.findAll(" ")[1]; 
 				session = string[sessionstart+1..sessionend-1];
 				sessionsfolderpath = String.scDir++"/ixilang/";
-				if(sessionsfolderpath.pathMatch==[], {
-					("mkdir -p" + sessionsfolderpath.quote).unixCmd;
-					"ixi-lang NOTE: an ixilang folder was not found for saving sessions - It was created in the SuperCollider folder".postln;
-				});
-				offsettime = scoreArray[0][0];
-				
-				scoreArray = scoreArray.collect({arg event; [event[0]-offsettime, event[1]]});
-				scoreArray.postln;
-				[randomseed, scoreArray.copy].writeArchive(sessionsfolderpath++session++".scr");
+//				if(sessionsfolderpath.pathMatch==[], {
+//					("mkdir -p" + sessionsfolderpath.quote).unixCmd; // create the ixilang folder
+//					("mkdir -p" + (sessionsfolderpath++projectname)).unixCmd; // create the scores folder
+//					("mkdir -p" + (sessionsfolderpath++projectname++"/scores")).unixCmd; // create the scores folder
+//					"ixi-lang NOTE: an ixilang folder was not found for saving sessions - It was created in the SuperCollider folder".postln;
+//				});
+//				if((sessionsfolderpath++projectname++"/").pathMatch==[], {
+//					("mkdir -p" + (sessionsfolderpath++projectname)).unixCmd; // create the scores folder
+//					("mkdir -p" + (sessionsfolderpath++projectname++"/scores")).unixCmd; // create the scores folder
+//					"ixi-lang NOTE: an ixilang folder was not found for saving sessions - It was created in the SuperCollider folder".postln;
+//				});
+//				if((sessionsfolderpath++projectname++"/scores").pathMatch==[], {
+//					("mkdir -p" + (sessionsfolderpath++projectname++"/scores")).unixCmd; // create the scores folder
+//					"ixi-lang NOTE: a scores folder was not found for saving sessions - It was created".postln;
+//				});	
+				//{
+					offsettime = scoreArray[0][0];
+					scoreArray = scoreArray.collect({arg event; [event[0]-offsettime, event[1]]});
+					scoreArray.postln;
+					[randomseed, scoreArray.copy].writeArchive(sessionsfolderpath++projectname++"/scores/"++session++".scr");
+				//}.defer(1); // delay a little in case the folder doesn't exist
 			}
 			{"playscore"}{
 				var sessionstart, sessionend, session, score, offsettime;
@@ -1049,7 +1089,7 @@ XiiLang {
 				//doc.onClose; // call this to end all agents and groups in this particular doc if it has been running agents
 				[\session, session].postln;
 				("ixilang/"++session++".scr").postln;
-				#randomseed, score = Object.readArchive("ixilang/"++session++".scr");
+				#randomseed, score = Object.readArchive("ixilang/"++projectname++"/scores/"++session++".scr");
 				
 				/*
 				score.postln;
@@ -1091,6 +1131,7 @@ XiiLang {
 				//(1).wait;
 				if(	event[1].contains("future").not && 
 					event[1].contains("snapshot").not &&
+					event[1].contains("suicide").not &&
 					event[1].contains("savescore").not, {
 					doc.string_(doc.string++"\n"++event[1]);
 					this.opInterpreter(event[1]);
@@ -1111,7 +1152,7 @@ XiiLang {
 		agent = (docnum.asString++agent).asSymbol;
 		proxyspace[agent].clear;
 		agentDict[agent] = nil;
-		{doc.stringColor_(Color.red, doc.selectionStart, doc.selectionSize)}.defer(0.1); // killed code is red
+		{doc.stringColor_(deadcolor, doc.selectionStart, doc.selectionSize)}.defer(0.1); // killed code is red
 	}
 	
 	parseSnapshot{ arg string;
@@ -1163,7 +1204,7 @@ XiiLang {
 
 				// --  0)  Check if the agent is playing or not in that snapshot
 				if(agentDictItem[1].playstate == true, {
-					
+
 					// --  1)  Find the agent in the doc
 					allreturns = doc.string.findAll("\n");
 					// the following checks if it's exactly the same agent name (and not confusing joe and joel)
@@ -1180,9 +1221,11 @@ XiiLang {
 					doc.stringColor_(oncolor, stringstart, stringend-stringstart);
 
 					// --  3)  Run the code (parse it) - IF playstate is true (in case it's been dozed)
-					if(proxyspace[keyagentname].objects[0].array[0].muteCount == 1, {
+					try{ // try, because if loading from "load", then there will be no proxyspace yet
+						if(proxyspace[keyagentname].objects[0].array[0].muteCount == 1, {
 						proxyspace[keyagentname].objects[0].array[0].unmute;
 					});
+					};
 
 					mode = block{|break| 
 						["|", "[", "{", ")"].do({arg op, i;						var c = dictscore.find(op);
@@ -2034,7 +2077,7 @@ XiiLang {
 					{ // make the agent yellow
 						cursorPos = doc.selectionStart; // get cursor pos
 						#stringstart, stringend = this.findStringStartEnd(doc, pureagentname);
-						doc.stringColor_(processcolor, stringstart, stringend-stringstart);
+						doc.stringColor_(activecolor, stringstart, stringend-stringstart);
 						doc.selectRange(cursorPos); // set cursor pos again
 					}.defer;
 					0.3.wait;
