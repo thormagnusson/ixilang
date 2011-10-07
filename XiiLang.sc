@@ -34,9 +34,10 @@ TODO: Check the use of String:drop(1) and String:drop(-1)
 // microtonal transposition in melodic mode
 // intoxicants
 // added XiiLangGUI() for mapping keys and for starting in .app mode
-// added record and play score (to repeat performances)
+// added store and play score (to repeat performances)
 // added panning arguments as postfix
-
+// Add color customisation to GUI
+// Recording sound file functionality
 
 // FIXED BUG: snapshots do not perk up agents that have been dozed
 // FIXED BUG: Snapshots do not recall the effect state
@@ -56,8 +57,6 @@ TODO: Check the use of String:drop(1) and String:drop(-1)
 // - netclock
 // - morphing
 // add some more effects
-// add the coffee, lsd, cannabis 
-// john >> coffee
 
 /*
 Dependencies:
@@ -80,7 +79,6 @@ TempoClock:sync (by f0)
 //IDEA3: Make a history class for ixi lang. Then create a system that plays back.
 // Starting to add scoreArray now.
 
-// Add color customisation to GUI
 // todo: add more postfix args to concrete mode (pitch, panning, etc)
 // TODO: free buffer on document close - should create a freebuffers method in XiiLangInstr class
 
@@ -119,14 +117,9 @@ XiiLang {
 		// the number of this document (allows for multiple docs using same variable names)
 		docnum = globaldocnum; // this number is now added in front of all agent names
 		chosenscale = Scale.major; // this is scale representation
-		scale = chosenscale.degrees.add(12); // this is in degrees
+		scale = chosenscale.copy.degrees.add(12); // this is in degrees
 		tuning = \et12; // default tuning
 		tonic = 60 + [\C, \Cs, \D, \Ds, \E, \F, \Fs, \G, \Gs, \A, \As, \B].indexOf(key.toUpper.asSymbol); // midinote 60 is the default
-//		// color scheme
-//		oncolor = Color.white;
-//		offcolor = Color.green;
-//		activecolor = Color.yellow;
-//		doccolor = Color.black;
 		
 		if(dicts.isNil, {
 			agentDict = IdentityDictionary.new; // dicts are sent from "load"
@@ -222,7 +215,6 @@ XiiLang {
 			#doccolor, oncolor, activecolor, offcolor, deadcolor = Object.readArchive("ixilang/"++project++"/colors.ixi")
 		};
 		if(doccolor.isNil, { 
-			"here".postln;
 			doccolor = Color.black;
 			oncolor = Color.white;
 			activecolor = Color.yellow;
@@ -253,9 +245,7 @@ XiiLang {
 		});
 		doc.onClose_({
 			// xxx free buffers
-			//ixiInstr.freeBuffers; // not good as playscore reads a new doc (NEED TO FIX)
-			//doc.background_(Color.white); // for some reason this is not saved when the doc is closed/saved
-			//doc.stringColor_(Color.black);	
+			ixiInstr.freeBuffers; // not good as playscore reads a new doc (NEED TO FIX)
 			proxyspace.end(4);  // free all proxies
 			agentDict.do({arg agent;
 				agent[2].stop;
@@ -263,10 +253,21 @@ XiiLang {
 			});
 			snapshotDict[\futures].stop; 
 		});
-		
 		if(("ixilang/"++project++"/scores").pathMatch==[], {
 			("mkdir -p" + ("ixilang/"++project++"/scores")).unixCmd; // create the scores folder
 			"ixi-lang NOTE: a scores folder was not found for saving scores - It was created".postln;
+		});	
+		if(("ixilang/"++project++"/recordings").pathMatch==[], {
+			("mkdir -p" + ("ixilang/"++project++"/recordings")).unixCmd; // create the recordings folder
+			"ixi-lang NOTE: a recordings folder was not found for saving scores - It was created".postln;
+		});	
+		if(("ixilang/"++project++"/sessions").pathMatch==[], {
+			("mkdir -p" + ("ixilang/"++project++"/sessions")).unixCmd; // create the sessions folder
+			"ixi-lang NOTE: a sessions folder was not found for saving scores - It was created".postln;
+		});	
+		if(("ixilang/"++project++"/samples").pathMatch==[], {
+			("mkdir -p" + ("ixilang/"++project++"/samples")).unixCmd; // create the samples folder
+			"ixi-lang NOTE: a samples folder was not found for saving scores - It was created".postln;
 		});	
 
 	}
@@ -333,7 +334,7 @@ XiiLang {
 					("mkdir -p" + sessionsfolderpath.quote).unixCmd;
 					"ixi-lang NOTE: an ixilang folder was not found for saving sessions - It was created in the SuperCollider folder".postln;
 				});
-				[projectname, key, language, doc.string, agentDict, snapshotDict, groups, docnum].writeArchive(sessionsfolderpath++projectname++"/templates/"++session++".ils");
+				[projectname, key, language, doc.string, agentDict, snapshotDict, groups, docnum].writeArchive(sessionsfolderpath++projectname++"/sessions/"++session++".ils");
 			}
 			{"load"}{
 				var sessionstart, sessionend, session, key, language, project;
@@ -346,7 +347,7 @@ XiiLang {
 				sessionend = string.findAll(" ")[1]; 
 				session = string[sessionstart+1..sessionend-1];
 				doc.onClose; // call this to end all agents and groups in this particular doc if it has been running agents
-				#project, key, language, string, agentDict, snapshotDict, groups, docnum = Object.readArchive("ixilang/"++projectname++"/templates/"++session++".ils");
+				#project, key, language, string, agentDict, snapshotDict, groups, docnum = Object.readArchive("ixilang/"++projectname++"/sessions/"++session++".ils");
 				doc.string = string;
 				XiiLang.new( project, key, true, false, language, [agentDict, snapshotDict, groups, docnum]);
 			}
@@ -367,22 +368,6 @@ XiiLang {
 					{3} { this.parseChord(string, \c) }
 					{4} { this.parseChord(string, \n) };
 			}
-//			{"|"}{ // the following four are here in case user is not using agent assignment (->)
-//				this.parseScoreMode0(string);
-//			}
-//			{"["}{
-//				this.parseScoreMode1(string);
-//			}
-//			{"{"}{
-//				this.parseScoreMode2(string);
-//			}
-//			{")"}{
-//				this.parseChord(string);
-//			}
-//			{"±"}{
-//				"in here".postln;
-//				this.parseChord(string);
-//			}
 			{"future"}{
 				// future 8:4 >> swap thor // every 8 SECONDS the action is performed (here 4 times)
 				// future 4b:4 >> swap thor // every 8 BARS the action is performed (here 4 times)
@@ -500,7 +485,6 @@ XiiLang {
 						});
 					});
 				}, { // removing future scheduling
-					"removing future".postln;
 					agentstart = string.findAll(" ")[1];
 					agentend = string.findAll(" ")[2]; 
 					agent = string[agentstart+1..agentend-1];
@@ -547,13 +531,18 @@ XiiLang {
 				"---> Setting tempo to : ".post; (newtemp*60).postln;
 			}
 			{"scale"}{
-				var scalestart, scalestr;
-				scalestart = string.find("e");
-				scalestr = string.tr($ , \);
-				scalestr = scalestr[scalestart+1..scalestr.size-1];
-				chosenscale = ("Scale."++scalestr).interpret;
-				chosenscale.tuning_(tuning.asSymbol);
-				scale = chosenscale.semitones.add(12); // used to be degrees, but that doesn't support tuning
+				var agent, firstarg;
+					string = string++" ";
+					firstarg = string[string.findAll(" ")[0]+1..(string.findAll(" ")[1])-1];
+					agent = (docnum.asString++firstarg).asSymbol;
+					if(agentDict.keys.includes(agent), {
+						this.parseMethod(string); // since future will use this, I need to parse the method
+					}, {
+						"setting global scale".postln;
+						chosenscale = ("Scale."++firstarg).interpret;
+						chosenscale.tuning_(tuning.asSymbol);
+						scale = chosenscale.copy.semitones.add(12); // used to be degrees, but that doesn't support tuning
+					});
 			}
 			{"scalepush"}{
 				var scalestart, scalestr;
@@ -563,7 +552,7 @@ XiiLang {
 				scalestr = scalestr[scalestart+1..scalestr.size-1];
 				chosenscale = ("Scale."++scalestr).interpret;
 				chosenscale.tuning_(tuning.asSymbol);
-				scale = chosenscale.semitones.add(12); // used to be degrees, but that doesn't support tuning
+				scale = chosenscale.copy.semitones.add(12); // used to be degrees, but that doesn't support tuning
 				agentDict.do({arg agent;
 					dictscore = agent[1].scorestring;
 					dictscore = dictscore.reject({ |c| c.ascii == 34 }); // get rid of quotation marks
@@ -574,8 +563,8 @@ XiiLang {
 					};
 					switch(mode)
 						{0} { this.parseScoreMode0(dictscore) }
-						{1} { this.parseScoreMode1(dictscore) }
-						{2} { this.parseScoreMode2(dictscore) };
+						{1} { this.parseScoreMode1(dictscore) };
+					//	{2} { this.parseScoreMode2(dictscore) }; // not relevant
 					if(agent[1].playstate == true, {
 						proxyspace[agent].play;
 					});
@@ -588,7 +577,7 @@ XiiLang {
 				tuning = tuningstr[tuningstart+1..tuningstr.size-1];
 				tuning = tuning.reject({ |c| c.ascii == 10 }); // get rid of char return
 				chosenscale.tuning_(tuning.asSymbol);
-				scale = chosenscale.semitones.add(12);
+				scale = chosenscale.copy.semitones.add(12);
 			}
 			{"tuningpush"}{
 				var tuningstart, tuningstr;
@@ -598,7 +587,7 @@ XiiLang {
 				tuning = tuningstr[tuningstart+1..tuningstr.size-1];
 				tuning = tuning.reject({ |c| c.ascii == 10 }); // get rid of char return
 				chosenscale.tuning_(tuning.asSymbol);
-				scale = chosenscale.semitones.add(12);
+				scale = chosenscale.copy.semitones.add(12);
 				agentDict.do({arg agent;
 					dictscore = agent[1].scorestring;
 					dictscore = dictscore.reject({ |c| c.ascii == 34 }); // get rid of quotation marks
@@ -609,8 +598,8 @@ XiiLang {
 					};
 					switch(mode)
 						{0} { this.parseScoreMode0(dictscore) }
-						{1} { this.parseScoreMode1(dictscore) }
-						{2} { this.parseScoreMode2(dictscore) };
+						{1} { this.parseScoreMode1(dictscore) };
+					//	{2} { this.parseScoreMode2(dictscore) }; // not relevant
 					if(agent[1].playstate == true, {
 						proxyspace[agent].play;
 					});
@@ -1046,7 +1035,7 @@ XiiLang {
 			{"savescore"}{
 				var sessionstart, sessionend, session, sessionsfolderpath;
 				var offsettime;
-				"SAVING SCORE-------------------------".postln;
+
 				string = string.replace("    ", " ");
 				string = string.replace("   ", " ");
 				string = string.replace("  ", " ");
@@ -1055,27 +1044,9 @@ XiiLang {
 				sessionend = string.findAll(" ")[1]; 
 				session = string[sessionstart+1..sessionend-1];
 				sessionsfolderpath = String.scDir++"/ixilang/";
-//				if(sessionsfolderpath.pathMatch==[], {
-//					("mkdir -p" + sessionsfolderpath.quote).unixCmd; // create the ixilang folder
-//					("mkdir -p" + (sessionsfolderpath++projectname)).unixCmd; // create the scores folder
-//					("mkdir -p" + (sessionsfolderpath++projectname++"/scores")).unixCmd; // create the scores folder
-//					"ixi-lang NOTE: an ixilang folder was not found for saving sessions - It was created in the SuperCollider folder".postln;
-//				});
-//				if((sessionsfolderpath++projectname++"/").pathMatch==[], {
-//					("mkdir -p" + (sessionsfolderpath++projectname)).unixCmd; // create the scores folder
-//					("mkdir -p" + (sessionsfolderpath++projectname++"/scores")).unixCmd; // create the scores folder
-//					"ixi-lang NOTE: an ixilang folder was not found for saving sessions - It was created in the SuperCollider folder".postln;
-//				});
-//				if((sessionsfolderpath++projectname++"/scores").pathMatch==[], {
-//					("mkdir -p" + (sessionsfolderpath++projectname++"/scores")).unixCmd; // create the scores folder
-//					"ixi-lang NOTE: a scores folder was not found for saving sessions - It was created".postln;
-//				});	
-				//{
-					offsettime = scoreArray[0][0];
-					scoreArray = scoreArray.collect({arg event; [event[0]-offsettime, event[1]]});
-					scoreArray.postln;
-					[randomseed, scoreArray.copy].writeArchive(sessionsfolderpath++projectname++"/scores/"++session++".scr");
-				//}.defer(1); // delay a little in case the folder doesn't exist
+				offsettime = scoreArray[0][0];
+				scoreArray = scoreArray.collect({arg event; [event[0]-offsettime, event[1]]});
+				[randomseed, scoreArray.copy].writeArchive(sessionsfolderpath++projectname++"/scores/"++session++".scr");
 			}
 			{"playscore"}{
 				var sessionstart, sessionend, session, score, offsettime;
@@ -1087,46 +1058,20 @@ XiiLang {
 				sessionend = string.findAll(" ")[1]; 
 				session = string[sessionstart+1..sessionend-1];
 				//doc.onClose; // call this to end all agents and groups in this particular doc if it has been running agents
-				[\session, session].postln;
-				("ixilang/"++session++".scr").postln;
 				#randomseed, score = Object.readArchive("ixilang/"++projectname++"/scores/"++session++".scr");
-				
-				/*
-				score.postln;
-				offsettime = score[0][0];
-				doc.string = "";
-				doc.onClose;
-				{
-					score.do({ arg event;
-						[\event1, event[1]].postln;
-						(event[0]-offsettime).wait;
-						//(1).wait;
-						if(event[1].contains("future").not && event[1].contains("snapshot").not, {
-							doc.string_(doc.string++"\n"++event[1]);
-							this.opInterpreter(event[1]);
-						});
-						offsettime = event[0];
-					});
-				}.fork(AppClock);
-				*/
-				
-				//doc.string = string;
 				XiiLang.new( projectname, key, true, false, language, nil, [randomseed, score]);
-				
 			}
 			;
 		}
 	
 	playScore{ arg score;
 		var offsettime;
-		score.postln;
 		offsettime = score[0][0];
 		doc.string = "";
 		doc.onClose;
 		{	
 		//	thisThread.randSeed = randomseed;
 			score.do({ arg event;
-				[\event1, event[1]].postln;
 				(event[0]-offsettime).wait;
 				//(1).wait;
 				if(	event[1].contains("future").not && 
@@ -1139,7 +1084,6 @@ XiiLang {
 				offsettime = event[0];
 			});
 		}.fork(AppClock);
-		
 	}
 	// method invoked on alt+left arrow, for easy freeing of an agent (line)
 	freeAgent { arg string;
@@ -1259,8 +1203,6 @@ XiiLang {
 		var argDict, multiplication, multloc;
 		multiplication = 1;
 
-[\postfixstring, postfixstring].postln;
-
 		argDict = ();
 		argDict[\timestretch] = 1;
 		argDict[\transposition] = 0;
@@ -1304,7 +1246,6 @@ XiiLang {
 		// -- sustain --
 		sustainstartloc = postfixstring.find("(");
 		sustainendloc = postfixstring.find(")");
-		//[\sustainstartloc, sustainstartloc, \sustainendloc, sustainendloc].postln;
 		if(sustainstartloc.isNil, {
 			sustainstring = "4";
 		}, {
@@ -1318,7 +1259,6 @@ XiiLang {
 		sustainstring.do({arg dur; var durint;
 			durint = dur.asString.asInteger;
 			if(durint == 0, {durint = 1}); // make sure durint is not 0 - which will crash the language
-//			sustainarr = sustainarr.add(TempoClock.default.tempo.reciprocal/durint); // a bug !!!
 			sustainarr = sustainarr.add(durint.reciprocal);
 		});
 		
@@ -1341,29 +1281,23 @@ XiiLang {
 
 		// -- panning --
 		pansymbol = postfixstring.find("<");
-		[\pansymbol, pansymbol].postln;
 		if(pansymbol.isNil, {
 			panstring = "5";
 		}, {
 			panstartloc = postfixstring.find("<");
 			panendloc = postfixstring.find(">");
-			[\panstartloc, panstartloc, \panendloc, panendloc].postln;
 			panstring = postfixstring[panstartloc+1..panendloc-1];
-			[\panstring, panstring].postln;
 		});
 		panstring.do({arg pan; 
 			panarr = panarr.add(pan.asString.asInteger.linlin(1, 9, -1, 1)); // 1 to 9 are mapped to panning of -1.0 to 1.0
 		 });
-		 [\______panarr, panarr].postln;
 		argDict.add(\panarr -> panarr);
-
-		//"----------- ARGDICT IS ________  ".post; argDict.postln;
 		^argDict;
 	}
 
 	// PERCUSSIVE MODE
 	parseScoreMode0 {arg string; 
-		var agent, score, splitloc, endchar, agentstring, silenceicon, silences, scorestring, timestretch=1, postfixargs;
+		var agent, pureagent, score, splitloc, endchar, agentstring, silenceicon, silences, scorestring, timestretch=1, postfixargs;
 		var durarr, sustainarr, spacecount, instrarr, instrstring, quantphase, empty, outbus;
 		var attacksymbols, attackstartloc, attackendloc, attackstring, attackarr, panarr;
 		var startWempty = false;
@@ -1379,6 +1313,7 @@ XiiLang {
 		prestring = string[0..scorestartloc-1].tr($ , \); // get rid of spaces until score
 		splitloc = prestring.find("->");
 		agent = prestring[0..splitloc-1]; // get the name of the agent
+		pureagent = agent;
 		//instrument = prestring[splitloc+2..prestring.size];
 		//agent = (docnum.asString++agent).asSymbol;
 
@@ -1386,7 +1321,6 @@ XiiLang {
 		//agentstring = string[0..splitloc-1].tr($ , \); // get the name of the agent
 		
 		//agent = agentstring[0..agentstring.size-1];
-		[\agent, agent].postln;
 		
 		score = string[scorestartloc+1..string.size-1];
 		endchar = score.find("|"); // the index (int) of the end op in the string
@@ -1454,15 +1388,15 @@ XiiLang {
 		agentDict[agent][1].scorestring = scorestring.asCompileString;
 		agentDict[agent][1].instrument = "rhythmtrack";
 		agentDict[agent][1].playstate = true;
-		[\panarr, panarr].postln;
+
 		{doc.stringColor_(oncolor, doc.selectionStart, doc.selectionSize)}.defer(0.1);  // if code is green (sleeping)
-		"------    ixi lang: Created Percussive Agent : ".post; agent.postln; agentDict[agent].postln;
+		"------    ixi lang: Created Percussive Agent : ".post; pureagent.postln; agentDict[agent].postln;
 		this.playScoreMode0(agent, durarr, instrarr, sustainarr, attackarr, panarr, quantphase, newInstrFlag); 
 	}	
 	
 	// MELODIC MODE
 	parseScoreMode1 {arg string;
-		var agent, score, scorestartloc, splitloc, endchar, agentstring, instrument, instrstring, timestretch=1, transposition=0;
+		var agent, pureagent, score, scorestartloc, splitloc, endchar, agentstring, instrument, instrstring, timestretch=1, transposition=0;
 		var prestring, silenceicon, silences, postfixargs, newInstrFlag = false;
 		var durarr, sustainarr, spacecount, notearr, notestring, quantphase, empty, outbus;
 		var sustainstartloc, sustainendloc, sustainstring;
@@ -1483,6 +1417,7 @@ XiiLang {
 			agent = prestring[0..splitloc-1]; // get the name of the agent
 			instrument = prestring[splitloc+2..prestring.size];
 		});
+		pureagent = agent;
 		agent = (docnum.asString++agent).asSymbol;
 
 		score = string[scorestartloc+1..string.size-1];
@@ -1572,13 +1507,13 @@ XiiLang {
 		agentDict[agent][1].playstate = true;
 
 		{doc.stringColor_(oncolor, doc.selectionStart, doc.selectionSize)}.defer(0.1);  // if code is green (sleeping)
-		"------    ixi lang: Created Melodic Agent : ".post; agent.postln; agentDict[agent].postln;
+		"------    ixi lang: Created Melodic Agent : ".post; pureagent.postln; agentDict[agent].postln;
 		this.playScoreMode1(agent, notearr, durarr, sustainarr, attackarr, panarr, instrument, quantphase, newInstrFlag, midichannel); 
 	}	
 
 	// CONCRETE MODE
 	parseScoreMode2 {arg string;
-		var agent, score, scorestartloc, splitloc, endchar, agentstring, instrument, instrstring, timestretch=1;
+		var agent, pureagent, score, scorestartloc, splitloc, endchar, agentstring, instrument, instrstring, timestretch=1;
 		var prestring, silenceicon, silences, postfixargs, panarr, newInstrFlag;
 		var durarr, spacecount, amparr, ampstring, quantphase, empty, outbus;
 		var startWempty = false;
@@ -1594,6 +1529,7 @@ XiiLang {
 			agent = prestring[0..splitloc-1]; // get the name of the agent
 			instrument = prestring[splitloc+2..prestring.size];
 		});
+		pureagent = agent;
 		agent = (docnum.asString++agent).asSymbol;
 		score = string[scorestartloc+1..string.size-1];
 		endchar = score.find("}"); // the index (int) of the end op in the string
@@ -1660,7 +1596,7 @@ XiiLang {
 		agentDict[agent][1].playstate = true; // EXPERIMENTAL: to be used in snapshots
 
 		{doc.stringColor_(oncolor, doc.selectionStart, doc.selectionSize)}.defer(0.1); // if code is green (sleeping)
-		"------    ixi lang: Created Concrete Agent : ".post; agent.postln; agentDict[agent].postln;
+		"------    ixi lang: Created Concrete Agent : ".post; pureagent.postln; agentDict[agent].postln;
 		this.playScoreMode2(agent, amparr, durarr, panarr, instrument, quantphase, newInstrFlag); 
 	}	
 	
@@ -1696,7 +1632,6 @@ XiiLang {
 			},{
 				chordstring = string[splitloc+3..string.size-1];
 				varDict[varname.asSymbol] = chordstring.asInteger;
-				"in here".postln;
 				chordstring.asInteger.postln;
 			});
 		});
@@ -1793,7 +1728,6 @@ XiiLang {
 	playScoreMode2 {arg agent, amparr, durarr, panarr, instrument, quantphase, newInstrFlag;
 		// ------------ play function --------------
 		if(proxyspace[agent].isNeutral, { // check if the object exists alreay
-			"Post 1".postln;
 			Pdefn((agent++"durarray").asSymbol, Pseq(durarr, inf));
 			Pdefn((agent++"amparray").asSymbol, Pseq(amparr, inf));
 			Pdef(agent, Pmono(instrument,
@@ -1805,11 +1739,9 @@ XiiLang {
 			proxyspace[agent] = Pdef(agent);
 			proxyspace[agent].play;
 		},{
-			"Post 2".postln;
 			Pdefn((agent++"durarray").asSymbol, Pseq(durarr, inf)).quant = [durarr.sum, quantphase, 0, 1];
 			Pdefn((agent++"amparray").asSymbol, Pseq(amparr, inf)).quant = [durarr.sum, quantphase, 0, 1];
 			if(newInstrFlag, {
-				"Post 3".postln;
 				proxyspace[agent].free; // needed in order to swap instrument in Pmono
 				Pdef(agent, Pmono(instrument,
 							\dur, Pdefn((agent++"durarray").asSymbol),
@@ -2121,8 +2053,6 @@ XiiLang {
 		var splitloc, methodstring, spaces, agent, method, pureagentname;
 		var thisline, modstring, stringstart, allreturns, stringend, scorerange, score, scoremode, scorestringsuffix;
 		var argument, argsuffix, cursorPos;
-		//[\parseMethodString, string].postln;
-		//scoreArray = scoreArray.add([Main.elapsedTime, string]); 
 		
 		splitloc = string.find(" ");
 		methodstring = string[0..splitloc-1].tr($ , \); // get the name of the agent
@@ -2134,6 +2064,7 @@ XiiLang {
 		pureagentname = agent; // the name of the agent is different in code (0john) and in doc (john) (for multidoc support)
 		agent = (docnum.asString++agent).asSymbol;
 		if( spaces.size > 1, { argument = string[spaces[1]..spaces[spaces.size-1]] }); // is there an argument?
+		
 
 		// HERE CHECK IF IT'S A GROUP THEN PERFORM A DO LOOP (for each member of the group)
 		if(groups.at(agent).isNil.not, { // the "agent" is a group
@@ -2176,7 +2107,6 @@ XiiLang {
 						if(agentDict[agent][1].mode == 2, { // mode 2 would not mute/unmute
 							proxyspace[agent].stop;
 						});
-						proxyspace[agent].objects[0].array.postln;
 						proxyspace[agent].objects[0].array[0].mute;
 				 		doc.stringColor_(offcolor, stringstart, stringend-stringstart);
 					})
@@ -2334,9 +2264,7 @@ XiiLang {
 					this.swapString(doc, pureagentname, score, [true, false, false]);
 				}
 				{"hash"} {
-					"smoking hash".postln;
 					argument = if(argument.asFloat == 0, { 0.1 }, { argument.asFloat/10 });
-					[\argument, argument].postln;
 					Pdef(agent.asSymbol).align([argument, argument, argument])
 					// -------- perform the method -----------
 				}
@@ -2345,7 +2273,6 @@ XiiLang {
 					"drinking beer".postln;
 					argument = if(argument.asFloat == 0, { 0.1 }, { argument.asFloat/10 });
 					// drunk
-					[\argument, argument].postln;
 					durarr = agentDict[agent][1].durarr;
 					sum = durarr.sum;
 					copy = [];
@@ -2356,14 +2283,12 @@ XiiLang {
 				{"coffee"} {
 					"coffee !!! ".postln;
 					argument = if(argument.asFloat == 0, { -0.01 }, { (argument.asFloat/100)* -1 });
-					[\argument, argument].postln;
 					Pdef(agent.asSymbol).align([argument, argument])
 				}
 				{"LSD"} {
 					var durarr, sum, copy, summed, newdurs, last, arraybutlastsum;
 					"dropping LSD".postln;
 					argument = if(argument.asFloat == 0, { 0.1 }, { argument.asFloat/10 });
-					[\argument, argument].postln;
 					durarr = agentDict[agent][1].durarr;
 					sum = durarr.sum;
 					copy = [];
@@ -2372,7 +2297,6 @@ XiiLang {
 					arraybutlastsum = copy[0..copy.size-2].sum;
 					last = sum-arraybutlastsum;
 					copy[copy.size-1] = last;
-					[\copy, copy].postln;
 					durarr.size.do({arg i; durarr[i] = abs(copy[i]) }); // make it absolote, so in the end (if too spaced) timing suffers
 				}				
 				{"detox"} {
@@ -2432,7 +2356,35 @@ XiiLang {
 				}
 				{"remind"} {
 					this.getMethodsList;		
-				};
+				}
+				{"scale"} {
+					var firstarg, secondarg, chosenscale, globalscale, dictscore, agent, mode, tempscale;
+					
+					firstarg = string[string.findAll(" ")[0]+1..(string.findAll(" ")[1])-1];
+					agent = (docnum.asString++firstarg).asSymbol;
+					secondarg = string[string.findAll(" ")[1]+1..(string.findAll(" ")[2])-1];
+					chosenscale = ("Scale."++secondarg).interpret;
+					chosenscale.tuning_(tuning.asSymbol);
+					tempscale = scale; // store the default scale of the session
+					scale = chosenscale.copy.semitones.add(12); // used to be degrees, but that doesn't support tuning
+
+					dictscore = agentDict[agent][1].scorestring;
+					dictscore = dictscore.reject({ |c| c.ascii == 34 }); // get rid of quotation marks
+					mode = block{|break| 
+						["|", "[", "{", ")"].do({arg op, i;						var c = dictscore.find(op);
+							if(c.isNil.not, {break.value(i)}); 
+						});
+					};
+					switch(mode)
+						{0} { this.parseScoreMode0(dictscore) }
+						{1} { this.parseScoreMode1(dictscore) };
+					//	{2} { this.parseScoreMode2(dictscore) }; // not relevant
+					if(agentDict[agent][1].playstate == true, {
+						proxyspace[agent].play;
+					});
+					scale = tempscale; // set global scale of the session back to the default
+				}
+				;
 		});
 	}	
 	

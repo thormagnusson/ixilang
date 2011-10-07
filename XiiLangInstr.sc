@@ -107,7 +107,7 @@ XiiLangInstr {
 				file.openRead(filepath);
 				chnum = file.numChannels;
 				file.close;
-				SynthDef(sampleNames.wrapAt(i).asSymbol, {arg out=0, freq=440, amp=0.3, pan=0, noteamp=1, sustain=0.4;
+				SynthDef(sampleNames.wrapAt(i).asSymbol, {arg out=0, freq=261.63, amp=0.3, pan=0, noteamp=1, sustain=0.4;
 						var buffer, player, env, signal, killer;
 						bufferPool = bufferPool.add(buffer = Buffer.read(Server.default, filepath));
 						player = Select.ar(noteamp,
@@ -465,7 +465,6 @@ Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) 
 			var sig = StkBandedWG.ar(freq, instr:1, mul:3);
 			var env = EnvGen.kr(Env.adsr(0.0001, sustain, sustain, 0.3), gate, doneAction:2);
 			Out.ar(out, Pan2.ar(sig, pan, env * amp));
-//		}).add;
 		}).add(\xiilang);
 
 		SynthDef(\softwg, { |out=0, freq=440, gate=1, amp=0.3, sustain=0.5, pan=0|
@@ -564,18 +563,6 @@ Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) 
 	
 	getSamplesSynthdefs {
 		var string, sortedkeys, sortedvals;
-		/*
-		dict = instrDict.getPairs;
-		string = " ";
-		dict.do({arg item, i; 
-			string = string++item;
-			if(i.even, {
-				string = string++"  :  ";
-			}, {
-				string = string++"\n"++" ";
-			});
-		});
-		*/
 		sortedkeys = instrDict.keys.asArray.sort;
 		sortedvals = instrDict.atAll(instrDict.order);
 		string = " ";
@@ -590,13 +577,7 @@ Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) 
 	}
 
 	getXiiLangSynthesisSynthdefs {
-//		^["bling", "piano", "elbass", "marimba", "marimba2", "clarinet", "klang", 
-//		"wood", "xylo", "softwg", "bass", "moog", "bell", "sines", "synth", 
-//		"string", "drop", "crackle", "glass"].asCompileString
-		
 		^SynthDescLib.getLib(\xiilang).synthDescs.keys.asArray.sort;
-
-		
 	}
 
 	getProjectSynthesisSynthdefs {
@@ -604,9 +585,6 @@ Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) 
 	}
 	
 	returnMelodicInstr {
-//		^["bling", "piano", "elbass", "marimba", "marimba2", "clarinet", "klang", 
-//		"wood", "xylo", "softwg", "bass", "moog", "bell", "sines", "synth", 
-//		"string", "drop", "crackle", "glass"]
 		^SynthDescLib.getLib(project.asSymbol).synthDescs.keys.asArray
 			++ 
 		SynthDescLib.getLib(\xiilang).synthDescs.keys.asArray;
