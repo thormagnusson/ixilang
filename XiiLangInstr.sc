@@ -5,7 +5,7 @@ XiiLangInstr {
 	var project;
 	var sampleNames, samplePaths, nrOfSampleSynthDefs;
 	var defaultsynthdesclib, synthdesclib;
-	var bufferPool;
+	var bufferPool, bufferDict;
 	
 	*new {| project, loadsamples=true |
 		^super.new.initXiiLangInstr(project, loadsamples);
@@ -14,8 +14,9 @@ XiiLangInstr {
 	initXiiLangInstr {| argproject, loadsamples |	
 		project = argproject;
 		defaultsynthdesclib = SynthDescLib(\xiilang);
-		bufferPool = [];
-	
+		bufferPool = []; // here in order to free buffers when doc is closed
+		bufferDict = (); // used for morphing synths
+			
 		// ----------------------------------------------------------------------------------
 		// --------------------------- unique project synthdefs  ----------------------------
 		// ----------------------------------------------------------------------------------
@@ -32,8 +33,8 @@ XiiLangInstr {
 		// ---------------------- sample based instruments -----------------------------
 		if(loadsamples, {		
 			samplePaths = ("ixilang/"++project++"/samples/*").pathMatch;
-			samplePaths = samplePaths.reject({ |path| path.basename.splitext[1] == "scd" }); // not including the keymapping files
-			samplePaths = samplePaths.reject({ |path| path.basename.splitext[1] == "ixi" }); // not including the keymapping files
+			//samplePaths = samplePaths.reject({ |path| path.basename.splitext[1] == "scd" }); // not including the keymapping files
+			//samplePaths = samplePaths.reject({ |path| path.basename.splitext[1] == "ixi" }); // not including the keymapping files
 			sampleNames = samplePaths.collect({ |path| path.basename.splitext[0]});
 			
 			if(samplePaths == [], {
@@ -110,6 +111,8 @@ XiiLangInstr {
 				SynthDef(sampleNames.wrapAt(i).asSymbol, {arg out=0, freq=261.63, amp=0.3, pan=0, noteamp=1, sustain=0.4;
 						var buffer, player, env, signal, killer;
 						bufferPool = bufferPool.add(buffer = Buffer.read(Server.default, filepath));
+						// morpher instruments won't be stereo, so I just read one channel
+						//bufferDict[sampleNames.wrapAt(i).asSymbol] = Buffer.readChannel(Server.default, filepath, channels: [0]);
 						player = Select.ar(noteamp,
 							[ // playMode 2 - the sample player mode
 							if(chnum==1, { 
@@ -142,6 +145,50 @@ XiiLangInstr {
 		/*
 		 Synth(\machine)
 		*/
+		Post << samplePaths; "".postln;
+		
+			nrOfSampleSynthDefs.do({arg i;
+				var filepath;
+				filepath = samplePaths.wrapAt(i);
+				[\filepath, filepath].postln;
+				bufferDict[sampleNames.wrapAt(i).asSymbol] = Buffer.readChannel(Server.default, filepath, channels: [0]);
+			});
+			Post << bufferDict;"".postln;
+		
+		// explore hop size and loop in PlayBuf
+		
+		SynthDef(\morph, { arg out=0, freq=261.63, panFrom=0, panTo=0, amp=0.3, buf1, buf2, dur, morphtime=1, gate=1, t_trig;
+			var inA, chainA, inB, chainB, chain;
+			inA = PlayBuf.ar(1, buf1, (freq.cpsmidi-60).midiratio, loop: 0) * EnvGen.ar(Env.new([0, 1, 1, 0], [0.05, morphtime, 0.02]), t_trig, doneAction:2);
+			inB = PlayBuf.ar(1, buf2, (freq.cpsmidi-60).midiratio, loop: 0) * EnvGen.ar(Env.new([0, 1, 1, 0], [0.05, morphtime, 0.02]), t_trig);
+			chainA = FFT(LocalBuf(2048), inA);
+			chainB = FFT(LocalBuf(2048), inB);
+			//chain = PV_Morph(chainA, chainB, SinOsc.ar(dur.reciprocal).range(0, 1) ); 
+			chain = PV_Morph(chainA, chainB, EnvGen.ar(Env.new([0, 1], [morphtime]), t_trig) ); 
+			Out.ar(out,  Pan2.ar(IFFT(chain), EnvGen.ar(Env.new([panFrom, panTo], [morphtime]), t_trig)) * amp);
+		}).add;
+		
+		SynthDef(\fade, { arg out=0, freq=261.63, panFrom=0, panTo=0, amp=0.3, buf1, buf2, dur, morphtime=1, gate=1, t_trig;
+			var inA, chainA, inB, chainB, chain;
+			inA = PlayBuf.ar(1, buf1, (freq.cpsmidi-60).midiratio, loop: 0) * EnvGen.ar(Env.new([0, 1, 1, 0], [0.05, morphtime, 0.02]), t_trig, doneAction:2);
+			inB = PlayBuf.ar(1, buf2, (freq.cpsmidi-60).midiratio, loop: 0) * EnvGen.ar(Env.new([0, 1, 1, 0], [0.05, morphtime, 0.02]), t_trig);
+			chainA = FFT(LocalBuf(2048), inA);
+			chainB = FFT(LocalBuf(2048), inB);
+			//chain = PV_Morph(chainA, chainB, SinOsc.ar(dur.reciprocal).range(0, 1) ); 
+			chain = PV_XFade(chainA, chainB, EnvGen.ar(Env.new([0, 1], [morphtime]), t_trig) ); 
+			Out.ar(out,  Pan2.ar(IFFT(chain), EnvGen.ar(Env.new([panFrom, panTo], [morphtime]), t_trig)) * amp);
+		}).add;
+		
+		SynthDef(\wipe, { arg out=0, freq=261.63, panFrom=0, panTo=0, amp=0.3, buf1, buf2, dur, morphtime=1, gate=1, t_trig;
+			var inA, chainA, inB, chainB, chain;
+			inA = PlayBuf.ar(1, buf1, (freq.cpsmidi-60).midiratio, loop: 0) * EnvGen.ar(Env.new([0, 1, 1, 0], [0.05, morphtime, 0.02]), t_trig, doneAction:2);
+			inB = PlayBuf.ar(1, buf2, (freq.cpsmidi-60).midiratio, loop: 0) * EnvGen.ar(Env.new([0, 1, 1, 0], [0.05, morphtime, 0.02]), t_trig);
+			chainA = FFT(LocalBuf(2048), inA);
+			chainB = FFT(LocalBuf(2048), inB);
+			//chain = PV_Morph(chainA, chainB, SinOsc.ar(dur.reciprocal).range(0, 1) ); 
+			chain = PV_SoftWipe(chainA, chainB, EnvGen.ar(Env.new([0, 1], [morphtime]), t_trig) ); 
+			Out.ar(out,  Pan2.ar(IFFT(chain), EnvGen.ar(Env.new([panFrom, panTo], [morphtime]), t_trig)) * amp);
+		}).add;
 		
 		// ---------------------- synthesized instruments -----------------------------
 		
@@ -593,6 +640,11 @@ Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) 
 	freeBuffers {
 		bufferPool.do({arg buffer; buffer.free;});	
 	}
+
+	returnBufferDict {
+		^bufferDict;	
+	}
+
 }
 
 		

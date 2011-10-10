@@ -86,7 +86,7 @@ XiiLangGUI  {
 		midivalstring = SCStaticText(win, Rect(320, 210, 50, 16)).string_(60);
 		
 		SCStaticText(win, Rect(190, 10, 350, 120))
-			.string_("Put short samples into a folder within the ixilang sounds folder.\nThe name you give that folder becomes the project name. \nYou can map the keys on your keyboard to the sample names.\n\nIf you just want to test, without creating a mapping for a new \nproject, press 'start session'.")
+			.string_("Create a folder within the ixilang folder. The name you give \nthat folder becomes the project's name. In there, create a \nsamples folder and put short samples there. You can map \nthe keys on your keyboard to the sample names.\n\nIf you just want to test, without creating a mapping for a new \nproject, press 'start session'.")
 			.font_(Font("Helvetica", 10));
 
 		SCButton(win, Rect(190, 250, 65, 20))
@@ -133,11 +133,11 @@ XiiLangGUI  {
 		synthdefnames = SynthDescLib.getLib(projectname.asSymbol).synthDescs.keys.asArray;
 		// [\synthdefnames, synthdefnames].postln;
 			
-			if(Object.readArchive(projectpath++"/_keyMapping.ixi").isNil, {
+			if(Object.readArchive(projectpath++"/keyMapping.ixi").isNil, {
 				synthDefDict = IdentityDictionary.new;
 				dictFound = false;
 			}, {
-				synthDefDict = Object.readArchive(projectpath++"/_keyMapping.ixi");
+				synthDefDict = Object.readArchive(projectpath++"/keyMapping.ixi");
 				dictFound = true;
 			});
 		
@@ -249,7 +249,7 @@ XiiLangGUI  {
 			savebutt = SCButton(win, Rect(235, 710, 200, 20))
 				.states_([["save mapping file", Color.black, Color.green.alpha_(0.2)], ["saved", Color.black, Color.clear]])
 				.action_({ 
-					synthDefDict.writeArchive(projectpath++"/_keyMapping.ixi");
+					synthDefDict.writeArchive(projectpath++"/keyMapping.ixi");
 					" ---> ixi lang NOTE: You need to restart your session for the new mapping to take function (Press the green 'Start session' button".postln;
 				})
 				.font_(Font("Helvetica", 11));
