@@ -46,10 +46,10 @@ span.Apple-tab-span {white-space:pre}
 </head>
 <body>
 <p class="p1"><br></p>
-<p class="p2"><span class="s1"><b>XiiLang<span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span></b></span><b>a live coding language interpreter</b><span class="s1"><b><span class="Apple-tab-span">	</span></b></span>-<span class="Apple-converted-space">  </span><b>version 3 : September 2011</b></p>
+<p class="p2"><span class="s1"><b>XiiLang<span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span></b></span><b>a live coding language interpreter</b><span class="s1"><b><span class="Apple-tab-span">	</span></b></span>-<span class="Apple-converted-space">  </span><b>version 3 : October 2011</b></p>
 <p class="p3"><br></p>
 <p class="p3"><br></p>
-<p class="p2">The ixi lang live coding environment is a simple visual system presenting a high entry-level control over synth definitions and samples in SuperCollider. The core idea is to represent events in a spatial layout, thus merging musical code and musical scores. The score is active, i.e., if a method is performed upon the score, it changes in real time.</p>
+<p class="p2">The ixi lang live coding environment is a simple visual system presenting a high entry-level control over synth definitions and samples in SuperCollider. The core idea is to represent events in a spatial layout, thus merging musical code and musical scores. The score of an ixi lang agent is reactive, i.e., if a method is performed upon the score, it changes in real time.</p>
 <p class="p4"><br></p>
 <p class="p2"><b>NOTE: The interpreter uses a different key command for evaluating ixi lang code, namely alt+arrows</b>. This allows for coding in both sc lang and ixi lang in the same document without confusing interpreters.</p>
 <p class="p4"><br></p>
@@ -60,7 +60,7 @@ span.Apple-tab-span {white-space:pre}
 <p class="p4"><br></p>
 <p class="p5"><b>Having Problems? Here is a quick troubleshooting:</b></p>
 <p class="p4"><br></p>
-<p class="p2">You need to make sure you're evaluating the code with alt+arrow keys (and not the SuperCollider default - read about that below). Don't use TABs when coding, only spaces. Do you have an "ixilang" folder with a "default" folder inside your sounds folder (i.e., sounds/ixilang/default )? Put some short sounds into that folder. When you've figured this out, you can start to create your own project folders.</p>
+<p class="p2">You need to make sure you're evaluating the code with alt+arrow keys (and not the SuperCollider default - read about that below). Don't use TABs when coding, only spaces. Do you have a "samples" folder within a "default" folder next to your SuperCollider.app (i.e., ixilang/default/samples )? Put some short sounds into that folder. When you've figured this out, you can start to create your own project folders, not using the "default" anymore.</p>
 <p class="p4"><br></p>
 <p class="p4"><br></p>
 <p class="p5"><b>The three modes of ixi lang:</b></p>
@@ -97,12 +97,15 @@ span.Apple-tab-span {white-space:pre}
 <p class="p9"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span></p>
 <p class="p8"><b><span class="Apple-tab-span">	</span>tonality</b></p>
 <p class="p9"><b><span class="Apple-tab-span">	</span></b></p>
-<p class="p8"><b><span class="Apple-tab-span">	</span></b><span class="Apple-tab-span">	</span>Opens a document listing scales and tunings.</p>
+<p class="p8"><b><span class="Apple-tab-span">	</span></b><span class="Apple-tab-span">	</span>Opens a document listing available scales and tunings.</p>
 <p class="p9"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span></p>
 <p class="p8"><b><span class="Apple-tab-span">	</span>instruments</b></p>
 <p class="p9"><b><span class="Apple-tab-span">	</span></b></p>
 <p class="p8"><b><span class="Apple-tab-span">	</span></b><span class="Apple-tab-span">	</span>Listing all registered instruments (although any synthdef on the system can be used).</p>
 <p class="p15"><br></p>
+<p class="p8"><b><span class="Apple-tab-span">	</span>help</b></p>
+<p class="p9"><b><span class="Apple-tab-span">	</span></b></p>
+<p class="p8"><b><span class="Apple-tab-span">	</span></b><span class="Apple-tab-span">	</span>Opens this document.</p>
 <p class="p15"><br></p>
 <p class="p16"><b>Operators of ixi lang:</b></p>
 <p class="p15"><br></p>
@@ -126,35 +129,44 @@ span.Apple-tab-span {white-space:pre}
 <p class="p8"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>* or / for increasing or decreasing the timing as multiplied or divided by an integer</p>
 <p class="p8"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>^^ for accents (volume of each note, e.g. ^1418^)</p>
 <p class="p8"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>() for note sustain (duration of each note (wholenote = 1, halfnote = 2, quarternote = 4, etc)</p>
-<p class="p8"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>Melodic scores can use any Pattern-ready synthdef on the system, or samples that have been<span class="Apple-tab-span">	</span></p>
+<p class="p8"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>&lt;&gt; for panning (1 being the left speaker, 5 middle and 9 the right speaker, e.g, &lt;15289&gt;)</p>
+<p class="p9"><br></p>
+<p class="p8"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>Melodic scores can use any Pattern-ready synthdef on your system, or samples that have been<span class="Apple-tab-span">	</span></p>
 <p class="p8"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>loaded into XiiLangInstr (see class). A special case is the "midi" instrument, i.e., it is not a synth<span class="Apple-converted-space"> <span class="Apple-tab-span">	</span></span></p>
 <p class="p8"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>definition, but sends MIDI messages out on a specific MIDI channel.</p>
 <p class="p9"><br></p>
 <p class="p8"><b><span class="Apple-tab-span">	</span>| ... |<span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>Percussive score</b>. Here samples (or synthdefs) are mapped to keyboard keys (see<span class="Apple-converted-space"> </span></p>
-<p class="p8"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>_keyMappings.ixi). Spaces represent silence. Additional arguments are<span class="Apple-converted-space"> </span></p>
+<p class="p8"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>keyMappings.ixi). Spaces represent silence. Additional arguments are<span class="Apple-converted-space"> </span></p>
 <p class="p8"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>! for inserting a silence after the score</p>
 <p class="p8"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>+ or - for transposition in pitch</p>
 <p class="p8"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>* or / for increasing or decreasing the timing as multiplied or divided by an integer</p>
 <p class="p8"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>^^ for accents (volume of each note, e.g. ^1418^)</p>
 <p class="p8"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>() for note sustain (duration of each note (wholenote = 1, halfnote = 2, quarternote = 4, etc)</p>
-<p class="p9"><span class="Apple-tab-span">	</span></p>
+<p class="p8"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>&lt;&gt; for panning (1 being the left speaker, 5 middle and 9 the right speaker, e.g, &lt;15289&gt;)</p>
+<p class="p9"><br></p>
+<p class="p8"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>The percussive score can create various types of timbral transitions between the sonic events in the score.<span class="Apple-converted-space"> </span></p>
+<p class="p8"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>The available transitions are: morph, fade, wipe, minus, common, binwipe, copy, mul, subtract, rand, smear,</p>
+<p class="p8"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span> comb, low, band. Those can be used with the sound looping or playing only once, using the @ symbol.</p>
+<p class="p8"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span> (e.g., <span class="Apple-converted-space">  </span>ringo -&gt;<span class="Apple-converted-space">  </span>morph|a <span class="Apple-converted-space">  </span>b <span class="Apple-converted-space">  </span>c <span class="Apple-converted-space">  </span>d <span class="Apple-converted-space">  </span>| <span class="Apple-converted-space">  </span>or<span class="Apple-converted-space">  </span>(not looping) <span class="Apple-converted-space">    </span>ringo -&gt;<span class="Apple-converted-space">  </span>fade@|a <span class="Apple-converted-space">  </span>b <span class="Apple-converted-space">  </span>c <span class="Apple-converted-space">  </span>d <span class="Apple-converted-space">  </span>|)</p>
+<p class="p9"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span></p>
 <p class="p8"><b><span class="Apple-tab-span">	</span>{ ... }<span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>Concrete score</b>. Here longer samples can be played and their amplitude controlled.</p>
-<p class="p8"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>Spaces represent silence. Additional arguments are<span class="Apple-converted-space"> </span></p>
+<p class="p8"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>Spaces here does not represent silence. Additional arguments are<span class="Apple-converted-space"> </span></p>
 <p class="p8"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>! for inserting a silence after the score</p>
-<p class="p8"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>* or / for manipulating the scores duration.</p>
+<p class="p8"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>* or / for changing the scores duration.</p>
+<p class="p8"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>&lt;&gt; for panning (1 being the left speaker, 5 middle and 9 the right speaker, e.g, &lt;15289&gt;)</p>
 <p class="p15"><br></p>
 <p class="p15"><br></p>
 <p class="p16"><b>Post-score operators in ixi lang:</b></p>
 <p class="p15"><br></p>
 <p class="p8"><span class="Apple-tab-span">	</span><b>!<span class="Apple-tab-span">	</span></b>Will create a silent part in the score according to the argument given. (e.g., !16 is sixteen silent notes)</p>
 <p class="p9"><span class="Apple-tab-span">	</span></p>
-<p class="p8"><span class="Apple-tab-span">	</span>+<span class="Apple-tab-span">	</span>Transpose the score in MIDI notes. (for example +7 will be a fifth higher than the note written).</p>
+<p class="p8"><span class="Apple-tab-span">	</span>+<span class="Apple-tab-span">	</span>Transpose the score in MIDI notes. (for example +7 will be a fifth higher than the note written, and -12 will be octave lower).</p>
 <p class="p9"><span class="Apple-tab-span">	</span></p>
 <p class="p8"><span class="Apple-tab-span">	</span>*<span class="Apple-converted-space">  <span class="Apple-tab-span">	</span></span>Will multiply the duration of the array (not note lengths in the array).</p>
 <p class="p9"><span class="Apple-tab-span">	</span></p>
 <p class="p8"><span class="Apple-tab-span">	</span>/<span class="Apple-converted-space">  <span class="Apple-tab-span">	</span></span>Will divide the duration of the array (not note lengths in the array).</p>
 <p class="p9"><br></p>
-<p class="p8"><span class="Apple-tab-span">	</span>()<span class="Apple-tab-span">	</span>Arguments in brackets are note sustain. (1 is a whole beat, 2 is half, 4 quarter and 8 is eight). Can be multiplied with the ~ symbol, so (1~4) is a whole note in a 4/4 time signature.</p>
+<p class="p8"><span class="Apple-tab-span">	</span>()<span class="Apple-tab-span">	</span>Arguments in brackets are note sustain. (1 is one beat, 2 is half, 4 quarter and 8 is eight). Can be multiplied with the ~ symbol, so (1~4) is a whole note in a 4/4 time signature.</p>
 <p class="p9"><span class="Apple-tab-span">	</span></p>
 <p class="p8"><span class="Apple-tab-span">	</span>^<span class="Apple-tab-span">	</span>Arguments in caret symbols are accents (9 is highest amplitude, 0 is silence). This is relative to the agent's general amplitude.</p>
 <p class="p15"><br></p>
@@ -189,11 +201,14 @@ span.Apple-tab-span {white-space:pre}
 <p class="p9"><br></p>
 <p class="p8"><b><span class="Apple-tab-span">	</span>yoyo <span class="Apple-tab-span">	</span></b>In percussive scores, this method scrambles the score to a mix of upper and lower cases</p>
 <p class="p15"><br></p>
+<p class="p8"><b><span class="Apple-tab-span">	</span>scale <span class="Apple-tab-span">	</span></b>As below, but here you can set the scale of individual agent (e.g., scale paul minor)</p>
+<p class="p9"><b></b><br></p>
 <p class="p8"><b><span class="Apple-tab-span">	</span>)) <span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span></b>Increase volume. Can be used with future (e.g., future 0.1:5 &gt;&gt; )) paul ).</p>
 <p class="p15"><br></p>
 <p class="p8"><b><span class="Apple-tab-span">	</span>(( <span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span></b>Decrease volume. Can be used with future.</p>
 <p class="p9"><span class="Apple-tab-span">	</span></p>
-<p class="p8"><span class="Apple-tab-span">	</span><b>NOTE</b> <span class="Apple-tab-span">	</span>The post score operators (above) can also be used as Scheme-like methods (in ixi lang "verbs")</p>
+<p class="p8"><span class="Apple-tab-span">	</span><b>NOTE</b> <span class="Apple-tab-span">	</span>The post score operators (above) can also be used in the syntax of these methods (in ixi lang "verbs")</p>
+<p class="p8"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>for example: <span class="Apple-converted-space">  </span>&lt; ringo 1253742 (which reads like "pan ringo to these locations")</p>
 <p class="p9"><span class="s5"><b><span class="Apple-converted-space"> </span></b></span><span class="Apple-tab-span">	</span></p>
 <p class="p15"><b><span class="Apple-converted-space"> </span></b><span class="s6"><span class="Apple-tab-span">	</span></span></p>
 <p class="p16"><b>Commands in ixi lang:</b></p>
@@ -234,22 +249,22 @@ span.Apple-tab-span {white-space:pre}
 <p class="p9"><span class="Apple-tab-span">	</span></p>
 <p class="p8"><span class="Apple-tab-span">	</span><b>hotline <span class="Apple-tab-span">	</span></b>In case you change your mind with regards to the suicide.</p>
 <p class="p9"><br></p>
-<p class="p8"><span class="Apple-tab-span">	</span><b>midiclients <span class="Apple-tab-span">	</span></b>Get a list of the MIDI clients (ports) available in your system.</p>
+<p class="p8"><span class="Apple-tab-span">	</span><b>midiclients <span class="Apple-tab-span">	</span></b>Get a list of the MIDI clients (ports) available on your system.</p>
 <p class="p9"><span class="Apple-tab-span">	</span></p>
-<p class="p8"><span class="Apple-tab-span">	</span><b>midiout <span class="Apple-tab-span">	</span></b>Set the MIDI port (as in midiclient 2) and initiate a MIDI clock on that port (can slave other sw).</p>
+<p class="p8"><span class="Apple-tab-span">	</span><b>midiout <span class="Apple-tab-span">	</span></b>Set the MIDI port (as in midiclient 2) and initiate a MIDI clock on that port (can slave other software, such as Ableton).</p>
 <p class="p9"><span class="Apple-tab-span">	</span></p>
 <p class="p8"><span class="Apple-tab-span">	</span><b>coder</b><span class="Apple-tab-span">	</span>Opens up a new ixi lang window where all keystrokes result in sounds.<span class="Apple-converted-space"> </span></p>
 <p class="p9"><span class="Apple-tab-span">	</span></p>
-<p class="p8"><span class="Apple-tab-span">	</span><b>autocode</b><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>Will write and evaluate N number of lines under the command and evaluate them. In case you want to check email on stage.</p>
+<p class="p8"><span class="Apple-tab-span">	</span><b>autocode</b><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>Will write and evaluate N number of lines of code. Now check email on stage?</p>
 <p class="p9"><br></p>
-<p class="p8"><span class="Apple-tab-span">	</span><b>matrix</b> <span class="Apple-tab-span">	</span>Opens up a matrix window. A dynamic state machine that can be adopted in real time for musical purposes. (see helpfile)</p>
+<p class="p8"><span class="Apple-tab-span">	</span><b>matrix</b> <span class="Apple-tab-span">	</span>Opens up a matrix window. A dynamic state machine that can be adopted in real time (hit fn+key to get to code)</p>
 <p class="p15"><br></p>
-<p class="p8"><span class="Apple-tab-span">	</span><b>save</b> <span class="Apple-tab-span">	</span>Store a session (with agents, groups, snapshots and effects) to be loaded up later</p>
+<p class="p8"><span class="Apple-tab-span">	</span><b>store</b> <span class="Apple-tab-span">	</span>Stores the environment of a session (with agents, groups, snapshots and effects) to be loaded up later</p>
 <p class="p15"><br></p>
-<p class="p8"><span class="Apple-tab-span">	</span><b>load<span class="Apple-tab-span">	</span></b><span class="Apple-tab-span">	</span>Load a saved session and start playing as you left the system</p>
+<p class="p8"><span class="Apple-tab-span">	</span><b>load<span class="Apple-tab-span">	</span></b><span class="Apple-tab-span">	</span>Load a stored session and start playing as you left the system</p>
 <p class="p9"><br></p>
 <p class="p8"><span class="Apple-tab-span">	</span><b>savescore</b> <span class="Apple-tab-span">	</span>Record your session to be played back later (different from save/load)</p>
-<p class="p15"><br></p>
+<p class="p9"><br></p>
 <p class="p8"><span class="Apple-tab-span">	</span><b>playscore<span class="Apple-tab-span">	</span></b>Playback a session (do you want to listen to how your live gig sounded?)</p>
 <p class="p9"><span class="Apple-tab-span">	</span></p>
 <p class="p8"><span class="Apple-tab-span">	</span><b>new<span class="Apple-tab-span">	</span></b><span class="Apple-tab-span">	</span>Open up a GUI window to start a new project or create a new key mapping.<span class="Apple-converted-space"> <span class="Apple-tab-span">	</span></span></p>
@@ -282,7 +297,7 @@ span.Apple-tab-span {white-space:pre}
 <p class="p8"><b><span class="Apple-tab-span">	</span>vibrato<span class="Apple-tab-span">	</span></b>Pitch variation</p>
 <p class="p15"><br></p>
 <p class="p15"><br></p>
-<p class="p16"><b>Running scores in ixi lang</b></p>
+<p class="p16"><b>Creating agents in ixi lang</b></p>
 <p class="p15"><br></p>
 <p class="p2">By creating an agent (agentname -&gt; .... ), you create a space where a score can be performed. The agent can play any type of score (melodic, percussive or concrète). The agent name is then used when assigning effects or applying methods.<span class="Apple-converted-space"> </span></p>
 <p class="p4"><br></p>
@@ -293,7 +308,12 @@ span.Apple-tab-span {white-space:pre}
 <p class="p15"><br></p>
 <p class="p2"><b>See:</b> <a href="../Core/Object.html"><span class="s7">XiiLangInstr</span></a><b> (highlight and hit alt+y to view)</b></p>
 <p class="p15"><br></p>
-<p class="p2">The ixi lang instruments class stores the available instruments. Synthdefs are added when the class is run, but you can use any pattern-ready synth definition you have on your system. Here samples are mapped onto keys on the keyboard, creating a synth definition with the same name as your sample. This mapping is random unless a special _keyMapping.ixi file is present in the sample folder where keys are mapped to the NAME of the sound. Mono and short sounds are ideal.</p>
+<p class="p2">The ixi lang instruments class stores the available instruments. Synthdefs are added when the class is run, but you can use any pattern-ready synth definition you have on your system. Synth Definitions are mapped onto keys on the keyboard, and when the language is run it creates synth definitions with the same names as your samples. This mapping is random unless a special keyMapping.ixi file is present in the sample folder where keys are mapped to the NAME of the sound. Mono and short sounds are ideal.</p>
+<p class="p4"><br></p>
+<p class="p2">Use the command "new" go get the GUI where you can create your keymapping file.</p>
+<p class="p4"><br></p>
+<p class="p2">If you want to use specific synth definitions for your project and map to the keys, you can create a synthdefs.scd file in your project folder. Make sure you add your synthdefs with the name of the project (e.g., SynthDef(\myDef, {bla bla}).add(\myProject), such<span class="Apple-converted-space"> </span></p>
+<p class="p2">that it can be used in the keymapping GUI.<span class="Apple-converted-space"> </span></p>
 <p class="p15"><br></p>
 <p class="p15"><br></p>
 <p class="p16"><b>ixi lang Sattellites:</b></p>
@@ -443,7 +463,7 @@ span.Apple-tab-span {white-space:pre}
 <p class="p3"><br></p>
 <p class="p19"><span class="s3">load mysession<span class="Apple-tab-span">	</span></span>// load that session at a later time</p>
 <p class="p3"><br></p>
-<p class="p17">help <span class="Apple-tab-span">	</span>// get this file</p>
+<p class="p19"><span class="s3">help <span class="Apple-tab-span">	</span></span>// get this file</p>
 <p class="p3"><br></p>
 <p class="p19">/// Experimental</p>
 <p class="p3"><br></p>

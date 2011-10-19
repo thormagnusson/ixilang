@@ -11,9 +11,6 @@ TODO: Check the use of String:drop(1) and String:drop(-1)
 
 */
 
-// problem is that method is also parsed at in parseMethod (not only in operator)
-
-
 // new in ixi lang v3
 
 // midiout
@@ -24,7 +21,7 @@ TODO: Check the use of String:drop(1) and String:drop(-1)
 // netclock?
 // matrix
 // coder (keys)
-// save and load sessions (need to put into help file)
+// store and load sessions
 // suicide hotline added (you can now change your mind, in case performance has picked up)
 // automatic code writing (autocode 4)
 // future now works in bars as well as in seconds
@@ -34,7 +31,7 @@ TODO: Check the use of String:drop(1) and String:drop(-1)
 // microtonal transposition in melodic mode
 // intoxicants
 // added XiiLangGUI() for mapping keys and for starting in .app mode
-// added store and play score (to repeat performances)
+// added savescore and play score (to repeat performances)
 // added panning arguments as postfix
 // Add color customisation to GUI
 // Recording sound file functionality
@@ -54,12 +51,6 @@ TODO: Check the use of String:drop(1) and String:drop(-1)
 // Êsudo ./ptpd -cd
 // Êhttp://sourceforge.net/projects/ptpd/develop
 
-// post ICMC ideas (many of whom have been added above):
-// - Live recording into sound buffer by pressing shift+key (but save as livekey_a.aif and redefine SynthDef)
-// - netclock
-// - morphing
-// add some more effects
-
 /*
 Dependencies:
 TempoClock:sync (by f0)
@@ -67,12 +58,9 @@ TempoClock:sync (by f0)
 
 // add slide (from Array helpfile)
 
-//IDEA: how about visualising the actions of the user in ixi lang. Data visualise it. Compare the automation and user data. 
-//IDEA2: Use autuconductor to apply actions to different agents.
-//IDEA3: Make a history class for ixi lang. Then create a system that plays back.
-// Starting to add scoreArray now.
+//TODO: how about visualising the actions of the user in ixi lang. Data visualise it. Compare the automation and user data. 
+//TODO: Use autuconductor to apply actions to different agents.
 
-// THE MORPHING... perhaps use Pmono
 
 XiiLang {	
 	classvar globaldocnum;
@@ -108,9 +96,9 @@ XiiLang {
 		// the number of this document (allows for multiple docs using same variable names)
 		docnum = globaldocnum; // this number is now added in front of all agent names
 		chosenscale = Scale.major; // this is scale representation
-		scale = chosenscale.copy.degrees.add(12); // this is in degrees
+		scale = chosenscale.semitones.copy.add(12); // this is in degrees
 		tuning = \et12; // default tuning
-		tonic = 60 + [\C, \Cs, \D, \Ds, \E, \F, \Fs, \G, \Gs, \A, \As, \B].indexOf(key.toUpper.asSymbol); // midinote 60 is the default
+		tonic = 60 + [\C, \CS, \D, \DS, \E, \F, \FS, \G, \GS, \A, \AS, \B].indexOf(key.toUpper.asSymbol); // midinote 60 is the default
 		
 		if(dicts.isNil, {
 			agentDict = IdentityDictionary.new; // dicts are sent from "load"
@@ -157,7 +145,7 @@ XiiLang {
 		englishCommands = ["group", "sequence", "future", "snapshot", "->", "))", "((", "|", "[", "{", ")", 
 				"$", ">>", "<<", "tempo", "scale", "scalepush", "tuning", "tuningpush", "remind", "help", 
 				"tonality", "instr", "tonic", "grid", "kill", "doze", "perk", "nap", "shake", "swap", ">shift", 
-				"<shift", "invert", "expand", "revert", "up", "down", "yoyo", "order", "dict", "save", "load", 
+				"<shift", "invert", "expand", "revert", "up", "down", "yoyo", "order", "dict", "store", "load", 
 				"midiclients", "midiout", "matrix", "autocode", "coder", "+", "-", "*", "/", "!", "^", "(", "<",
 				"hash", "beer", "coffee", "LSD", "detox", "new", "savescore", "playscore", "suicide", "hotline"];  // removed "." XXX
 		
@@ -312,7 +300,7 @@ XiiLang {
 				Post << ixiInstr.returnBufferDict; "\n".postln;
 
 			}
-			{"save"}{ 
+			{"store"}{ 
 				var sessionstart, sessionend, session, sessionsfolderpath;
 				string = string.replace("    ", " ");
 				string = string.replace("   ", " ");
@@ -516,17 +504,18 @@ XiiLang {
 			}
 			{"scale"}{
 				var agent, firstarg;
-					string = string++" ";
-					firstarg = string[string.findAll(" ")[0]+1..(string.findAll(" ")[1])-1];
-					agent = (docnum.asString++firstarg).asSymbol;
-					if(agentDict.keys.includes(agent), {
-						this.parseMethod(string); // since future will use this, I need to parse the method
-					}, {
-						"setting global scale".postln;
-						chosenscale = ("Scale."++firstarg).interpret;
-						chosenscale.tuning_(tuning.asSymbol);
-						scale = chosenscale.copy.semitones.add(12); // used to be degrees, but that doesn't support tuning
-					});
+				string = string++" ";
+				firstarg = string[string.findAll(" ")[0]+1..(string.findAll(" ")[1])-1];
+				agent = (docnum.asString++firstarg).asSymbol;
+				if(agentDict.keys.includes(agent), {
+					this.parseMethod(string); // since future will use this, I need to parse the method
+				}, {
+					"setting global scale".postln;
+					chosenscale = ("Scale."++firstarg).interpret;
+					chosenscale.tuning_(tuning.asSymbol);
+					scale = chosenscale.semitones.copy.add(12); // used to be degrees, but that doesn't support tuning
+				});
+				[\scale, scale].postln;
 			}
 			{"scalepush"}{
 				var scalestart, scalestr;
@@ -536,7 +525,7 @@ XiiLang {
 				scalestr = scalestr[scalestart+1..scalestr.size-1];
 				chosenscale = ("Scale."++scalestr).interpret;
 				chosenscale.tuning_(tuning.asSymbol);
-				scale = chosenscale.copy.semitones.add(12); // used to be degrees, but that doesn't support tuning
+				scale = chosenscale.semitones.copy.add(12); // used to be degrees, but that doesn't support tuning
 				agentDict.do({arg agent;
 					dictscore = agent[1].scorestring;
 					dictscore = dictscore.reject({ |c| c.ascii == 34 }); // get rid of quotation marks
@@ -553,6 +542,8 @@ XiiLang {
 						proxyspace[agent].play;
 					});
 				});
+				[\chosenscale, chosenscale].postln;
+				[\scale, scale].postln;
 			}
 			{"tuning"}{
 				var tuningstart, tuningstr;
@@ -561,7 +552,12 @@ XiiLang {
 				tuning = tuningstr[tuningstart+1..tuningstr.size-1];
 				tuning = tuning.reject({ |c| c.ascii == 10 }); // get rid of char return
 				chosenscale.tuning_(tuning.asSymbol);
+
+				[\chosenscalesemitones, chosenscale.semitones].postln;
+				[\chosenscalecopysemitones, chosenscale.copy.semitones].postln;
 				scale = chosenscale.copy.semitones.add(12);
+				[\chosenscale, chosenscale].postln;
+				[\scale, scale].postln;
 			}
 			{"tuningpush"}{
 				var tuningstart, tuningstr;
@@ -617,7 +613,11 @@ XiiLang {
 				tstring = string.tr($ , \);
 				tonicstr = tstring[tonicstart+1..tstring.size-1];
 				tonicstr = tonicstr.reject({ |c| c.ascii == 10 }); // get rid of char return
-				tonic = tonicstr.asInteger;
+				if(tonicstr.asInteger == 0, { // it's a string
+					tonic = 60 + [\C, \CS, \D, \DS, \E, \F, \FS, \G, \GS, \A, \AS, \B].indexOf(tonicstr.toUpper.asSymbol); // midinote 60 is the default
+				}, {
+					tonic = tonicstr.asInteger;
+				});
 			}
 			{"grid"}{
 				var cursorPos, gridstring, meter, grids, gridstart;
@@ -728,7 +728,7 @@ XiiLang {
 								agentDict[sequenceagent][1].score = score;
 								agentDict[sequenceagent][1].quantphase = quantphase;
 								doc.string_(doc.string.replace(originalstring, fullscore++"\n"));
-								this.playScoreMode0(sequenceagent, notearr, durarr, instrarr, sustainarr, attackarr, panarr, quantphase, newInstrFlag);
+								this.playScoreMode0(sequenceagent, notearr, durarr, instrarr, sustainarr, attackarr, panarr, quantphase, newInstrFlag, agentDict[sequenceagent][1].morphmode);
 						}
 						{1} {
 
@@ -1289,7 +1289,8 @@ XiiLang {
 		var startWempty = false;
 		var newInstrFlag = false;
 		var postfixArgDict;
-		var prestring, scorestartloc, mode;
+		var prestring, scorestartloc, morphmode;
+		
 		scorestring = string.reject({arg char; char.ascii == 10 }); // to store in agentDict
 		
 	//	string = string.reject({arg char; (char==$-) || (char==$>) || (char.ascii == 10) }); // no need for this here
@@ -1301,9 +1302,10 @@ XiiLang {
 		agent = prestring[0..splitloc-1]; // get the name of the agent
 		pureagent = agent;
 		
-		mode = prestring[splitloc+2..prestring.size];
-		if(mode.size < 2, { mode = nil });
-		[\mode, mode].postln;
+		morphmode = prestring[splitloc+2..prestring.size];
+		if(morphmode.size < 1, { morphmode = nil });
+//		if(mode.contains("@"), { mode.tr($@, \); loop = true});
+		[\morphmode, morphmode].postln;
 		
 		//agent = (docnum.asString++agent).asSymbol;
 
@@ -1370,6 +1372,7 @@ XiiLang {
 		durarr = durarr*timestretch; // duration is stretched by timestretch var
 		
 		agentDict[agent][1].mode = 0;
+		agentDict[agent][1].morphmode = morphmode;
 		agentDict[agent][1].quantphase = quantphase;
 		agentDict[agent][1].durarr = durarr;
 		agentDict[agent][1].notearr = notearr; // will only store the transposition
@@ -1384,7 +1387,7 @@ XiiLang {
 
 		{doc.stringColor_(oncolor, doc.selectionStart, doc.selectionSize)}.defer(0.1);  // if code is green (sleeping)
 		"------    ixi lang: Created Percussive Agent : ".post; pureagent.postln; agentDict[agent].postln;
-		this.playScoreMode0(agent, notearr, durarr, instrarr, sustainarr, attackarr, panarr, quantphase, newInstrFlag, mode); 
+		this.playScoreMode0(agent, notearr, durarr, instrarr, sustainarr, attackarr, panarr, quantphase, newInstrFlag, morphmode); 
 	}	
 	
 	// MELODIC MODE
@@ -1636,11 +1639,13 @@ XiiLang {
 		});
 	}	
 
-	playScoreMode0 {arg agent, notearr, durarr, instrarr, sustainarr, attackarr, panarr, quantphase, newInstrFlag, mode;
+	playScoreMode0 {arg agent, notearr, durarr, instrarr, sustainarr, attackarr, panarr, quantphase, newInstrFlag, morphmode;
+		var loop;
 		[\instrarr, instrarr].postln;
-		if(mode.isNil, {
+		if(morphmode.isNil, {
 			// ------------ play function --------------
 			if(proxyspace[agent].isNeutral, { // check if the object exists alreay
+				"----- NEUTRAL".postln;
 				Pdef(agent, Pbind(
 							\instrument, Pseq(instrarr, inf), 
 							\midinote, Pseq(notearr, inf), 
@@ -1654,6 +1659,7 @@ XiiLang {
 				proxyspace[agent].play;
 			},{
 				if(newInstrFlag, { // only if instrument was {, where Pmono bufferplayer synthdef needs to be shut down
+					"----- NEW INSTR FLAG".postln;
 					proxyspace[agent].free; // needed in order to swap instrument in Pmono
 					Pdef(agent, Pbind(
 								\instrument, Pseq(instrarr, inf), 
@@ -1665,6 +1671,7 @@ XiiLang {
 					)).quant = [durarr.sum, quantphase, 0, 1];
 					{ proxyspace[agent].play }.defer(0.5); // defer needed as the free above and play immediately doesn't work
 				}, {	// default behavior
+				"----- DEFAULT (NOT NEW INSTR)".postln;
 					Pdef(agent, Pbind(
 								\instrument, Pseq(instrarr, inf), 
 								\midinote, Pseq(notearr, inf), 
@@ -1673,10 +1680,11 @@ XiiLang {
 								\sustain, Pseq(sustainarr, inf),
 								\pan, Pseq(panarr, inf)
 					)).quant = [durarr.sum, quantphase, 0, 1];
-					proxyspace[agent].play;
+					//proxyspace[agent].play; // this would build up synths on server on commands such as yoyo agent
 				});
 			});
 		}, {
+			if(morphmode.contains("@"), { morphmode = morphmode.tr($@, \); loop = true }, { loop = false }); // check if there is a loop arg or not
 			"I'm in MODAL MODE".postln;
 			// ------------ play function --------------
 			instrarr = instrarr.collect({arg instrname; 
@@ -1689,16 +1697,17 @@ XiiLang {
 			[\instrarr, instrarr].postln;
 			if(proxyspace[agent].isNeutral, { // check if the object exists alreay
 				Pdef(agent, Pbind(
-							\instrument, mode.asSymbol, 
+							\instrument, morphmode.asSymbol, 
+							\loop, loop,
 							\buf1, Pseq(instrarr, inf),
 							\buf2, Pseq(instrarr.rotate(-1), inf),
 							\midinote, Pseq(notearr, inf), 
 							\dur, Pseq(durarr, inf),
 							\amp, Pseq(attackarr*agentDict[agent][1].amp, inf),
-							\morphtime, Pseq(durarr, inf)/TempoClock.default.tempo,
+							\morphtime, Pseq(durarr/TempoClock.default.tempo, inf),
 							//\sustain, Pseq(sustainarr, inf),
 							\panFrom, Pseq(panarr, inf),
-							\panTo, Pseq(panarr.rotate(1), inf)
+							\panTo, Pseq(panarr.rotate(-1), inf)
 				));
 				proxyspace[agent].quant = [durarr.sum, quantphase, 0, 1];
 				proxyspace[agent] = Pdef(agent);
@@ -1707,33 +1716,35 @@ XiiLang {
 				if(newInstrFlag, { // only if instrument was {, where Pmono bufferplayer synthdef needs to be shut down
 					proxyspace[agent].free; // needed in order to swap instrument in Pmono
 					Pdef(agent, Pbind(
-							\instrument, mode.asSymbol, 
+							\instrument, morphmode.asSymbol, 
+							\loop, loop,
 							\buf1, Pseq(instrarr, inf),
 							\buf2, Pseq(instrarr.rotate(-1), inf),
 							\midinote, Pseq(notearr, inf), 
 							\dur, Pseq(durarr, inf),
 							\amp, Pseq(attackarr*agentDict[agent][1].amp, inf),
-							\morphtime, Pseq(durarr, inf)/TempoClock.default.tempo,
+							\morphtime, Pseq(durarr/TempoClock.default.tempo, inf),
 							//\sustain, Pseq(sustainarr, inf),
 							//\pan, Pseq(panarr, inf)
 							\panFrom, Pseq(panarr, inf),
-							\panTo, Pseq(panarr.rotate(1), inf)
+							\panTo, Pseq(panarr.rotate(-1), inf)
 					)).quant = [durarr.sum, quantphase, 0, 1];
 					{ proxyspace[agent].play }.defer(0.5); // defer needed as the free above and play immediately doesn't work
 				}, {	// default behavior
 					Pdef(agent, Pbind(
-							\instrument, mode.asSymbol, 
+							\instrument, morphmode.asSymbol, 
+							\loop, loop,
 							\buf1, Pseq(instrarr, inf),
 							\buf2, Pseq(instrarr.rotate(-1), inf),
 							\midinote, Pseq(notearr, inf), 
 							\dur, Pseq(durarr, inf),
 							\amp, Pseq(attackarr*agentDict[agent][1].amp, inf),
-							\morphtime, Pseq(durarr, inf)/TempoClock.default.tempo,
+							\morphtime, Pseq(durarr/TempoClock.default.tempo, inf),
 							//\sustain, Pseq(sustainarr, inf),
 							\panFrom, Pseq(panarr, inf),
-							\panTo, Pseq(panarr.rotate(1), inf)
+							\panTo, Pseq(panarr.rotate(-1), inf)
 					)).quant = [durarr.sum, quantphase, 0, 1];
-					proxyspace[agent].play;
+					//proxyspace[agent].play; // this would build up synths on server on commands such as yoyo agent
 				});
 			});
 		});
@@ -1785,7 +1796,7 @@ XiiLang {
 						\amp, Pseq(attackarr*agentDict[agent][1].amp, inf),
 						\pan, Pseq(panarr, inf)
 				)).quant = [durarr.sum, quantphase, 0, 1];
-				proxyspace[agent].play;
+					//proxyspace[agent].play; // this would build up synths on server on commands such as yoyo agent
 			});
 		});
 	}
@@ -1906,7 +1917,7 @@ XiiLang {
 			agentDict[agent][1].amp = amp;
 			switch(agentDict[agent][1].mode)
 				{0} { this.playScoreMode0(agent, agentDict[agent][1].notearr, agentDict[agent][1].durarr, agentDict[agent][1].instrarr, agentDict[agent][1].sustainarr, 
-						agentDict[agent][1].attackarr, agentDict[agent][1].panarr, agentDict[agent][1].quantphase, false); }
+						agentDict[agent][1].attackarr, agentDict[agent][1].panarr, agentDict[agent][1].quantphase, false, agentDict[agent][1].morphmode); }
 				{1} { 
 					this.playScoreMode1(agent, agentDict[agent][1].notearr, agentDict[agent][1].durarr, agentDict[agent][1].sustainarr, 
 						agentDict[agent][1].attackarr, agentDict[agent][1].panarr, agentDict[agent][1].instrument, agentDict[agent][1].quantphase, false, 
@@ -1934,7 +1945,7 @@ XiiLang {
 			" --->    ixi lang : AMP : ".post; amp.postln;
 			agentDict[agent][1].amp = amp;
 			switch(agentDict[agent][1].mode)
-				{0} { this.playScoreMode0(agent, agentDict[agent][1].notearr, agentDict[agent][1].durarr, agentDict[agent][1].instrarr, agentDict[agent][1].sustainarr, agentDict[agent][1].attackarr, agentDict[agent][1].panarr, agentDict[agent][1].quantphase, false); }
+				{0} { this.playScoreMode0(agent, agentDict[agent][1].notearr, agentDict[agent][1].durarr, agentDict[agent][1].instrarr, agentDict[agent][1].sustainarr, agentDict[agent][1].attackarr, agentDict[agent][1].panarr, agentDict[agent][1].quantphase, false, agentDict[agent][1].morphmode); }
 				{1} { this.playScoreMode1(agent, agentDict[agent][1].notearr, agentDict[agent][1].durarr, agentDict[agent][1].sustainarr, agentDict[agent][1].attackarr, agentDict[agent][1].panarr, agentDict[agent][1].instrument, agentDict[agent][1].quantphase, false, agentDict[agent][1].midichannel); }
 				{2} { Pdef(agent).set(\amp, amp) };
 		});
@@ -2433,7 +2444,7 @@ XiiLang {
 					chosenscale = ("Scale."++secondarg).interpret;
 					chosenscale.tuning_(tuning.asSymbol);
 					tempscale = scale; // store the default scale of the session
-					scale = chosenscale.copy.semitones.add(12); // used to be degrees, but that doesn't support tuning
+					scale = chosenscale.semitones.copy.add(12); // used to be degrees, but that doesn't support tuning
 
 					dictscore = agentDict[agent][1].scorestring;
 					dictscore = dictscore.reject({ |c| c.ascii == 34 }); // get rid of quotation marks
@@ -2468,8 +2479,8 @@ XiiLang {
 	    --    ixi lang lingo	   --
  
  -----------  score modes  -----------
- |		: percussive score
  [		: melodic score
+ |		: percussive score
  {		: concrete score (samples)
   
  -----------  operators  -----------
@@ -2488,6 +2499,7 @@ XiiLang {
  /		: contract the score in all modes 
  ()		: control note length (1 is whole note, 2 is half, etc. - ~ will multiply the lenghts with n) 
  ^^		: control note accent (1 is quiet, 9 is loud) 
+ <>		: panning (1 is left, 9 right) 
 
   -----------  methods  -----------
  doze 	: pause agent
@@ -2525,8 +2537,10 @@ XiiLang {
  hotline	: if you change your mind wrgt the suicide 
  midiclients : post the available midiclients
  midiout : set the port to the midiclient
- save	: save the session
- load	: load the session
+ store	: store the environmental setup of the session
+ load	: load the environment of a stored
+ savescore	: save the session
+ playscore	: play a saved session (exactly the same)
  autocode : autocode some agents and scores
   
  -----------  effects  -----------

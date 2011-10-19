@@ -157,21 +157,21 @@ XiiLangInstr {
 		
 		// explore hop size and loop in PlayBuf
 		
-		SynthDef(\morph, { arg out=0, freq=261.63, panFrom=0, panTo=0, amp=0.3, buf1, buf2, dur, morphtime=1, gate=1, t_trig;
+		/*
+		SynthDef(\morph, { arg out=0, freq=261.63, panFrom=0, panTo=0, amp=0.3, buf1, buf2, dur, morphtime=1, gate=1, t_trig, loop=1;
 			var inA, chainA, inB, chainB, chain;
-			inA = PlayBuf.ar(1, buf1, (freq.cpsmidi-60).midiratio, loop: 0) * EnvGen.ar(Env.new([0, 1, 1, 0], [0.05, morphtime, 0.02]), t_trig, doneAction:2);
-			inB = PlayBuf.ar(1, buf2, (freq.cpsmidi-60).midiratio, loop: 0) * EnvGen.ar(Env.new([0, 1, 1, 0], [0.05, morphtime, 0.02]), t_trig);
+			inA = PlayBuf.ar(1, buf1, (freq.cpsmidi-60).midiratio, loop: loop) * EnvGen.ar(Env.new([0, 1, 1, 0], [0.05, morphtime, 0.02]), t_trig, doneAction:2);
+			inB = PlayBuf.ar(1, buf2, (freq.cpsmidi-60).midiratio, loop: loop) * EnvGen.ar(Env.new([0, 1, 1, 0], [0.05, morphtime, 0.02]), t_trig);
 			chainA = FFT(LocalBuf(2048), inA);
 			chainB = FFT(LocalBuf(2048), inB);
-			//chain = PV_Morph(chainA, chainB, SinOsc.ar(dur.reciprocal).range(0, 1) ); 
 			chain = PV_Morph(chainA, chainB, EnvGen.ar(Env.new([0, 1], [morphtime]), t_trig) ); 
 			Out.ar(out,  Pan2.ar(IFFT(chain), EnvGen.ar(Env.new([panFrom, panTo], [morphtime]), t_trig)) * amp);
 		}).add;
 		
-		SynthDef(\fade, { arg out=0, freq=261.63, panFrom=0, panTo=0, amp=0.3, buf1, buf2, dur, morphtime=1, gate=1, t_trig;
+		SynthDef(\fade, { arg out=0, freq=261.63, panFrom=0, panTo=0, amp=0.3, buf1, buf2, dur, morphtime=1, gate=1, t_trig, loop=1;
 			var inA, chainA, inB, chainB, chain;
-			inA = PlayBuf.ar(1, buf1, (freq.cpsmidi-60).midiratio, loop: 0) * EnvGen.ar(Env.new([0, 1, 1, 0], [0.05, morphtime, 0.02]), t_trig, doneAction:2);
-			inB = PlayBuf.ar(1, buf2, (freq.cpsmidi-60).midiratio, loop: 0) * EnvGen.ar(Env.new([0, 1, 1, 0], [0.05, morphtime, 0.02]), t_trig);
+			inA = PlayBuf.ar(1, buf1, (freq.cpsmidi-60).midiratio, loop: loop) * EnvGen.ar(Env.new([0, 1, 1, 0], [0.05, morphtime, 0.02]), t_trig, doneAction:2);
+			inB = PlayBuf.ar(1, buf2, (freq.cpsmidi-60).midiratio, loop: loop) * EnvGen.ar(Env.new([0, 1, 1, 0], [0.05, morphtime, 0.02]), t_trig);
 			chainA = FFT(LocalBuf(2048), inA);
 			chainB = FFT(LocalBuf(2048), inB);
 			//chain = PV_Morph(chainA, chainB, SinOsc.ar(dur.reciprocal).range(0, 1) ); 
@@ -179,17 +179,175 @@ XiiLangInstr {
 			Out.ar(out,  Pan2.ar(IFFT(chain), EnvGen.ar(Env.new([panFrom, panTo], [morphtime]), t_trig)) * amp);
 		}).add;
 		
-		SynthDef(\wipe, { arg out=0, freq=261.63, panFrom=0, panTo=0, amp=0.3, buf1, buf2, dur, morphtime=1, gate=1, t_trig;
+		SynthDef(\wipe, { arg out=0, freq=261.63, panFrom=0, panTo=0, amp=0.3, buf1, buf2, dur, morphtime=1, gate=1, t_trig, loop=1;
 			var inA, chainA, inB, chainB, chain;
-			inA = PlayBuf.ar(1, buf1, (freq.cpsmidi-60).midiratio, loop: 0) * EnvGen.ar(Env.new([0, 1, 1, 0], [0.05, morphtime, 0.02]), t_trig, doneAction:2);
-			inB = PlayBuf.ar(1, buf2, (freq.cpsmidi-60).midiratio, loop: 0) * EnvGen.ar(Env.new([0, 1, 1, 0], [0.05, morphtime, 0.02]), t_trig);
+			inA = PlayBuf.ar(1, buf1, (freq.cpsmidi-60).midiratio, loop: loop) * EnvGen.ar(Env.new([0, 1, 1, 0], [0.05, morphtime, 0.02]), t_trig, doneAction:2);
+			inB = PlayBuf.ar(1, buf2, (freq.cpsmidi-60).midiratio, loop: loop) * EnvGen.ar(Env.new([0, 1, 1, 0], [0.05, morphtime, 0.02]), t_trig);
 			chainA = FFT(LocalBuf(2048), inA);
 			chainB = FFT(LocalBuf(2048), inB);
 			//chain = PV_Morph(chainA, chainB, SinOsc.ar(dur.reciprocal).range(0, 1) ); 
 			chain = PV_SoftWipe(chainA, chainB, EnvGen.ar(Env.new([0, 1], [morphtime]), t_trig) ); 
 			Out.ar(out,  Pan2.ar(IFFT(chain), EnvGen.ar(Env.new([panFrom, panTo], [morphtime]), t_trig)) * amp);
 		}).add;
+*/
+
+/*
+// old synthdef 
+		SynthDef(\morph, { arg out=0, freq=261.63, panFrom=0, panTo=0, amp=0.3, buf1, buf2, dur, gate=1, t_trig, loop=1;
+			var inA, chainA, inB, chainB, chain;
+			inA = PlayBuf.ar(1, buf1, (freq.cpsmidi-60).midiratio, loop: loop) * EnvGen.ar(Env.new([0, 1, 1, 0], [0.05, dur, 0.02]), t_trig);
+			inB = PlayBuf.ar(1, buf2, (freq.cpsmidi-60).midiratio, loop: loop) * EnvGen.ar(Env.new([0, 1, 1, 0], [0.05, dur, 0.02]), t_trig);
+			chainA = FFT(LocalBuf(2048), inA);
+			chainB = FFT(LocalBuf(2048), inB);
+			//chain = PV_Morph(chainA, chainB, SinOsc.ar(dur.reciprocal).range(0, 1) ); 
+			chain = PV_Morph(chainA, chainB, EnvGen.ar(Env.new([0, 1], [dur]), t_trig) ); 
+			Out.ar(out,  Pan2.ar(IFFT(chain), EnvGen.ar(Env.new([panFrom, panTo], [dur]), t_trig,)) * amp);
+		}).add;
+
+*/
+
+		SynthDef(\morph, { arg out=0, freq=261.63, panFrom=0, panTo=0, amp=0.3, buf1, buf2, dur, morphtime=1, gate=1, t_trig, loop=1;
+			var inA, chainA, inB, chainB, chain;
+			inA = PlayBuf.ar(1, buf1, (freq.cpsmidi-60).midiratio, loop: loop) * EnvGen.ar(Env.new([0, 1, 1, 0], [0.1, morphtime, 0.01]), t_trig);
+			inB = PlayBuf.ar(1, buf2, (freq.cpsmidi-60).midiratio, loop: loop) * EnvGen.ar(Env.new([0, 1, 1, 0], [0.1, morphtime, 0.01]), t_trig);
+			chainA = FFT(LocalBuf(2048), inA);
+			chainB = FFT(LocalBuf(2048), inB);
+			chain = PV_Morph(chainA, chainB, EnvGen.ar(Env.new([0, 1], [morphtime+0.1])) ); 
+			Out.ar(out,  Pan2.ar(IFFT(chain), EnvGen.ar(Env.new([panFrom, panTo], [morphtime+0.3]), t_trig, doneAction:2)) * amp);
+		}).add;
+
+		SynthDef(\fade, { arg out=0, freq=261.63, panFrom=0, panTo=0, amp=0.3, buf1, buf2, dur, morphtime=1, gate=1, t_trig, loop=1;
+			var inA, chainA, inB, chainB, chain;
+			inA = PlayBuf.ar(1, buf1, (freq.cpsmidi-60).midiratio, loop: loop) * EnvGen.ar(Env.new([0, 1, 1, 0], [0.1, morphtime, 0.01]), t_trig);
+			inB = PlayBuf.ar(1, buf2, (freq.cpsmidi-60).midiratio, loop: loop) * EnvGen.ar(Env.new([0, 1, 1, 0], [0.1, morphtime, 0.01]), t_trig);
+			chainA = FFT(LocalBuf(2048), inA);
+			chainB = FFT(LocalBuf(2048), inB);
+			chain = PV_XFade(chainA, chainB, EnvGen.ar(Env.new([0, 1], [morphtime+0.1])) ); 
+			Out.ar(out,  Pan2.ar(IFFT(chain), EnvGen.ar(Env.new([panFrom, panTo], [morphtime+0.3]), t_trig, doneAction:2)) * amp);
+		}).add;
+
+
+		SynthDef(\wipe, { arg out=0, freq=261.63, panFrom=0, panTo=0, amp=0.3, buf1, buf2, dur, morphtime=1, gate=1, t_trig, loop=1;
+			var inA, chainA, inB, chainB, chain;
+			inA = PlayBuf.ar(1, buf1, (freq.cpsmidi-60).midiratio, loop: loop) * EnvGen.ar(Env.new([0, 1, 1, 0], [0.1, morphtime, 0.01]), t_trig);
+			inB = PlayBuf.ar(1, buf2, (freq.cpsmidi-60).midiratio, loop: loop) * EnvGen.ar(Env.new([0, 1, 1, 0], [0.1, morphtime, 0.01]), t_trig);
+			chainA = FFT(LocalBuf(2048), inA);
+			chainB = FFT(LocalBuf(2048), inB);
+			chain = PV_SoftWipe(chainA, chainB, EnvGen.ar(Env.new([-0.95, 0.95], [morphtime+0.1])) ); 
+			Out.ar(out,  Pan2.ar(IFFT(chain), EnvGen.ar(Env.new([panFrom, panTo], [morphtime+0.3]), t_trig, doneAction:2)) * amp);
+		}).add;
+
+		SynthDef(\minus, { arg out=0, freq=261.63, panFrom=0, panTo=0, amp=0.3, buf1, buf2, dur, morphtime=1, gate=1, t_trig, loop=1;
+			var inA, chainA, inB, chainB, chain;
+			inA = PlayBuf.ar(1, buf1, (freq.cpsmidi-60).midiratio, loop: loop) * EnvGen.ar(Env.new([0, 1, 1, 0], [0.1, morphtime, 0.01]), t_trig);
+			inB = PlayBuf.ar(1, buf2, (freq.cpsmidi-60).midiratio, loop: loop) * EnvGen.ar(Env.new([0, 1, 1, 0], [0.1, morphtime, 0.01]), t_trig);
+			chainA = FFT(LocalBuf(2048), inA);
+			chainB = FFT(LocalBuf(2048), inB);
+			chain = PV_MagMinus(chainA, chainB, EnvGen.ar(Env.new([0, 1], [morphtime+0.1])) ); 
+			Out.ar(out,  Pan2.ar(IFFT(chain), EnvGen.ar(Env.new([panFrom, panTo], [morphtime+0.3]), t_trig, doneAction:2)) * amp);
+		}).add;
+
+		SynthDef(\common, { arg out=0, freq=261.63, panFrom=0, panTo=0, amp=0.3, buf1, buf2, dur, morphtime=1, gate=1, t_trig, loop=1;
+			var inA, chainA, inB, chainB, chain;
+			inA = PlayBuf.ar(1, buf1, (freq.cpsmidi-60).midiratio, loop: loop) * EnvGen.ar(Env.new([0, 1, 1, 0], [0.1, morphtime, 0.01]), t_trig);
+			inB = PlayBuf.ar(1, buf2, (freq.cpsmidi-60).midiratio, loop: loop) * EnvGen.ar(Env.new([0, 1, 1, 0], [0.1, morphtime, 0.01]), t_trig);
+			chainA = FFT(LocalBuf(2048), inA);
+			chainB = FFT(LocalBuf(2048), inB);
+			chain = PV_CommonMag(chainA, chainB, EnvGen.ar(Env.new([0, 1], [morphtime+0.1])) ); 
+		//	chain = PV_CommonMag(chainA, chainB, 0.1, 0.1); 
+			Out.ar(out,  Pan2.ar(IFFT(chain), EnvGen.ar(Env.new([panFrom, panTo], [morphtime+0.3]), t_trig, doneAction:2)) * amp);
+		}).add;
+
+		SynthDef(\binwipe, { arg out=0, freq=261.63, panFrom=0, panTo=0, amp=0.3, buf1, buf2, dur, morphtime=1, gate=1, t_trig, loop=1;
+			var inA, chainA, inB, chainB, chain;
+			inA = PlayBuf.ar(1, buf1, (freq.cpsmidi-60).midiratio, loop: loop) * EnvGen.ar(Env.new([0, 1, 1, 0], [0.1, morphtime, 0.01]), t_trig);
+			inB = PlayBuf.ar(1, buf2, (freq.cpsmidi-60).midiratio, loop: loop) * EnvGen.ar(Env.new([0, 1, 1, 0], [0.1, morphtime, 0.01]), t_trig);
+			chainA = FFT(LocalBuf(2048), inA);
+			chainB = FFT(LocalBuf(2048), inB);
+			chain = PV_BinWipe(chainA, chainB, EnvGen.ar(Env.new([0, 1], [morphtime+0.1])) ); 
+			Out.ar(out,  Pan2.ar(IFFT(chain), EnvGen.ar(Env.new([panFrom, panTo], [morphtime+0.3]), t_trig, doneAction:2)) * amp);
+		}).add;
+
+		SynthDef(\copy, { arg out=0, freq=261.63, panFrom=0, panTo=0, amp=0.3, buf1, buf2, dur, morphtime=1, gate=1, t_trig, loop=1;
+			var inA, chainA, inB, chainB, chain;
+			inA = PlayBuf.ar(1, buf1, (freq.cpsmidi-60).midiratio, loop: loop) * EnvGen.ar(Env.new([0, 1, 1, 0], [0.1, morphtime, 0.01]), t_trig);
+			inB = PlayBuf.ar(1, buf2, (freq.cpsmidi-60).midiratio, loop: loop) * EnvGen.ar(Env.new([0, 1, 1, 0], [0.1, morphtime, 0.01]), t_trig);
+			chainA = FFT(LocalBuf(2048), inA);
+			chainB = FFT(LocalBuf(2048), inB);
+			chain = PV_CopyPhase(chainA, chainB, EnvGen.ar(Env.new([0, 1], [morphtime+0.1])) ); 
+			Out.ar(out,  Pan2.ar(IFFT(chain), EnvGen.ar(Env.new([panFrom, panTo], [morphtime+0.3]), t_trig, doneAction:2)) * amp);
+		}).add;
+
+		SynthDef(\mul, { arg out=0, freq=261.63, panFrom=0, panTo=0, amp=0.3, buf1, buf2, dur, morphtime=1, gate=1, t_trig, loop=1;
+			var inA, chainA, inB, chainB, chain;
+			inA = PlayBuf.ar(1, buf1, (freq.cpsmidi-60).midiratio, loop: loop) * EnvGen.ar(Env.new([0, 1, 1, 0], [0.1, morphtime, 0.01]), t_trig);
+			inB = PlayBuf.ar(1, buf2, (freq.cpsmidi-60).midiratio, loop: loop) * EnvGen.ar(Env.new([0, 1, 1, 0], [0.1, morphtime, 0.01]), t_trig);
+			chainA = FFT(LocalBuf(2048), inA);
+			chainB = FFT(LocalBuf(2048), inB);
+			chain = PV_MagMul(chainA, chainB ); 
+			Out.ar(out,  Pan2.ar(IFFT(chain)*0.25, EnvGen.ar(Env.new([panFrom, panTo], [morphtime+0.3]), t_trig, doneAction:2)) * amp);
+		}).add;
+
+		SynthDef(\smear, { arg out=0, freq=261.63, panFrom=0, panTo=0, amp=0.3, buf1, buf2, dur, morphtime=1, gate=1, t_trig, loop=1;
+			var inA, chainA, inB, chainB, chain;
+			inA = PlayBuf.ar(1, buf1, (freq.cpsmidi-60).midiratio, loop: loop) * EnvGen.ar(Env.new([0, 1, 1, 0], [0.1, morphtime, 0.01]), t_trig);
+			inB = PlayBuf.ar(1, buf2, (freq.cpsmidi-60).midiratio, loop: loop) * EnvGen.ar(Env.new([0, 1, 1, 0], [0.1, morphtime, 0.01]), t_trig);
+			chainA = FFT(LocalBuf(2048), inA);
+			chainB = FFT(LocalBuf(2048), inB);
+			chain = PV_MagSmear(chainA, EnvGen.ar(Env.new([0, 1], [morphtime+0.1]))*20 ); 
+			Out.ar(out,  Pan2.ar(IFFT(chain), EnvGen.ar(Env.new([panFrom, panTo], [morphtime+0.3]), t_trig, doneAction:2)) * amp);
+		}).add;
+
+		SynthDef(\subtract, { arg out=0, freq=261.63, panFrom=0, panTo=0, amp=0.3, buf1, buf2, dur, morphtime=1, gate=1, t_trig, loop=1;
+			var inA, chainA, inB, chainB, chain;
+			inA = PlayBuf.ar(1, buf1, (freq.cpsmidi-60).midiratio, loop: loop) * EnvGen.ar(Env.new([0, 1, 1, 0], [0.1, morphtime, 0.01]), t_trig);
+			inB = PlayBuf.ar(1, buf2, (freq.cpsmidi-60).midiratio, loop: loop) * EnvGen.ar(Env.new([0, 1, 1, 0], [0.1, morphtime, 0.01]), t_trig);
+			chainA = FFT(LocalBuf(2048), inA);
+			chainB = FFT(LocalBuf(2048), inB);
+			chain = PV_MagSubtract(chainA, chainB, -10 ); 
+			Out.ar(out,  Pan2.ar(IFFT(chain), EnvGen.ar(Env.new([panFrom, panTo], [morphtime+0.3]), t_trig, doneAction:2)) * amp);
+		}).add;
+
+		SynthDef(\rand, { arg out=0, freq=261.63, panFrom=0, panTo=0, amp=0.3, buf1, buf2, dur, morphtime=1, gate=1, t_trig, loop=1;
+			var inA, chainA, inB, chainB, chain;
+			inA = PlayBuf.ar(1, buf1, (freq.cpsmidi-60).midiratio, loop: loop) * EnvGen.ar(Env.new([0, 1, 1, 0], [0.1, morphtime, 0.01]), t_trig);
+			inB = PlayBuf.ar(1, buf2, (freq.cpsmidi-60).midiratio, loop: loop) * EnvGen.ar(Env.new([0, 1, 1, 0], [0.1, morphtime, 0.01]), t_trig);
+			chainA = FFT(LocalBuf(2048), inA);
+			chainB = FFT(LocalBuf(2048), inB);
+			chain = PV_RandWipe(chainA, chainB, EnvGen.ar(Env.new([0, 1], [morphtime]), t_trig) ); 
+			Out.ar(out,  Pan2.ar(IFFT(chain), EnvGen.ar(Env.new([panFrom, panTo], [morphtime+0.3]), t_trig, doneAction:2)) * amp);
+		}).add;
 		
+		SynthDef(\comb, { arg out=0, freq=261.63, panFrom=0, panTo=0, amp=0.3, buf1, buf2, dur, morphtime=1, gate=1, t_trig, loop=1;
+			var inA, chainA, inB, chainB, chain;
+			inA = PlayBuf.ar(1, buf1, (freq.cpsmidi-60).midiratio, loop: loop) * EnvGen.ar(Env.new([0, 1, 1, 0], [0.1, morphtime, 0.01]), t_trig);
+			inB = PlayBuf.ar(1, buf2, (freq.cpsmidi-60).midiratio, loop: loop) * EnvGen.ar(Env.new([0, 1, 1, 0], [0.1, morphtime, 0.01]), t_trig);
+			chainA = FFT(LocalBuf(2048), inA);
+			chainB = FFT(LocalBuf(2048), inB);
+			chain = PV_RectComb2(chainA, chainB, 5, EnvGen.ar(Env.new([0, 1], [morphtime]), t_trig)*pi, 0.5); 
+			Out.ar(out,  Pan2.ar(IFFT(chain), EnvGen.ar(Env.new([panFrom, panTo], [morphtime+0.3]), t_trig, doneAction:2)) * amp);
+		}).add;
+
+		// non-fft synthdef
+		SynthDef(\low, { arg out=0, freq=261.63, panFrom=0, panTo=0, morphtime=1, amp=0.3, buf1, buf2, dur, gate=1, t_trig, loop=1;
+			var inA, chainA, inB, chainB, chain;
+			inA = PlayBuf.ar(1, buf1, (freq.cpsmidi-60).midiratio, loop: loop) * EnvGen.ar(Env.new([0, 1, 1, 0], [0.1, morphtime, 0.02]), t_trig);
+			inB = PlayBuf.ar(1, buf2, (freq.cpsmidi-60).midiratio, loop: loop) * EnvGen.ar(Env.new([0, 1, 1, 0], [0.1, morphtime, 0.02]), t_trig);
+			chain = 	LPF.ar(inB, EnvGen.ar(Env.new([0.001, 1], [morphtime], 'exponential'), t_trig)*16000)+
+					LPF.ar(inA, EnvGen.ar(Env.new([1, 0.001], [morphtime], 'exponential'), t_trig)*16000); 
+			Out.ar(out,  Pan2.ar(chain, EnvGen.ar(Env.new([panFrom, panTo], [morphtime+0.07]), t_trig, doneAction:2)) * amp);
+		}).add;
+
+		SynthDef(\band, { arg out=0, freq=261.63, panFrom=0, panTo=0, morphtime=1, amp=0.3, buf1, buf2, dur, gate=1, t_trig, loop=1;
+			var inA, chainA, inB, chainB, chain;
+			inA = PlayBuf.ar(1, buf1, (freq.cpsmidi-60).midiratio, loop: loop) * EnvGen.ar(Env.new([0, 1, 1, 0], [0.1, morphtime, 0.02]), t_trig);
+			inB = PlayBuf.ar(1, buf2, (freq.cpsmidi-60).midiratio, loop: loop) * EnvGen.ar(Env.new([0, 1, 1, 0], [0.1, morphtime, 0.02]), t_trig);
+			chain = 	BPF.ar(inB, EnvGen.ar(Env.new([0.01, 1], [morphtime], 'exponential'), t_trig)*10000)+
+					BPF.ar(inA, EnvGen.ar(Env.new([1, 0.01], [morphtime], 'exponential'), t_trig)*10000); 
+			Out.ar(out,  Pan2.ar(chain, EnvGen.ar(Env.new([panFrom, panTo], [morphtime+0.07]), t_trig, doneAction:2)) * amp);
+		}).add;
+		
+
 		// ---------------------- synthesized instruments -----------------------------
 		
 		SynthDef(\impulse, { arg out=0, gate=1, pan=0, amp=1;

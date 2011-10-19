@@ -11,6 +11,17 @@ nap drum 2
 
 drum >> reverbS
 
+doze drum
+
+oo ->        |a   b           x   |
+oo ->  morph |a   b           x   |
+oo -> morph@ |a   b           x   |
+oo ->   fade |a   b           x   |
+oo ->  fade@ |a   b           x   |
+oo ->   wipe |a   b           x   |
+oo ->  wipe@ |a   b           x   |
+
+
 scale minor
 sos -> wood[1   5   3   2   ]
 sob -> wood[1   5   3   2   ]+12
