@@ -37,6 +37,8 @@ TODO: Check the use of String:drop(1) and String:drop(-1)
 // Recording sound file functionality
 // Added pitch argument (in MIDI degrees) for rhythmic and concrete modes
 // Synthdefs added to the mapping file (no distinction between samples and synths)
+// scheme-like operators [+ agentname 12]
+// added full stops as equivalent to spaces
 
 // FIXED BUG: snapshots do not perk up agents that have been dozed
 // FIXED BUG: Snapshots do not recall the effect state
@@ -60,6 +62,8 @@ TempoClock:sync (by f0)
 
 //TODO: how about visualising the actions of the user in ixi lang. Data visualise it. Compare the automation and user data. 
 //TODO: Use autuconductor to apply actions to different agents.
+
+// TODO: think about NRT rendering of playscores
 
 
 XiiLang {	
@@ -147,7 +151,7 @@ XiiLang {
 				"tonality", "instr", "tonic", "grid", "kill", "doze", "perk", "nap", "shake", "swap", ">shift", 
 				"<shift", "invert", "expand", "revert", "up", "down", "yoyo", "order", "dict", "store", "load", 
 				"midiclients", "midiout", "matrix", "autocode", "coder", "+", "-", "*", "/", "!", "^", "(", "<",
-				"hash", "beer", "coffee", "LSD", "detox", "new", "savescore", "playscore", "suicide", "hotline"];  // removed "." XXX
+				"hash", "beer", "coffee", "LSD", "detox", "new", "savescore", "playscore", "suicide", "hotline", "newrec"];  // removed "." XXX
 		
 		if(lang.isNil, { 
 			english = true; // might not need this;
@@ -253,7 +257,6 @@ XiiLang {
 	opInterpreter {arg string;
 		var oldop, operator; // the various operators of the language
 		var methodFound = false;
-		//[\string, string].postln;
 		string = string.reject({ |c| c.ascii == 10 }); // get rid of char return XXX TESTING (before Helsinki GIG) 
 		scoreArray = scoreArray.add([Main.elapsedTime, string]); // recording the performance
 		operator = block{|break| // better NOT mess with the order of the following... (operators using -> need to be before "->")
@@ -510,12 +513,10 @@ XiiLang {
 				if(agentDict.keys.includes(agent), {
 					this.parseMethod(string); // since future will use this, I need to parse the method
 				}, {
-					"setting global scale".postln;
 					chosenscale = ("Scale."++firstarg).interpret;
 					chosenscale.tuning_(tuning.asSymbol);
 					scale = chosenscale.semitones.copy.add(12); // used to be degrees, but that doesn't support tuning
 				});
-				[\scale, scale].postln;
 			}
 			{"scalepush"}{
 				var scalestart, scalestr;
@@ -542,8 +543,6 @@ XiiLang {
 						proxyspace[agent].play;
 					});
 				});
-				[\chosenscale, chosenscale].postln;
-				[\scale, scale].postln;
 			}
 			{"tuning"}{
 				var tuningstart, tuningstr;
@@ -552,12 +551,7 @@ XiiLang {
 				tuning = tuningstr[tuningstart+1..tuningstr.size-1];
 				tuning = tuning.reject({ |c| c.ascii == 10 }); // get rid of char return
 				chosenscale.tuning_(tuning.asSymbol);
-
-				[\chosenscalesemitones, chosenscale.semitones].postln;
-				[\chosenscalecopysemitones, chosenscale.copy.semitones].postln;
-				scale = chosenscale.copy.semitones.add(12);
-				[\chosenscale, chosenscale].postln;
-				[\scale, scale].postln;
+				scale = chosenscale.semitones.copy.add(12);
 			}
 			{"tuningpush"}{
 				var tuningstart, tuningstr;
@@ -567,7 +561,7 @@ XiiLang {
 				tuning = tuningstr[tuningstart+1..tuningstr.size-1];
 				tuning = tuning.reject({ |c| c.ascii == 10 }); // get rid of char return
 				chosenscale.tuning_(tuning.asSymbol);
-				scale = chosenscale.copy.semitones.add(12);
+				scale = chosenscale.semitones.copy.add(12);
 				agentDict.do({arg agent;
 					dictscore = agent[1].scorestring;
 					dictscore = dictscore.reject({ |c| c.ascii == 34 }); // get rid of quotation marks
@@ -1035,7 +1029,8 @@ XiiLang {
 				[randomseed, scoreArray.copy].writeArchive(sessionsfolderpath++projectname++"/scores/"++session++".scr");
 			}
 			{"playscore"}{
-				var sessionstart, sessionend, session, score, offsettime;
+				var sessionstart, sessionend, session, variation, varstart, varend, score, offsettime;
+				variation = nil;
 				string = string.replace("    ", " ");
 				string = string.replace("   ", " ");
 				string = string.replace("  ", " ");
@@ -1043,9 +1038,20 @@ XiiLang {
 				sessionstart = string.findAll(" ")[0];
 				sessionend = string.findAll(" ")[1]; 
 				session = string[sessionstart+1..sessionend-1];
+				if(string.findAll(" ")[2].isNil.not, {
+					varstart = string.findAll(" ")[1];
+					varend = string.findAll(" ")[2];
+					variation = string[varstart+1..varend-1];
+				});
 				//doc.onClose; // call this to end all agents and groups in this particular doc if it has been running agents
 				#randomseed, score = Object.readArchive("ixilang/"++projectname++"/scores/"++session++".scr");
+				if(variation.isNil.not, { randomseed = variation.ascii.pyramid.pyramid.sum; "playing variation: %".postf(variation) }); // overwrite the orig seed to get a variation
 				XiiLang.new( projectname, key, true, false, language, nil, [randomseed, score]);
+			}
+			{"newrec"}{
+				" --->   ixi lang: clearing score array".postln;
+				scoreArray = [];
+				scoreArray = scoreArray.add([Main.elapsedTime, string]); // recording the performance
 			}
 			;
 		}
@@ -1292,10 +1298,6 @@ XiiLang {
 		var prestring, scorestartloc, morphmode;
 		
 		scorestring = string.reject({arg char; char.ascii == 10 }); // to store in agentDict
-		
-	//	string = string.reject({arg char; (char==$-) || (char==$>) || (char.ascii == 10) }); // no need for this here
-	//	string = string.reject({arg char; (char==$-) || (char.ascii == 10) }); // no need for this here
-		
 		scorestartloc = string.find("|");
 		prestring = string[0..scorestartloc-1].tr($ , \); // get rid of spaces until score
 		splitloc = prestring.find("->");
@@ -1304,16 +1306,7 @@ XiiLang {
 		
 		morphmode = prestring[splitloc+2..prestring.size];
 		if(morphmode.size < 1, { morphmode = nil });
-//		if(mode.contains("@"), { mode.tr($@, \); loop = true});
-		[\morphmode, morphmode].postln;
-		
-		//agent = (docnum.asString++agent).asSymbol;
 
-		//splitloc = string.find("|");
-		//agentstring = string[0..splitloc-1].tr($ , \); // get the name of the agent
-		
-		//agent = agentstring[0..agentstring.size-1];
-		
 		score = string[scorestartloc+1..string.size-1];
 		endchar = score.find("|"); // the index (int) of the end op in the string
 
@@ -1339,7 +1332,7 @@ XiiLang {
 		}); // 1st = effectRegistryDict, 2nd = scoreInfoDict, 3rd = placeholder for a routine
 				
 		// ------------- the instrument -------------------
-		instrstring = score.tr($ , \);
+		instrstring = score.tr($ , \).tr($., \);
 		instrarr = [];
 		instrstring.collect({arg instr, i; instrarr = instrarr.add(instrDict[instr.asSymbol]) });
 
@@ -1348,8 +1341,8 @@ XiiLang {
 		spacecount = 0; 
 		durarr = [];
 		score.do({arg char, i;
-			if((char==$ ) && (i==0), { startWempty = true; });
-			if(char==$ , {
+			if(((char==$ ) || (char==$.)) && (i==0), { startWempty = true; });
+			if(((char==$ ) || (char==$.)), {
 				spacecount = spacecount+1;
 			}, {
 				if(i != 0, { // not adding the the first instr
@@ -1441,7 +1434,7 @@ XiiLang {
 		}); // 1st = effectRegistryDict, 2nd = scoreInfoDict, 3rd = placeholder for a routine
 
 		// ------------- the notes -------------------
-		notestring = score.tr($ , \);
+		notestring = score.tr($ , \).($., \);
 		notearr = [];
 		notestring.collect({arg note, i;
 			var scalenote, thisnote, chord;
@@ -1449,7 +1442,7 @@ XiiLang {
 			if(thisnote == 0, { // if it is a CHORD
 				chord = varDict[note.asSymbol];
 				if(chord.isNil, { // if using a chord (item in dict) that does not exist (say x) - to prevent error posting
-					notearr = notearr.add('\s');
+					if(note != $. , {notearr = notearr.add('\s') });
 				}, {	
 					notearr = notearr.add(chord);
 				});
@@ -1467,8 +1460,8 @@ XiiLang {
 		spacecount = 0; 
 		durarr = [];
 		score.do({arg char, i;
-			if((char==$ ) && (i==0), { startWempty = true; });
-			if(char==$ , {
+			if(((char==$ ) || (char==$.)) && (i==0), { startWempty = true; });
+			if(((char==$ ) || (char==$.)), {
 				spacecount = spacecount+1;
 			}, {
 				if(i != 0, { // not adding the the first instr
@@ -1556,7 +1549,7 @@ XiiLang {
 		});
 		
 		// ------------- the envelope amps -------------------
-		ampstring = score.tr($ , \);
+		ampstring = score.tr($ , \).tr($., \);
 		amparr = [];
 		ampstring.do({arg amp; amparr = amparr.add(amp.asString.asInteger/10) });
 		// -------------    the score   -------------------
@@ -1564,8 +1557,8 @@ XiiLang {
 		spacecount = 0; 
 		durarr = [];
 		score.do({arg char, i;
-			if((char==$ ) && (i==0), { startWempty = true; });
-			if(char==$ , {
+			if(((char==$ ) || (char==$.)) && (i==0), { startWempty = true; });
+			if(((char==$ ) || (char==$.)), {
 				spacecount = spacecount+1;
 			}, {
 				if(i != 0, { // not adding the the first instr
@@ -1634,18 +1627,15 @@ XiiLang {
 			},{
 				chordstring = string[splitloc+3..string.size-1];
 				varDict[varname.asSymbol] = chordstring.asInteger;
-				chordstring.asInteger.postln;
 			});
 		});
 	}	
 
 	playScoreMode0 {arg agent, notearr, durarr, instrarr, sustainarr, attackarr, panarr, quantphase, newInstrFlag, morphmode;
 		var loop;
-		[\instrarr, instrarr].postln;
 		if(morphmode.isNil, {
 			// ------------ play function --------------
 			if(proxyspace[agent].isNeutral, { // check if the object exists alreay
-				"----- NEUTRAL".postln;
 				Pdef(agent, Pbind(
 							\instrument, Pseq(instrarr, inf), 
 							\midinote, Pseq(notearr, inf), 
@@ -1659,7 +1649,6 @@ XiiLang {
 				proxyspace[agent].play;
 			},{
 				if(newInstrFlag, { // only if instrument was {, where Pmono bufferplayer synthdef needs to be shut down
-					"----- NEW INSTR FLAG".postln;
 					proxyspace[agent].free; // needed in order to swap instrument in Pmono
 					Pdef(agent, Pbind(
 								\instrument, Pseq(instrarr, inf), 
@@ -1671,7 +1660,6 @@ XiiLang {
 					)).quant = [durarr.sum, quantphase, 0, 1];
 					{ proxyspace[agent].play }.defer(0.5); // defer needed as the free above and play immediately doesn't work
 				}, {	// default behavior
-				"----- DEFAULT (NOT NEW INSTR)".postln;
 					Pdef(agent, Pbind(
 								\instrument, Pseq(instrarr, inf), 
 								\midinote, Pseq(notearr, inf), 
@@ -1685,7 +1673,6 @@ XiiLang {
 			});
 		}, {
 			if(morphmode.contains("@"), { morphmode = morphmode.tr($@, \); loop = true }, { loop = false }); // check if there is a loop arg or not
-			"I'm in MODAL MODE".postln;
 			// ------------ play function --------------
 			instrarr = instrarr.collect({arg instrname; 
 				if(ixiInstr.returnBufferDict[instrname.asSymbol].isNil, {
@@ -1694,7 +1681,6 @@ XiiLang {
 					ixiInstr.returnBufferDict[instrname.asSymbol];
 				}) 
 			});
-			[\instrarr, instrarr].postln;
 			if(proxyspace[agent].isNeutral, { // check if the object exists alreay
 				Pdef(agent, Pbind(
 							\instrument, morphmode.asSymbol, 
@@ -2348,7 +2334,6 @@ XiiLang {
 				}
 				{"beer"} {
 					var durarr, sum, copy, summed, newdurs;
-					"drinking beer".postln;
 					argument = if(argument.asFloat == 0, { 0.1 }, { argument.asFloat/10 });
 					// drunk
 					durarr = agentDict[agent][1].durarr;
@@ -2359,13 +2344,11 @@ XiiLang {
 					durarr.size.do({arg i; durarr[i] = copy[i] });
 				}
 				{"coffee"} {
-					"coffee !!! ".postln;
 					argument = if(argument.asFloat == 0, { -0.01 }, { (argument.asFloat/100)* -1 });
 					Pdef(agent.asSymbol).align([argument, argument])
 				}
 				{"LSD"} {
 					var durarr, sum, copy, summed, newdurs, last, arraybutlastsum;
-					"dropping LSD".postln;
 					argument = if(argument.asFloat == 0, { 0.1 }, { argument.asFloat/10 });
 					durarr = agentDict[agent][1].durarr;
 					sum = durarr.sum;
@@ -2540,7 +2523,8 @@ XiiLang {
  store	: store the environmental setup of the session
  load	: load the environment of a stored
  savescore	: save the session
- playscore	: play a saved session (exactly the same)
+ playscore	: play a saved session (exactly the same, unless you name a variation)
+ newrec 	: start a new recording and ignore all that has been typed and evaluated before
  autocode : autocode some agents and scores
   
  -----------  effects  -----------
@@ -2638,21 +2622,3 @@ XiiLangSingleton {
 	}
 }		
 
-/*
-// temp
-+ SynthDef {
-	
-	add { arg libname = \global, completionMsg, keepDef = true;
-		var	lib, desc = this.asSynthDesc(libname, keepDef);
-		"adding synthdef".postln;
-		libname ?? { libname = \global };
-		lib = SynthDescLib.getLib(libname);
-		lib.servers.do { |each|
-			each.value.sendMsg("/d_recv", this.asBytes, completionMsg.value(each))
-		};
-		XiiLang.addSynthDef(name);
-	}
-
-}
-
-*/

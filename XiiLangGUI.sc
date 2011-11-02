@@ -12,12 +12,8 @@ XiiLangGUI  {
 
 	initGUIXii { arg projectnamearg;
 		var mappingwinfunc;
-		
-		//projectname = "default";
-		//projectpath = "sounds/ixilang/default/";
 		projectsList = "ixilang/*".pathMatch.collect({arg n; n.basename});
 		projectname = projectnamearg ? projectsList[0];
-	//	[\projectname, projectname].postln;
 		projectpath = "ixilang/"++projectname;
 		filenames = (projectpath++"/samples/*").pathMatch;
 		filenames = filenames.collect({arg file; file.basename});
@@ -47,7 +43,6 @@ XiiLangGUI  {
 				projectsList = "ixilang/*".pathMatch.collect({arg n; n.basename});
 				filenames = (projectpath++"/samples/*").pathMatch;
 				filenames = filenames.collect({arg file; file.basename});
-		//		[\projectname, projectname, \projectpath, projectpath].postln;
 				filenames = filenames.reject({ |file| file.splitext[1] == "scd" }); // not including the keymapping files
 				filenames = filenames.reject({ |file| file.splitext[1] == "ixi" }); // not including the keymapping files
 				filenames = filenames.collect({arg file; file.splitext[0]});
@@ -131,8 +126,6 @@ XiiLangGUI  {
 		("ixilang/"++projectname++"/synthdefs.scd").loadPath;
 		SynthDescLib.read;
 		synthdefnames = SynthDescLib.getLib(projectname.asSymbol).synthDescs.keys.asArray;
-		// [\synthdefnames, synthdefnames].postln;
-			
 			if(Object.readArchive(projectpath++"/keyMapping.ixi").isNil, {
 				synthDefDict = IdentityDictionary.new;
 				dictFound = false;
@@ -147,7 +140,6 @@ XiiLangGUI  {
 			letters = "AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz";
 			win = SCWindow.new("mapping keyboard keys to samples - project: "+projectname.quote, Rect(710,410, 460, 766), resizable:false).front;
 			win.onClose_({
-				"freeing buffers".postln;
 				ixiLangInstr.freeBuffers;			
 			});
 			win.view.keyDownAction_({arg view, cha, modifiers, unicode, keycode;

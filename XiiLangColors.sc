@@ -106,8 +106,8 @@ jimi -> string[1   3   2   3   ] +12 <123488>
 			doc.stringColor_(activecolor, 68, 88);
 		}).value_(activecolor.blue*255);
 	
-		// sleeping
-		SCStaticText(win, Rect(100, 320, 100, 16)).string_("sleeping string color");
+		// dozing
+		SCStaticText(win, Rect(100, 320, 100, 16)).string_("dozing string color");
 		EZSlider(win, Rect(0, 340, 280, 15), "red     ", [0, 255].asSpec).action_({arg sl;
 			offcolor = Color.new255(sl.value, offcolor.green*255, offcolor.blue*255);
 			doc.stringColor_(offcolor, 156, 86);
