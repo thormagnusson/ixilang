@@ -296,11 +296,11 @@ XiiLang {
 				"-- snapshotDicts : ".postln;
 				Post << snapshotDict; "\n".postln;
 				
-				"-- scoreArray : ".postln;
-				Post << scoreArray; "\n".postln;
+		//		"-- scoreArray : ".postln;
+		//		Post << scoreArray; "\n".postln;
 				
-				"-- scoreArray : ".postln;
-				Post << ixiInstr.returnBufferDict; "\n".postln;
+		//		"-- scoreArray : ".postln;
+		//		Post << ixiInstr.returnBufferDict; "\n".postln;
 
 			}
 			{"store"}{ 
@@ -1117,7 +1117,6 @@ XiiLang {
 				var allreturns, stringstart, stringend, pureagentname;
 				pureagentname = agent.asString;
 				pureagentname = pureagentname[1..pureagentname.size-1];
-
 				
 				if(agentDICT[agent].isNil, { 
 					proxyspace[agent].stop; 
@@ -1125,11 +1124,8 @@ XiiLang {
 					allreturns = doc.string.findAll("\n");
 					// the following checks if it's exactly the same agent name (and not confusing joe and joel)
 					#stringstart, stringend = this.findStringStartEnd(doc, pureagentname);
-
 					doc.stringColor_(offcolor, stringstart, stringend-stringstart);
 				});
-				
-
 			});
 			
 			// then run the agents in the snapshot and replace strings in doc
@@ -1140,7 +1136,6 @@ XiiLang {
 
 				// --  0)  Check if the agent is playing or not in that snapshot
 				if(agentDictItem[1].playstate == true, {
-
 					// --  1)  Find the agent in the doc
 					allreturns = doc.string.findAll("\n");
 					// the following checks if it's exactly the same agent name (and not confusing joe and joel)
@@ -1183,6 +1178,10 @@ XiiLang {
 						proxyspace[keyagentname][i+1] = \filter -> effectDict[key.asSymbol];
 						scoreArray = scoreArray.add([Main.elapsedTime, pureagentname + ">>" + key]); 
 					});
+				}, {
+					proxyspace[keyagentname].stop;
+					#stringstart, stringend = this.findStringStartEnd(doc, pureagentname);
+					doc.stringColor_(offcolor, stringstart, stringend-stringstart);
 				});
 			})
 		});
