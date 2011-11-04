@@ -6,8 +6,8 @@ tonic 64
 scale dorian
 tempo 360
 
-reich  ->  piano[1   2   5   6   7   2   1   6   5   2   7   6   ](1~4)
-reichp ->  piano[1   2   5   6   7   2   1   6   5   2   7   6   ](1~4)
+reich  ->  piano[1   2   5   6   7   2   1   6   5   2   7   6   ](1)
+reichp ->  piano[1   2   5   6   7   2   1   6   5   2   7   6   ](1)
 
 >shift reichp 1
 
