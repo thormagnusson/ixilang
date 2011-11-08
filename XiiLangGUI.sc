@@ -144,7 +144,13 @@ XiiLangGUI  {
 			});
 			win.view.keyDownAction_({arg view, cha, modifiers, unicode, keycode;
 				if(letters.includes(cha), {
-					{Synth(synthDefDict[cha.asSymbol], [\freq, 60.midicps])}.value;
+					{fork{
+						var a;
+						a = Synth(synthDefDict[cha.asSymbol], [\freq, 60.midicps]);
+						0.5.wait;
+						a.release;
+						}
+					}.value;
 				});
 				letters.do({arg char, i; // thanks julio
 					if(char == cha, {
@@ -188,7 +194,14 @@ XiiLangGUI  {
 									})
 								})
 							}
-							{36}{ Synth(synthDefDict[char.asSymbol], [\freq, 60.midicps]) };
+							{36}{												{fork{
+									var a;
+									a = Synth(synthDefDict[char.asSymbol], [\freq, 60.midicps]);
+									0.5.wait;
+									a.release;
+									}
+								}.value;
+							}
 					});
 				// synthesis synthdefs
 				SCPopUpMenu(win, Rect(34+column, (j+1)*26, 15, 16))
@@ -216,7 +229,7 @@ XiiLangGUI  {
 										})
 									})
 								}
-								{36}{ {{var x; x = Synth(synthDefDict[char.asSymbol], [\freq, 60.midicps]); 2.wait; x.release; }.fork}.value };
+								{36}{ {{var x; x = Synth(synthDefDict[char.asSymbol], [\freq, 60.midicps]); 0.5.wait; x.release; }.fork}.value };
 						});
 					});
 				SCStaticText(win, Rect(58+column, (j+1)*26, 70, 16))

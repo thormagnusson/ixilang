@@ -186,6 +186,7 @@ XiiLang {
 
 	//set up document and the keydown control
 	envirSetup { arg txt, newdoc, project;
+		GUI.cocoa;
 		if(newdoc, {
 			doc = Document.new;		
 		}, {
@@ -459,7 +460,7 @@ XiiLang {
 							);
 						});
 					});
-				}, { // removing future scheduling
+				}, { // removing future scheduling (syntax: future << agent)
 					agentstart = string.findAll(" ")[1];
 					agentend = string.findAll(" ")[2]; 
 					agent = string[agentstart+1..agentend-1];

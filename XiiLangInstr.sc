@@ -657,6 +657,13 @@ Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) 
 			Out.ar(out, Pan2.ar(signal*env, pan, amp));
 		}).add(\xiilang);
 
+		SynthDef(\fmbass, {arg out=0, freq=440, amp=0.3, sustain=0.3, pan=0, gate=1;
+			var signal, env;
+			env = EnvGen.kr(Env.adsr(0.01, sustain, 1, 0.3), gate, doneAction:2);
+			signal = SinOsc.ar(SinOsc.ar(freq*0.5, 0, 500*XLine.kr(0.5, 1, sustain)));
+			Out.ar(out, Pan2.ar(signal*env, pan, amp));
+		}).add(\xiilang);
+
 		SynthDef(\klang, {arg out=0, amp=0.3, t_trig=1, sustain=0.4, freq=100, gate=1, rq=0.004;
 			var env, signal;
 			var rho, theta, b1, b2;
