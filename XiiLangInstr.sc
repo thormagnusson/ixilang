@@ -537,7 +537,7 @@ XiiLangInstr {
 			aflute1 = DelayC.ar( avalue, ifqc.reciprocal - block, afqc );
 			fdbckArray = [ aflute1 ];
 			LocalOut.ar( fdbckArray );
-			signalOut = avalue;
+			signalOut = avalue * amp;
 			OffsetOut.ar( 0, Pan2.ar(signalOut * kenv2, 0) );
 		}).add(\xiilang);
 

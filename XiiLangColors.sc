@@ -16,7 +16,6 @@ XiiLangColors {
 		};
 		
 		if(doccolor.isNil, { 
-			"here".postln;
 			doccolor = Color.black;
 			oncolor = Color.white;
 			activecolor = Color.yellow;
@@ -58,6 +57,7 @@ jimi -> string[1   3   2   3   ] +12 <123488>
 		doc.stringColor_(deadcolor, 244, 86);
 		
 		doc.editable_(false);
+		
 		
 		win = SCWindow.new("ixi lang Doc Color Scheme", Rect(810, 500, 300, 580), resizable:false).front; 
 		
@@ -144,6 +144,10 @@ jimi -> string[1   3   2   3   ] +12 <123488>
 				" ---> ixi lang NOTE: You need to restart your session for the new mapping to take function (Press the green 'Start session' button".postln;
 			})
 			.font_(Font("Helvetica", 11));
+		
+		doc.onClose_({win.close});
+		win.onClose_({doc.close});
+
 		
 	}
 }

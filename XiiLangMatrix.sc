@@ -8,12 +8,15 @@ XiiLangMatrix {
 	var doc, string, matrix, codeDoc, start, drawMatrix, cursorPos, goto, row, col;
 	var charDict, matrixCopy, clockArray;
 	
-	*new { arg size=6, direction=\x, instrDict;
-		^super.new.initXiiLangMatrix( size, direction, instrDict );
+	*new { arg size=6, direction=\x, instrDict, doccol, strcol;
+		^super.new.initXiiLangMatrix( size, direction, instrDict, doccol, strcol );
 	}
 
-	initXiiLangMatrix {arg size, direction, instrDict;
-	
+	initXiiLangMatrix {arg size, direction, instrDict, adoccol, astrcol;
+		var doccol, strcol;
+		doccol = adoccol ? Color.black;
+		strcol = astrcol ? Color.white;
+		
 		row = 0;
 		col = 0;
 		
@@ -41,9 +44,9 @@ XiiLangMatrix {
 		}!size}!size; // put an empty dict into a 2d array
 
 		doc = Document.new("matrix")
-				.background_(Color.black)
+				.background_(doccol)
 				.bounds_(Rect(200, 500, 50*size, 52*size))
-				.stringColor_(Color.white)
+				.stringColor_(strcol)
 				.font_(Font("Monaco",30))
 				.promptToSave_(false)
 				.keyDownAction_({arg doc, key, mod, unicode, keycode;
@@ -154,8 +157,8 @@ XiiLangMatrix {
 		
 			if(charDict[thiskey.asSymbol].isNil || forceopen, { // if new or forceopen - a window and load a dict
 			Document.new("matrix code win" + col + row + matrix[row][col].char)
-				.background_(Color.black)
-				.stringColor_(Color.white)
+				.background_(doccol)
+				.stringColor_(strcol)
 				.font_(Font("Monaco",20))
 				.promptToSave_(false)
 				.keyDownAction_({arg doc, char, mod, unicode, keycode; // test synthdef

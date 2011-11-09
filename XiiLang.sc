@@ -304,7 +304,7 @@ XiiLang {
 
 			}
 			{"store"}{ 
-				var sessionstart, sessionend, session, sessionsfolderpath;
+				var sessionstart, sessionend, session;
 				string = string.replace("    ", " ");
 				string = string.replace("   ", " ");
 				string = string.replace("  ", " ");
@@ -312,12 +312,11 @@ XiiLang {
 				sessionstart = string.findAll(" ")[0];
 				sessionend = string.findAll(" ")[1]; 
 				session = string[sessionstart+1..sessionend-1];
-				sessionsfolderpath = String.scDir++"/ixilang/";
 //				if(sessionsfolderpath.pathMatch==[], {
 //					("mkdir -p" + sessionsfolderpath.quote).unixCmd;
 //					"ixi-lang NOTE: an ixilang folder was not found for saving sessions - It was created in the SuperCollider folder".postln;
 //				});
-				[projectname, key, language, doc.string, agentDict, snapshotDict, groups, docnum].writeArchive(sessionsfolderpath++projectname++"/sessions/"++session++".ils");
+				[projectname, key, language, doc.string, agentDict, snapshotDict, groups, docnum].writeArchive("ixilang/"++projectname++"/sessions/"++session++".ils");
 			}
 			{"load"}{
 				var sessionstart, sessionend, session, key, language, project;
@@ -912,7 +911,7 @@ XiiLang {
 				if(spaces.size > 1, {
 					direction = string[spaces[1]+1..string.size-1].tr($ , \).asSymbol;
 				});
-				matrixArray = matrixArray.add( XiiLangMatrix.new(size, direction, instrDict) );
+				matrixArray = matrixArray.add( XiiLangMatrix.new(size, direction, instrDict, doccolor, oncolor) );
 			}
 			{"coder"}{
 				var xiilang, tempstring, scorestring, coderarraysum, quantspaces, quant;
@@ -1013,7 +1012,7 @@ XiiLang {
 				XiiLangGUI.new(projectname);
 			}
 			{"savescore"}{
-				var sessionstart, sessionend, session, sessionsfolderpath;
+				var sessionstart, sessionend, session;
 				var offsettime;
 
 				string = string.replace("    ", " ");
@@ -1023,10 +1022,9 @@ XiiLang {
 				sessionstart = string.findAll(" ")[0];
 				sessionend = string.findAll(" ")[1]; 
 				session = string[sessionstart+1..sessionend-1];
-				sessionsfolderpath = String.scDir++"/ixilang/";
 				offsettime = scoreArray[0][0];
 				scoreArray = scoreArray.collect({arg event; [event[0]-offsettime, event[1]]});
-				[randomseed, scoreArray.copy].writeArchive(sessionsfolderpath++projectname++"/scores/"++session++".scr");
+				[randomseed, scoreArray.copy].writeArchive("ixilang/"++projectname++"/scores/"++session++".scr");
 			}
 			{"playscore"}{
 				var sessionstart, sessionend, session, variation, varstart, varend, score, offsettime;
