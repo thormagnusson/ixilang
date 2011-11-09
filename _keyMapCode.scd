@@ -4,10 +4,13 @@
 	
 	/*
 	INSTRUCTIONS:
-	1) Place THIS document together with your sound samples in the project folder
-	2) Enter the names of your soundfiles mapped to the keys
+	// NEW: it is recommended that you use the GUI instead of these instructions.
+	// But if you want, you can use this. no problems.
+	
+	1) Place THIS document into your project folder
+	2) Enter the names of your samples mapped to the keys
 	3) Highlight all (Apple + a)
-	4) Hit SHIFT + RETURN (this will generate the _keyMappings.ixi file in your project folder)
+	4) Hit SHIFT + RETURN (this will generate the keyMappings.ixi file in your project folder)
 	*/
 
 
@@ -95,5 +98,5 @@
 		instrDict[\Z] = \viromachine;	
 		instrDict[\z] = \yoyo;	
 		
-		instrDict.writeArchive("sounds/ixilang/"++project++"/_keyMapping.ixi");
+		instrDict.writeArchive("ixilang/"++project++"/keyMapping.ixi");
 
