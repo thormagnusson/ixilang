@@ -2571,8 +2571,8 @@ XiiLang {
 		doc = Document.new;
 		doc.name_("ixi lang instruments");
 		doc.promptToSave_(false);
-		doc.background_(Color.black);
-		doc.stringColor_(Color.green);
+		doc.background_(doccolor);
+		doc.stringColor_(offcolor);
 		doc.bounds_(Rect(10, 500, 500, 800));
 		doc.font_(Font("Monaco",16));
 		doc.string_("
