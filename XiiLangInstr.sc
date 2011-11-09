@@ -38,8 +38,8 @@ XiiLangInstr {
 			sampleNames = samplePaths.collect({ |path| path.basename.splitext[0]});
 			
 			if(samplePaths == [], {
-				"-------------------------- ERROR ---------------------------".postln;
-				"ixi lang : You need to create an 'ixilang' folder within your 'sounds' folder. \nIn there, you create your project folders, such as 'default'.\n For example: ixilang/sounds/default. \nSee the XiiLang.html help file".postln;
+				"-------------------------- NOTE ---------------------------".postln;
+				"ixi lang : No samples were found to map to the keys. You need to put samples into the 'samples' folder of your project. (Default project is called 'default', but create your own project by creating a new folder next to the 'default'folder. \nSee the XiiLang.html help file".postln;
 				"------------------------------------------------------------".postln;
 		
 			}, {
@@ -510,9 +510,9 @@ XiiLangInstr {
 			ifqc = freq;
 			// noise envelope
 			kenv1 = EnvGen.kr(Env.new( 
-				[ 0.0, 1.1 * ipress, ipress, ipress, 0.0 ], [ 0.06, 0.2, sustain - 0.46, 0.2 ], 'linear' )
+				[ 0.0, 1.1 * ipress, ipress, ipress, 0.0 ], [ 0.06, 0.2, 8 - 0.46, 0.2 ], 'linear' )
 			);
-			kenv2 = EnvGen.kr(Env.adsr(0.0001, sustain, sustain/2, 0.3), gate, doneAction:2);
+			kenv2 = EnvGen.kr(Env.adsr(0.0001, 0.1, 1, 0.3), gate, doneAction:2);
 
 /*			// overall envelope
 			kenv2 = EnvGen.kr(Env.new(
@@ -520,7 +520,7 @@ XiiLangInstr {
 			);
 */
 			// vibrato envelope
-			kenvibr = EnvGen.kr(Env.new( [ 0.0, 0.0, 1, 1, 0.0 ], [ 0.5, 0.5, sustain - 1.5, 0.5 ], 'linear') );
+			kenvibr = EnvGen.kr(Env.new( [ 0.0, 0.0, 1, 1, 0.0 ], [ 0.5, 0.5, 8 - 1.5, 0.5 ], 'linear') );
 			// create air flow and vibrato
 			aflow1 = LFClipNoise.ar( sr, kenv1 );
 			kvibr = SinOsc.ar( 5, 0, 0.1 * kenvibr );
@@ -815,12 +815,12 @@ Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) 
 			\U, \u, \V, \v, \W, \w, \X, \x, \Y, \y, \Z, \z].do({arg letter, i;
 				instrDict[letter] = sampleNames.wrapAt(i).asSymbol;
 			});
-			" --->    ixi lang : No key mappings were found, so sounds will be randomly assigned to keys - see helpfile".postln;
+			" --->    ixi lang : No key mappings were found, so samples will be randomly assigned to keys - see helpfile, or type 'new' and map the keys".postln;
 		}, {
 			instrDict = Object.readArchive("ixilang/"++project++"/keyMapping.ixi");
 		});
 		
-		"The keys of your keyboard are mapped to these samples :".postln;
+		"The keys of your keyboard are mapped to the following samples :".postln;
 		Post << this.getSamplesSynthdefs;
 		
 		^instrDict;		
@@ -868,7 +868,7 @@ Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) 
 
 		
 	/*
-	// code used to generate the initial keymappings file
+	// code used to generate the initial keymappings file (now defunct, since the GUI)
 	// map the keys to the names of the soundfiles inside your project folder
 	// the project folder is the name of your session (so you start XiiLang("projectname")
 	

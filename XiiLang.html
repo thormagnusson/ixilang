@@ -26,8 +26,8 @@ p.p16 {margin: 0.0px 0.0px 0.0px 57.0px; text-indent: -57.0px; font: 14.0px Helv
 p.p17 {margin: 0.0px 0.0px 0.0px 0.0px; font: 9.0px Monaco}
 p.p18 {margin: 0.0px 0.0px 0.0px 0.0px; font: 14.0px Helvetica; min-height: 17.0px}
 p.p19 {margin: 0.0px 0.0px 0.0px 0.0px; font: 9.0px Monaco; color: #cd1713}
-p.p20 {margin: 0.0px 0.0px 0.0px 0.0px; font: 9.0px Monaco; color: #102ac3}
-p.p21 {margin: 0.0px 0.0px 0.0px 0.0px; font: 9.0px Monaco; color: #102ac3; min-height: 12.0px}
+p.p20 {margin: 0.0px 0.0px 0.0px 0.0px; font: 9.0px Monaco; color: #102ac3; min-height: 12.0px}
+p.p21 {margin: 0.0px 0.0px 0.0px 0.0px; font: 9.0px Monaco; color: #102ac3}
 p.p22 {margin: 0.0px 0.0px 0.0px 0.0px; font: 9.0px Monaco; color: #cd1713; min-height: 12.0px}
 p.p23 {margin: 0.0px 0.0px 0.0px 0.0px; font: 9.0px Monaco; color: #737373}
 span.s1 {font: 18.0px Helvetica}
@@ -280,9 +280,12 @@ span.Apple-tab-span {white-space:pre}
 <p class="p9"><br></p>
 <p class="p8"><span class="Apple-tab-span">	</span><b>savescore</b> <span class="Apple-tab-span">	</span>Record your session (from start) to be played back later (different from store/load)</p>
 <p class="p9"><br></p>
-<p class="p8"><span class="Apple-tab-span">	</span><b>playscore<span class="Apple-tab-span">	</span></b>Playback a session (do you want to listen to how your live gig sounded?). You can also play it back asking for a new variation (where the algorithmic decisions taken throughout the piece are different from the score you recorded). eg. [playscore myscore myvariation]</p>
+<p class="p8"><span class="Apple-tab-span">	</span><b>playscore<span class="Apple-tab-span">	</span></b>Playback a session (do you want to listen to how your live gig sounded?). You can also<span class="Apple-converted-space"> </span></p>
+<p class="p8"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>play it back asking for a new variation (where the algorithmic decisions taken throughout<span class="Apple-converted-space"> </span></p>
+<p class="p8"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>the piece are different from the score you recorded). eg. [playscore myscore myvariation]</p>
 <p class="p9"><span class="Apple-tab-span">	</span></p>
-<p class="p8"><span class="Apple-tab-span">	</span><b>newrec<span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span></b>Eraze all memory of the performance, if you use "savestore" it will record everything from this command</p>
+<p class="p8"><span class="Apple-tab-span">	</span><b>newrec<span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span></b>Eraze all memory of the performance, if you use "savescore" it will record everything from<span class="Apple-converted-space"> </span></p>
+<p class="p8"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>the time you issued this command</p>
 <p class="p9"><br></p>
 <p class="p8"><span class="Apple-tab-span">	</span><b>new<span class="Apple-tab-span">	</span></b><span class="Apple-tab-span">	</span>Open up a GUI window to start a new project or create a new key mapping.<span class="Apple-converted-space"> <span class="Apple-tab-span">	</span></span></p>
 <p class="p15"><br></p>
@@ -329,7 +332,7 @@ span.Apple-tab-span {white-space:pre}
 <p class="p4"><br></p>
 <p class="p2">Use the command "new" go get the GUI where you can create your keymapping file.</p>
 <p class="p4"><br></p>
-<p class="p2">If you want to use specific synth definitions for your project and map to the keys, you can create a synthdefs.scd file in your project folder. Make sure you add your synthdefs with the name of the project (e.g., SynthDef(\myDef, {bla bla}).add(\myProject), such that it can be used in the keymapping GUI.<span class="Apple-converted-space"> </span></p>
+<p class="p2">If you want to use specific synth definitions for your project and map to the keys, you can create a synthdefs.scd file in your project folder. Make sure you add your synthdefs with the name of the project (e.g., SynthDef(\myDef, {bla bla}).add(\myProject), if you want to be able to map your synthdefs to keys using the keymapping GUI.<span class="Apple-converted-space"> </span></p>
 <p class="p15"><br></p>
 <p class="p15"><br></p>
 <p class="p16"><b>ixi lang Sattellites:</b></p>
@@ -361,9 +364,9 @@ span.Apple-tab-span {white-space:pre}
 <p class="p16"><b>Example of a ixi lang session with comments<span class="Apple-converted-space"> </span></b></p>
 <p class="p3"><br></p>
 <p class="p19">// remove comments and run this line in an EMPTY document and the ixi lang interpreter is launched (here you use SHIFT + RETURN)</p>
-<p class="p20">// or better use the demosession.scd file within the ixi lang folder</p>
-<p class="p21"><br></p>
-<p class="p20">XiiLang<span class="s3">(txt:</span>true<span class="s3">)<span class="Apple-converted-space"> <span class="Apple-tab-span">	</span></span></span></p>
+<p class="p19">// or better use the demosession.scd file within the ixi lang folder</p>
+<p class="p20"><br></p>
+<p class="p21">XiiLang<span class="s3">(txt:</span>true<span class="s3">)<span class="Apple-converted-space"> <span class="Apple-tab-span">	</span></span></span></p>
 <p class="p3"><br></p>
 <p class="p19"><span class="s3">tuning just<span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span></span>// choose a tuning (remember to use the ixi lang evaluation (Alt + right arrow)</p>
 <p class="p19"><span class="s3">scale minor<span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span></span>// set the scale</p>
