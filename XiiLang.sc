@@ -75,6 +75,7 @@ XiiLang {
 	var matrixArray, initargs; // matrix vars
 	var projectname, key;
 	var randomseed;
+	var thisversion = 3;
 	
 	*new { arg project="default", keyarg="C", txt=false, newdoc=false, language, dicts, score;
 		^super.new.initXiiLang( project, keyarg, txt, newdoc, language, dicts, score);
@@ -164,6 +165,8 @@ XiiLang {
 		if(score.isNil.not, {
 			this.playScore(score[1]);	
 		});
+		
+		this.addixiMenu;
 	}
 
 	makeEffectDict { // more to come here + parameter control - for your own effects, simply add a new line to here and it will work out of the box
@@ -2598,7 +2601,50 @@ ixiInstr.getSamplesSynthdefs
 	);
 	}
 	
+	addixiMenu {
+		// add feedback mechanism, suggestions etc.
+		// update ixiQuarks - check if this is the latest version
+		
+		var a;
+		a = SCMenuGroup(nil, "ixi", 10);
+		
+		SCMenuItem(a, "Feedback")
+			.action_({
+				"open http://www.ixi-audio.net/ixilang/ixilang_feedback.html".unixCmd;
+			});
+		SCMenuSeparator(a, 1); // add a separator
+
+		SCMenuItem(a, "Survey")
+			.action_({
+		"open http://www.ixi-audio.net/ixilang/survey".unixCmd;
+			});
+		SCMenuSeparator(a, 3); // add a separator
+			
+		SCMenuItem(a, "Check for Update")
+			.action_({
+				var latestversion, pipe;
+				// check if user is online: (will return a 4 digit number if not)
+				a = "curl http://www.ixi-audio.net/ixilang/version.txt".systemCmd;
+				// then get the version number (from a textfile with only one number in it)
+				if(a==0, {
+					pipe = Pipe.new("curl http://www.ixi-audio.net/ixilang/version.txt", "r");
+					latestversion = pipe.getLine; 
+					pipe.close;
+					[\latestversion, latestversion, \thisversion, thisversion].postln;
+					if(latestversion.asFloat > thisversion, {
+						XiiAlert.new("New version (version "++latestversion++") is available on the ixi website");
+						{"open http://www.ixi-audio.net".unixCmd}.defer(2.5); // allow for time to read
+					}, {
+						XiiAlert.new("You have got the latest version of ixi lang");
+					});
+				});
+			});
+	}
+
+	
+	
 }
+
 
 
 
