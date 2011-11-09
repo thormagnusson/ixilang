@@ -2602,10 +2602,9 @@ ixiInstr.getSamplesSynthdefs
 	}
 	
 	addixiMenu {
-		// add feedback mechanism, suggestions etc.
-		// update ixiQuarks - check if this is the latest version
 		
 		var a;
+		CocoaMenuItem.clearCustomItems;
 		a = SCMenuGroup(nil, "ixi", 10);
 		
 		SCMenuItem(a, "Feedback")

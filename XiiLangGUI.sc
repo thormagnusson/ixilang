@@ -4,7 +4,7 @@ XiiLangGUI  {
 	var ixilogo, keyboard, keystring, midivalstring;
 	var projectview, projectpath, projectsList;
 	var filenames, synthdesclib, synthdefnames, project;
-	var recorder;
+	var recorder, thisversion;
 
 	*new { arg projectnamearg;
 		^super.new.initGUIXii(projectnamearg);
@@ -12,6 +12,9 @@ XiiLangGUI  {
 
 	initGUIXii { arg projectnamearg;
 		var mappingwinfunc;
+		thisversion = 3;
+		this.addixiMenu;
+		
 		projectsList = "ixilang/*".pathMatch.collect({arg n; n.basename});
 		projectname = projectnamearg ? projectsList[0];
 		projectpath = "ixilang/"++projectname;
@@ -263,6 +266,46 @@ XiiLangGUI  {
 		}
 
 	}
+	
+	addixiMenu {
+		
+		var a;
+		CocoaMenuItem.clearCustomItems;
+		a = SCMenuGroup(nil, "ixi", 10);
+		
+		SCMenuItem(a, "Feedback")
+			.action_({
+				"open http://www.ixi-audio.net/ixilang/ixilang_feedback.html".unixCmd;
+			});
+		SCMenuSeparator(a, 1); // add a separator
+
+		SCMenuItem(a, "Survey")
+			.action_({
+		"open http://www.ixi-audio.net/ixilang/survey".unixCmd;
+			});
+		SCMenuSeparator(a, 3); // add a separator
+			
+		SCMenuItem(a, "Check for Update")
+			.action_({
+				var latestversion, pipe;
+				// check if user is online: (will return a 4 digit number if not)
+				a = "curl http://www.ixi-audio.net/ixilang/version.txt".systemCmd;
+				// then get the version number (from a textfile with only one number in it)
+				if(a==0, {
+					pipe = Pipe.new("curl http://www.ixi-audio.net/ixilang/version.txt", "r");
+					latestversion = pipe.getLine; 
+					pipe.close;
+					[\latestversion, latestversion, \thisversion, thisversion].postln;
+					if(latestversion.asFloat > thisversion, {
+						XiiAlert.new("New version (version "++latestversion++") is available on the ixi website");
+						{"open http://www.ixi-audio.net".unixCmd}.defer(2.5); // allow for time to read
+					}, {
+						XiiAlert.new("You have got the latest version of ixi lang");
+					});
+				});
+			});
+	}
+
 
 }
 
