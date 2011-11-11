@@ -484,6 +484,105 @@ XiiLangInstr {
 			Out.ar(out, Pan2.ar(sig, pan));
 		}).add(\xiilang);
 
+//		SynthDef(\impulse, { // no amp atm
+//			Out.ar(0, Impulse.ar(0)!2)
+//		}).add;
+//
+
+
+		// ----------------------------------------------------------------------------------
+		// ------------------------------- melodic instruments  -----------------------------
+		// ----------------------------------------------------------------------------------
+
+/*
+// a pattern to test the instruments
+Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) + 60, \dur, 0.8)).play;
+*/
+
+		SynthDef(\whistle, {arg out=0, freq=130.8128, gate=1, amp=0.3, dur=1;
+			var signal, env;
+			env = EnvGen.ar(Env.asr(0.01, 1, 0.2), gate, doneAction:2);
+			signal = GVerb.ar(SyncSaw.ar(freq, XLine.ar(freq*2, freq*4, dur/2), amp*0.1));
+			signal = signal + LPF.ar(PinkNoise.ar(amp), XLine.ar(60.midicps, 72.midicps, dur/2));
+			Out.ar(out, signal*env*amp);
+		}).add(\xiilang);
+
+		SynthDef(\dubbass, {arg out=0, freq=440, dur=1, gate=1, amp=0.3, target=8;
+			var saw, env;
+			saw = SyncSaw.ar([freq, freq+1], [Line.ar(freq, freq*target, dur+0.2), Line.ar(freq, freq*target, dur+0.2)+1], amp);
+			saw = RLPF.ar(saw, XLine.ar(freq*4, freq*9, dur), XLine.ar(0.9, 0.1, dur));
+			env = EnvGen.ar(Env.asr(0.01, 1, 0.2), gate, doneAction:2);
+			Out.ar(out, saw*env*amp); // should really use an env here, but it sound cool without it
+		}).add(\xiilang);
+
+		SynthDef(\bengaX, {arg out=0, freq=440, dur=1, gate=1, amp=0.3;
+			var saw, filter, env;
+			saw = SinOsc.ar([1, 1.01]*SinOsc.ar(223).range(freq/4, freq/2), amp)+LPF.ar(Saw.ar([freq, freq+1]/2, 1), SinOsc.ar(5).range(freq, freq*3))+LPF.ar(Saw.ar([freq, freq+1]/4, amp), LFNoise2.ar(3).range(freq, freq*3));
+			filter = MoogFF.ar(saw, freq*22, 1);
+			env = EnvGen.ar(Env.asr(0.01, amp, 0.2), gate, doneAction:2);
+			Out.ar(out, filter*env);
+		}).add(\xiilang);
+
+		SynthDef(\dubpad, {arg out=0, freq=220, gate=1, amp=0.3;
+			var wave, amps, env;
+			amps = [0.6134, 0.5103, 0.3041, 0.2216, 0.4175, 0.1082, 0.067, 0.0773, 0, 0.01546];
+			wave = amps.collect({|amp, i| SinOsc.ar([freq *(i+1), freq *(i+1) +Rand(1, 3.8)], 0, amp*0.1) }).sum;
+			env = EnvGen.ar(Env.asr(0.01, 1, 0.2), gate, doneAction:2);
+			Out.ar(out, wave*amp*env);
+		}).add(\xiilang);
+		
+		//Synth(\dubpad, [\freq, 188, \amp, 1])
+		
+		
+		SynthDef(\dubchordpad, {arg out=0, freq=220, gate=1, amp=0.3;
+			var wave1, wave2, wave3, amps, env;
+			amps = [0.6134, 0.5103, 0.3041, 0.2216, 0.4175, 0.1082, 0.067, 0.0773, 0, 0.01546];
+			wave1 = amps.collect({|amp, i| SinOsc.ar([freq *(i+1), freq *(i+1) +Rand(1, 3.8)], 0, amp*0.1) }).sum;
+			wave2 = amps.collect({|amp, i| SinOsc.ar([freq*1.1892 *(i+1), freq*1.1892 *(i+1) +Rand(1, 3.8)], 0, amp*0.1) }).sum;
+			wave3 = amps.collect({|amp, i| SinOsc.ar([freq*1.5 *(i+1), freq*1.5 *(i+1) +Rand(1, 3.8)], 0, amp*0.1) }).sum;
+			env = EnvGen.ar(Env.asr(0.01, 1, 0.2), gate, doneAction:2);
+			Out.ar(out, (wave1+wave2+wave3)*amp*env);
+		}).add(\xiilang);
+
+		SynthDef(\deepdubsynth, {arg out=0, freq=220, amp=0.1, dur=1, gate=1, tmp=2;
+			var trig, note, son, sweep, bassenv, bd, sd, swr;
+			var midinote, unienv;
+		   	trig = Impulse.kr(tmp);
+			
+			midinote = freq.cpsmidi/2;
+			
+			note = Demand.kr(trig, 0, Dxrand([midinote, midinote+(Rand(10)/10).round, midinote+(Rand(30)/10).round, midinote+(Rand(40)/10).round, midinote+(Rand(30)/10).round].midicps, inf));
+			swr = Demand.kr(trig, 0, Drand([0.5, 1, 2, 3, 4, 6], inf));
+		
+			sweep = LFTri.ar(swr).exprange(140, 10000);
+			//x = LFNoise2.ar(swr).exprange(140, 10000);
+			son = LFSaw.ar(note *[0.99, 1, 1.01] ).sum;
+			son = LPF.ar(son, sweep);	
+			son = son.sin.tanh;
+		//	y = Saw.ar(note *[0.99, 1, 1.01] ).sum;
+		//	y = RLPF.ar(son, x, MouseX.kr(0.1, 0.9));	
+		//	son+y
+			 unienv = EnvGen.ar(Env.asr(0.01, amp*0.4, 0.2), gate, doneAction:2);
+			Out.ar(out, unienv*son!2);
+		}).add(\xiilang);
+
+		SynthDef(\casp, {arg out=0, freq=220, amp=0.1, dur=1, gate=1;
+			var son, unienv;
+			son = Pulse.ar(freq * [1, 1.01], 0.5 , amp).sum + Pulse.ar(freq * [1, 1.01] *0.5, 0.5, 0.2 ).sum;
+			//son = RLPF.ar(son, freq*10, 0.01);
+			unienv = EnvGen.ar(Env.asr(0.01, amp*0.3, 0.2), gate, doneAction:2);
+			Out.ar(out, unienv*son!2);
+		}).add(\xiilang);
+		
+		SynthDef(\caspRLPF, {arg out=0, freq=220, amp=0.1, dur=1, gate=1;
+			var son, unienv;
+			son = Pulse.ar(freq * [1, 1.01], 0.5, amp ).sum + Pulse.ar(freq * [1, 1.01] *0.5, 0.5, 0.2 ).sum;
+			son = RLPF.ar(son, freq*10, 0.01);
+			unienv = EnvGen.ar(Env.asr(0.01, amp*0.3, 0.2), gate, doneAction:2);
+			Out.ar(out, unienv*son!2);
+		}).add(\xiilang);
+
+
 		SynthDef(\cling, {arg out=0, amp=0.3, sustain=0.3, pan=0;
 			var signal, env;
 			env = EnvGen.ar(Env.perc(0.000001, sustain), doneAction:2);
@@ -498,7 +597,7 @@ XiiLangInstr {
 			Out.ar(out, Pan2.ar(signal*env, pan, amp));
 		}).add(\xiilang);
 
-		SynthDef(\flute, { arg scl=0.2, freq=440, ipress=0.9, ibreath=0.09, ifeedbk1=0.4, ifeedbk2=0.4, sustain=0.15, gate=1, amp=1, pan=0;
+		SynthDef(\flute, { arg out=0, scl=0.2, freq=440, ipress=0.9, ibreath=0.09, ifeedbk1=0.4, ifeedbk2=0.4, sustain=0.15, gate=1, amp=1, pan=0;
 			var kenv1, kenv2, kenvibr, kvibr, sr, cr, block;
 			var poly, signalOut, ifqc;
 			var aflow1, asum1, asum2, afqc, atemp1, ax, apoly, asum3, avalue, atemp2, aflute1;
@@ -538,22 +637,8 @@ XiiLangInstr {
 			fdbckArray = [ aflute1 ];
 			LocalOut.ar( fdbckArray );
 			signalOut = avalue * amp;
-			OffsetOut.ar( 0, Pan2.ar(signalOut * kenv2, 0) );
+			OffsetOut.ar(out, Pan2.ar(signalOut * kenv2, 0) );
 		}).add(\xiilang);
-
-//		SynthDef(\impulse, { // no amp atm
-//			Out.ar(0, Impulse.ar(0)!2)
-//		}).add;
-//
-
-		// ----------------------------------------------------------------------------------
-		// ------------------------------- melodic instruments  -----------------------------
-		// ----------------------------------------------------------------------------------
-
-/*
-// a pattern to test the instruments
-Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) + 60, \dur, 0.8)).play;
-*/
 
 		// ---------------------- synthesized instruments -----------------------------
 		// a crappy synth as to yet
