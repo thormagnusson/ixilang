@@ -33,11 +33,11 @@ XiiLangGUI  {
 			Point(53,43), Point(42,43), Point(34,32),Point(24,43), Point(7,43), Point(1,36), Point(1,8)
 			];
 
-		win = SCWindow.new("ixi lang launcher/mapper", Rect(200, 510, 510, 300), resizable:false).front;
+		win = Window.new("ixi lang launcher/mapper", Rect(200, 510, 510, 300), resizable:false).front;
 
-		SCStaticText(win, Rect(40, 110, 50, 16)).string_("projects :");
+		StaticText(win, Rect(40, 110, 50, 16)).string_("projects :");
 		
-		projectview = SCListView(win, Rect(40, 135, 120, 100))
+		projectview = ListView(win, Rect(40, 135, 120, 100))
 			.items_(projectsList)
 			.value_(projectsList.indexOfEqual(projectname))
 			.action_({arg view; 
@@ -51,12 +51,12 @@ XiiLangGUI  {
 				filenames = filenames.collect({arg file; file.splitext[0]});
 			});
 		
-		SCButton(win, Rect(40, 250, 80, 20))
+		Button(win, Rect(40, 250, 80, 20))
 			.states_([["project folder", Color.black, Color.gray]])
-			.action_({ ("open "++projectpath).unixCmd})
+			.action_({ [\projectpath, projectpath].postln; ("open "++projectpath).unixCmd})
 			.font_(Font("Helvetica", 11));
 
-		SCButton(win, Rect(124, 250, 36, 20))
+		Button(win, Rect(124, 250, 36, 20))
 			.states_([["rec", Color.black, Color.red.alpha_(0.2)], ["stop", Color.black, Color.red.alpha_(0.4)]])
 			.action_({arg butt;
 				if(butt.value == 1, {
@@ -78,31 +78,31 @@ XiiLangGUI  {
 				midivalstring.string_(note.asString);
 			}).setColor(60, Color.green.alpha_(0.3));
 		
-		SCStaticText(win, Rect(190, 210, 50, 16)).string_("key:");
-		keystring = SCStaticText(win, Rect(220, 210, 50, 16)).string_("C");
-		SCStaticText(win, Rect(250, 210, 60, 16)).string_("midivalue:");
-		midivalstring = SCStaticText(win, Rect(320, 210, 50, 16)).string_(60);
+		StaticText(win, Rect(190, 210, 50, 16)).string_("key:");
+		keystring = StaticText(win, Rect(220, 210, 50, 16)).string_("C");
+		StaticText(win, Rect(250, 210, 60, 16)).string_("midivalue:");
+		midivalstring = StaticText(win, Rect(320, 210, 50, 16)).string_(60);
 		
-		SCStaticText(win, Rect(190, 10, 350, 120))
+		StaticText(win, Rect(190, 10, 350, 120))
 			.string_("Create a folder within the ixilang folder. The name you give \nthat folder becomes the project's name. In there, create a \nsamples folder in which you place some short samples. \nMap the keys on your keyboard to the sample names.\n\nIf you just want to test, without creating a mapping for a new \nproject, click the 'start' button. Have fun!")
 			.font_(Font("Helvetica", 10));
 
-		SCButton(win, Rect(190, 250, 65, 20))
+		Button(win, Rect(190, 250, 65, 20))
 			.states_([["colors", Color.black, Color.gray]])
-			.action_({ XiiLangColors.new(projectname) })
+			.action_({ [\projectname, projectname].postln; XiiLangColors.new(projectname) })
 			.font_(Font("Helvetica", 11));
 
-		SCButton(win, Rect(262, 250, 65, 20))
+		Button(win, Rect(262, 250, 65, 20))
 			.states_([["map keys", Color.black, Color.gray]])
 			.action_({ mappingwinfunc.value })
 			.font_(Font("Helvetica", 11));
 		
-		SCButton(win, Rect(334, 250, 65, 20))
+		Button(win, Rect(334, 250, 65, 20))
 			.states_([["help", Color.black, Color.gray]])
 			.action_({ XiiLang.openHelpFile })
 			.font_(Font("Helvetica", 11));
 
-		SCButton(win, Rect(406, 250, 65, 20))
+		Button(win, Rect(406, 250, 65, 20))
 			.states_([["start", Color.black, Color.green.alpha_(0.2)]])
 			.action_({ 
 				XiiLang.new(projectname, key, true, true);
@@ -141,7 +141,7 @@ XiiLangGUI  {
 		
 			column = 0;
 			letters = "AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz";
-			win = SCWindow.new("mapping keyboard keys to samples - project: "+projectname.quote, Rect(710,410, 460, 766), resizable:false).front;
+			win = Window.new("mapping keyboard keys to samples - project: "+projectname.quote, Rect(710,410, 460, 766), resizable:false).front;
 			win.onClose_({
 				ixiLangInstr.freeBuffers;			
 			});
@@ -162,10 +162,10 @@ XiiLangGUI  {
 				});
 			});
 
-			SCStaticText(win, Rect(19, 8, 20, 15)).string_("1");
-			SCStaticText(win, Rect(37, 8, 20, 15)).string_("2");
-			SCStaticText(win, Rect(240, 8, 20, 15)).string_("1");
-			SCStaticText(win, Rect(258, 8, 20, 15)).string_("2");
+			StaticText(win, Rect(19, 8, 20, 15)).string_("1");
+			StaticText(win, Rect(37, 8, 20, 15)).string_("2");
+			StaticText(win, Rect(240, 8, 20, 15)).string_("1");
+			StaticText(win, Rect(258, 8, 20, 15)).string_("2");
 
 			letters.do({arg char, i; var j, mapname;
 				if(dictFound.not, {
@@ -173,9 +173,9 @@ XiiLangGUI  {
 				});
 				column = (i/26).floor*220;
 				j = i % 26;
-				SCStaticText(win, Rect(15+column, ((j+1)*26)+1, 200, 15)).background_(Color.grey.alpha_(0.5));
+				StaticText(win, Rect(15+column, ((j+1)*26)+1, 200, 15)).background_(Color.grey.alpha_(0.5));
 				// sample synthdefs
-				SCPopUpMenu(win, Rect(15+column, (j+1)*26, 15, 16))
+				PopUpMenu(win, Rect(15+column, (j+1)*26, 15, 16))
 					.items_(filenames)
 					.action_({arg view; 
 						mapname.string_(filenames[view.value]);
@@ -207,7 +207,7 @@ XiiLangGUI  {
 							}
 					});
 				// synthesis synthdefs
-				SCPopUpMenu(win, Rect(34+column, (j+1)*26, 15, 16))
+				PopUpMenu(win, Rect(34+column, (j+1)*26, 15, 16))
 					.items_(synthdefnames)
 					.action_({arg view; 
 						if(synthdefnames.size!=0, {
@@ -235,10 +235,10 @@ XiiLangGUI  {
 								{36}{ {{var x; x = Synth(synthDefDict[char.asSymbol], [\freq, 60.midicps]); 0.5.wait; x.release; }.fork}.value };
 						});
 					});
-				SCStaticText(win, Rect(58+column, (j+1)*26, 70, 16))
+				StaticText(win, Rect(58+column, (j+1)*26, 70, 16))
 					.string_(char++" ->")
 					.font_(Font("Monaco", 11));
-				mapname = SCStaticText(win, Rect(96+column, (j+1)*26, 140, 16))
+				mapname = StaticText(win, Rect(96+column, (j+1)*26, 140, 16))
 							.string_(
 								if(dictFound, {
 									synthDefDict[char.asSymbol];
@@ -249,12 +249,12 @@ XiiLangGUI  {
 							.font_(Font("Monaco", 11));
 			});
 			
-			SCStaticText(win, Rect(15, 710, 200, 45))
+			StaticText(win, Rect(15, 710, 200, 45))
 				.background_(Color.grey.alpha_(0.5))
 				.string_(" Use arrow keys, TAB, Delete and \n ENTER to navigate sample library\n 1 = samples, 2 = synths")
 				.font_(Font("Monaco", 9));
 		
-			savebutt = SCButton(win, Rect(235, 710, 200, 20))
+			savebutt = Button(win, Rect(235, 710, 200, 20))
 				.states_([["save mapping file", Color.black, Color.green.alpha_(0.2)], ["saved", Color.black, Color.clear]])
 				.action_({ 
 					synthDefDict.writeArchive(projectpath++"/keyMapping.ixi");

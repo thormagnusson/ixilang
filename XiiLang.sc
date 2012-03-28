@@ -64,6 +64,7 @@ TempoClock:sync (by f0)
 
 // TODO: think about NRT rendering of playscores
 
+// TODO: make a note that a particular project does not exist and that the new project was created.
 
 XiiLang {	
 	classvar globaldocnum;
@@ -150,7 +151,7 @@ XiiLang {
 				"$", ">>", "<<", "tempo", "scale", "scalepush", "tuning", "tuningpush", "remind", "help", 
 				"tonality", "instr", "tonic", "grid", "kill", "doze", "perk", "nap", "shake", "swap", ">shift", 
 				"<shift", "invert", "expand", "revert", "up", "down", "yoyo", "order", "dict", "store", "load", 
-				"midiclients", "midiout", "matrix", "autocode", "coder", "+", "-", "*", "/", "!", "^", "(", "<",
+				"midiclients", "midiout", "matrix", "autocode", "coder", "twitter", "+", "-", "*", "/", "!", "^", "(", "<",
 				"hash", "beer", "coffee", "LSD", "detox", "new", "savescore", "playscore", "suicide", "hotline", "newrec"];  // removed "." XXX
 		
 		if(lang.isNil, { 
@@ -380,7 +381,7 @@ XiiLang {
 					times = string[colon+1..commandstart-1].asInteger;
 					if(string[commandstart+3..commandstart+10] == "snapshot", { // it's the "choose snapshot" future
 						if(snapshotDict.size > 1, {
-						snapshotDict[\futures].stop;
+						snapshotDict[\futures].stop; // futures is when future is choosing a random snapshot
 						snapshotDict[\futures] = // don't need to store the name, just a unique name
 							{ 
 								times.do({arg i; 
@@ -627,11 +628,15 @@ XiiLang {
 			{"kill"}{
 				proxyspace.end;
 				proxyspace = ProxySpace.new.know_(true);
+				snapshotDict[\futures].stop; // ooo not working
+				agentDict.do({arg agent;
+					[\agentTOKILL, agent].postln;
+					agent[2].do({arg routine; [\routineTOKILL, routine].postln; routine.stop});
+				});
 				agentDict.do({arg agent;
 					agent[2].stop;
 					agent[2] = nil;
 				});
-				snapshotDict[\futures].stop;
 			}
 			{"group"}{
 				var spaces, groupname, op, groupitems;
@@ -938,6 +943,66 @@ XiiLang {
 						Synth(instrDict[char.asSymbol], [\freq, 60.midicps]); // original
 					});
 				});
+			}			
+			{"twitter"}{
+				var xiilang, tweetDict, getTweets, currentLine, newLines, routine;
+				xiilang = XiiLang.new(initargs[0], initargs[1], initargs[2], true, initargs[4]);
+				xiilang.doc.name_("ixi lang twitter client");
+				xiilang.doc.string_("// this window evaluates your #ixilang twitter messages");
+				tweetDict = ();
+				currentLine = 1; // one empty line at the top
+				newLines = 0;
+				
+				// TODO: unixCmd to start moai main.lua
+				 
+				getTweets = {
+					var file, string, allLineBreaks, newdocstring;
+					file = File("/Users/thor/quaziir/mobilecoding/moai-sdk/thor/ixiTwitter/ixitweets","r");
+					string = file.readAllString;
+					file.close;
+					string = string.replace("#ixilang", "");
+					//string = string.replace("   ","");	
+					allLineBreaks = string.findAll("\n");
+					newdocstring = xiilang.doc.string;
+					newLines = 0;
+					allLineBreaks.do({arg thisLineBreak, i;
+						var prevLineBreak, line, id, msg;
+						prevLineBreak = allLineBreaks[i-1];
+						if(prevLineBreak.isNil, { prevLineBreak = 0 });
+						line = string[prevLineBreak..thisLineBreak];
+						id = line[1..line.findAll(",")[0]-1];
+						if(tweetDict[id.asSymbol].isNil, {
+							msg = line[line.findAll(",")[0]+3..line.findAll(",")[1]-1];
+							tweetDict[id.asSymbol] = msg;
+							newdocstring = newdocstring ++ "\n" ++ msg;
+							newLines = newLines + 1;
+						});
+					});
+					xiilang.doc.string = newdocstring;
+					"new lines: ".post; newLines.postln;
+					{
+						[\currentline, currentLine].postln;
+						newLines.do({arg i;
+							var xiistring;
+							"running newlines".postln;
+							currentLine = currentLine + 1;
+							xiilang.doc.selectLine(currentLine);
+							xiistring = xiilang.doc.selectedString;
+							[\xiistring, xiistring].postln;
+							try{this.opInterpreter(xiistring)};
+
+							0.5.wait;
+						});
+					}.fork(AppClock);
+					//Post << tweetDict;
+				};
+				
+				routine = {{
+					getTweets.value;
+					5.wait;
+				}.loop}.fork(AppClock);
+				
+
 			}			
 			{"autocode"}{
 				var agent, mode, instrument, score, line, charloc, cursorPos, density, lines, spaces, nextline;

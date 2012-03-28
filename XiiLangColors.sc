@@ -10,7 +10,7 @@ XiiLangColors {
 	
 		var doc, win;
 		var doccolor, oncolor, activecolor, offcolor, deadcolor;
-		
+		[\projectnameCOL, projectname].postln; 
 		try{ // check if the color file exists
 			#doccolor, oncolor, activecolor, offcolor, deadcolor = Object.readArchive("ixilang/"++projectname++"/colors.ixi")
 		};
@@ -59,10 +59,10 @@ jimi -> string[1   3   2   3   ] +12 <123488>
 		doc.editable_(false);
 		
 		
-		win = SCWindow.new("ixi lang Doc Color Scheme", Rect(810, 500, 300, 580), resizable:false).front; 
+		win = Window.new("ixi lang Doc Color Scheme", Rect(810, 500, 300, 580), resizable:false).front; 
 		
 		// document
-		SCStaticText(win, Rect(100, 20, 100, 16)).string_("document color");
+		StaticText(win, Rect(100, 20, 100, 16)).string_("document color");
 		EZSlider(win, Rect(0, 40, 280, 15), "red     ", [0, 255].asSpec).action_({arg sl;
 			doccolor = Color.new255(sl.value, doccolor.green*255, doccolor.blue*255);
 			doc.background_(doccolor);
@@ -77,7 +77,7 @@ jimi -> string[1   3   2   3   ] +12 <123488>
 		}).value_(doccolor.blue*255);
 	
 		// string
-		SCStaticText(win, Rect(100, 120, 100, 16)).string_("text color");
+		StaticText(win, Rect(100, 120, 100, 16)).string_("text color");
 		EZSlider(win, Rect(0, 140, 280, 15), "red     ", [0, 255].asSpec).action_({arg sl;
 			oncolor = Color.new255(sl.value, oncolor.green*255, oncolor.blue*255);
 			doc.stringColor_(oncolor, 0, 68);
@@ -92,7 +92,7 @@ jimi -> string[1   3   2   3   ] +12 <123488>
 		}).value_(oncolor.blue*255);
 	
 		// active
-		SCStaticText(win, Rect(100, 220, 100, 16)).string_("active string color");
+		StaticText(win, Rect(100, 220, 100, 16)).string_("active string color");
 		EZSlider(win, Rect(0, 240, 280, 15), "red     ", [0, 255].asSpec).action_({arg sl;
 			activecolor = Color.new255(sl.value, activecolor.green*255, activecolor.blue*255);
 			doc.stringColor_(activecolor, 68, 88);
@@ -107,7 +107,7 @@ jimi -> string[1   3   2   3   ] +12 <123488>
 		}).value_(activecolor.blue*255);
 	
 		// dozing
-		SCStaticText(win, Rect(100, 320, 100, 16)).string_("dozing string color");
+		StaticText(win, Rect(100, 320, 100, 16)).string_("dozing string color");
 		EZSlider(win, Rect(0, 340, 280, 15), "red     ", [0, 255].asSpec).action_({arg sl;
 			offcolor = Color.new255(sl.value, offcolor.green*255, offcolor.blue*255);
 			doc.stringColor_(offcolor, 156, 86);
@@ -122,7 +122,7 @@ jimi -> string[1   3   2   3   ] +12 <123488>
 		}).value_(offcolor.blue*255);
 	
 		// dead
-		SCStaticText(win, Rect(100, 420, 100, 16)).string_("dead string color");
+		StaticText(win, Rect(100, 420, 100, 16)).string_("dead string color");
 		EZSlider(win, Rect(0, 440, 280, 15), "red     ", [0, 255].asSpec).action_({arg sl;
 			deadcolor = Color.new255(sl.value, deadcolor.green*255, deadcolor.blue*255);
 			doc.stringColor_(deadcolor, 244, 86);
@@ -136,7 +136,7 @@ jimi -> string[1   3   2   3   ] +12 <123488>
 			doc.stringColor_(deadcolor, 244, 86);
 		}).value_(deadcolor.blue*255);
 	
-		SCButton(win, Rect(20, 530, 260, 30))
+		Button(win, Rect(20, 530, 260, 30))
 			.states_([["save color file", Color.black, Color.green.alpha_(0.2)]])
 			.action_({ 
 				
