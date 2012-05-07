@@ -1,7 +1,7 @@
 
 /*
 
-GPL license (c) thor magnusson - ixi audio, 2009-2011
+GPL license (c) thor magnusson - ixi audio, 2009-2012
 
 // XiiLang.new("project", "key") - "project" stands for the name of the folder where soundfiles are kept. in this folder a keyMapping.ixi file can be found that maps letters to sounds. if there is no file, then the mapping will be random
 
@@ -15,7 +15,7 @@ TODO: Check the use of String:drop(1) and String:drop(-1)
 
 // midiout
 // midiclients
-// languages (you can write in your native language, or create your own language for ixi lang)
+// languages (you can write in your native language, or create your own language semantics for ixi lang)
 // fractional time multiplication
 // snapshots store and register effect states
 // matrix
@@ -39,6 +39,12 @@ TODO: Check the use of String:drop(1) and String:drop(-1)
 // scheme-like operators [+ agentname 12]
 // added full stops as equivalent to spaces
 
+// new in v4
+
+// gui method for getting the gui
+// bugfix: kill kills routines as well
+// added a "replace" method that replaces items in scores with new values
+
 // FIXED BUG: snapshots do not perk up agents that have been dozed
 // FIXED BUG: Snapshots do not recall the effect state
 // FIXED BUG: single character percussive mode agents wont >shift
@@ -59,8 +65,10 @@ TempoClock:sync (by f0)
 
 // add slide (from Array helpfile)
 
-//TODO: how about visualising the actions of the user in ixi lang. Data visualise it. Compare the automation and user data. 
-//TODO: Use autuconductor to apply actions to different agents.
+// TODO: add a "kill invisible" function that silences all agents that have been deleted from the score
+// TODO: add a "reorgan/inject" function that injects new chars in percussive mode
+// TODO: how about visualising the actions of the user in ixi lang. Data visualise it. Compare the automation and user data. 
+// TODO: Use autuconductor to apply actions to different agents.
 
 // TODO: think about NRT rendering of playscores
 
@@ -149,10 +157,10 @@ XiiLang {
 		});
 		englishCommands = ["group", "sequence", "future", "snapshot", "->", "))", "((", "|", "[", "{", ")", 
 				"$", ">>", "<<", "tempo", "scale", "scalepush", "tuning", "tuningpush", "remind", "help", 
-				"tonality", "instr", "tonic", "grid", "kill", "doze", "perk", "nap", "shake", "swap", ">shift", 
+				"tonality", "instr", "tonic", "grid", "kill", "doze", "perk", "nap", "shake", "swap", "replace", ">shift", 
 				"<shift", "invert", "expand", "revert", "up", "down", "yoyo", "order", "dict", "store", "load", 
 				"midiclients", "midiout", "matrix", "autocode", "coder", "twitter", "+", "-", "*", "/", "!", "^", "(", "<",
-				"hash", "beer", "coffee", "LSD", "detox", "new", "savescore", "playscore", "suicide", "hotline", "newrec"];  // removed "." XXX
+				"hash", "beer", "coffee", "LSD", "detox", "new", "gui", "savescore", "playscore", "suicide", "hotline", "newrec"];  // removed "." XXX
 		
 		if(lang.isNil, { 
 			english = true; // might not need this;
@@ -807,6 +815,9 @@ XiiLang {
 			{"swap"}{
 				this.parseMethod(string);
 			}
+			{"replace"}{
+				this.parseMethod(string);
+			}
 			{">shift"}{
 				this.parseMethod(string);
 			}
@@ -1077,6 +1088,9 @@ XiiLang {
 				}.fork(TempoClock.new);
 			}
 			{"new"}{
+				XiiLangGUI.new(projectname);
+			}
+			{"gui"}{
 				XiiLangGUI.new(projectname);
 			}
 			{"savescore"}{
@@ -2353,6 +2367,27 @@ XiiLang {
 					// -------- put it back in place ----------
 					this.swapString(doc, pureagentname, score, [true, true, true]);
 				}
+				{"replace"} { 
+					var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+					// -------- perform the method -----------
+					if(scoremode == 0, {
+						[\argsuffix, argsuffix].postln;
+						[\score, score].postln;
+						if(argument.contains("down"), { 
+							score = score.collect({arg char; if(char != Char.space, {chars[26..51].choose}, {char})}); 
+						}, {
+							if(argument.contains("up"), { 
+								score = score.collect({arg char; if(char != Char.space, {chars[0..26].choose}, {char})});
+							}, {
+								score = score.collect({arg char; if(char != Char.space, {chars.choose}, {char})});
+							});
+						});
+					}, {
+						score = score.collect({arg char; if(char.isAlphaNum, {9.rand}, {char})});
+					});
+					// -------- put it back in place ----------
+					this.swapString(doc, pureagentname, score, [true, true, true]);
+				}
 				{"swap"} {
 					var instruments;
 					// -------- perform the method -----------
@@ -2580,6 +2615,7 @@ XiiLang {
  nap		: pause agent for n seconds : n times
  shake 	: randomise the score
  swap 	: swap instruments in score
+ replace 	: replace instruments or notes in the score (in place)
  >shift 	: right shift array n slot(s)
  <shift 	: left shift array n slot(s)
  invert	: invert the melody

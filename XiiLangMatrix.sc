@@ -79,6 +79,8 @@ XiiLangMatrix {
 								matrix[locrow][loccol].instr  = instrDict[key.asSymbol];
 							}, {
 								matrix[locrow][loccol].instr  = charDict[key.asSymbol].instr;
+								matrix[locrow][loccol].sccode  = charDict[key.asSymbol].sccode;
+//								[\code, matrix[locrow][loccol].sccode].postln;
 							});
 							matrixCopy = matrix.copy;
 							// store the latest info in the charDict, so it will be set on next key
@@ -155,6 +157,8 @@ XiiLangMatrix {
 			col = argcol;
 			row = argrow;
 		
+	//	[\chardict, charDict[thiskey.asSymbol]].postln;
+		
 			if(charDict[thiskey.asSymbol].isNil || forceopen, { // if new or forceopen - a window and load a dict
 			Document.new("matrix code win" + col + row + matrix[row][col].char)
 				.background_(doccol)
@@ -179,10 +183,14 @@ XiiLangMatrix {
 				.selectRange(55,0) // place the cursor in the middle
 				.onClose_({arg doc;
 					var str = doc.string;
-					matrix[row][col].code = str;
+					var instr;
+					matrix[row][col].sccode = str;
 					matrix[row][col].char = thiskey;
 					// parsing the code
-					matrix[row][col].instr  = str[str.find("instr  :")+9..str.findAll("\n")[1]-1].asSymbol;
+					
+					instr  = str[str.find("instr  :")+9..str.findAll("\n")[1]-1];
+					instr = instr.collect({arg char; if((char == Char.nl) || (char == Char.space), {""}, {char}) });
+					matrix[row][col].instr = instr.asSymbol;
 					matrix[row][col].note   = str[str.find("note   :")+9..str.findAll("\n")[2]-1].asFloat;
 					matrix[row][col].amp    = str[str.find("amp    :")+9..str.findAll("\n")[3]-1].asFloat;
 					matrix[row][col].wait   = str[str.find("wait   :")+9..str.findAll("\n")[4]-1].asFloat;
@@ -214,7 +222,8 @@ XiiLangMatrix {
 				var instr, freq, amp, char, wait;
 				var charholder, scCodeFlag;
 				var tempcol, temprow; // necessary
-
+				var code;
+				
 				scCodeFlag = false;
 				tempcol = col;
 				temprow = row;
@@ -226,7 +235,8 @@ XiiLangMatrix {
 				~nextX = nil;
 				~nextY = nil;
 				
-				matrix[row][col].sccode.interpret.value; // code interpreted that might overwrite the nils above
+//				matrix[row][col].sccode.interpret.value; // code interpreted that might overwrite the nils above
+
 
 				instr = ~instr ? matrix[row][col].instr;
 				freq  = ~note  ? matrix[row][col].note;
@@ -238,18 +248,24 @@ XiiLangMatrix {
 				{arg row, col, wait;
 					{drawMatrix.value(row, col, wait)}.defer; // drawer
 				}.value(row, col, wait);
+				
+				if(char!=".", {
+					{	code = matrix[row][col].sccode;
+						{code.interpret.value }.defer(0.2);
+					}.value; // store this in a wrapper because row and col will be different in 0.1 s time
+					if(instr.asString.size != 0, { // prevent server complaining about synthdef not found (empty one)
+						Server.default.sendBundle(0.2, ['/s_new', instr, Server.default.nextNodeID, 0, 1, \freq, freq, \amp, amp]);
+					});
+				});
 
 				col = ~nextX ? matrix[temprow][tempcol].nextX;
 				row = ~nextY ? matrix[temprow][tempcol].nextY;
-				
-				if(char!=".", {
-					Server.default.sendBundle(0.2, ['/s_new', instr, Server.default.nextNodeID, 0, 1, \freq, freq, \amp, amp]);
-				});
+
 				wait;
 				//}.value;
 			});
 			);
-			clockArray.postln;
+			//clockArray.postln;
 		};
 	}
 
