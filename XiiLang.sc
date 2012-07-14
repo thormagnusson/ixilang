@@ -508,11 +508,9 @@ XiiLang {
 					newtemp = string[nrstart..op].asInteger/60;
 					time = string[op+1..string.size-1].asInteger;
 					TempoClock.default.sync(newtemp, time);
-					try{ matrixArray.do({arg matrix; matrix.setSyncTempo_(newtemp, time) }) };
 				}, {
 					newtemp = string[nrstart+1..string.size-1].asInteger / 60;
 					TempoClock.default.tempo = newtemp;
-					try {matrixArray.do({arg matrix; matrix.setTempo_(newtemp) }) };
 				});
 				"---> Setting tempo to : ".post; (newtemp*60).postln;
 			}
