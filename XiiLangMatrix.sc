@@ -42,6 +42,8 @@ XiiLangMatrix {
 			sccode : {}
 		")
 		}!size}!size; // put an empty dict into a 2d array
+		
+		TempoClock.default.addDependant(this);
 
 		doc = Document.new("matrix")
 				.background_(doccol)
@@ -120,6 +122,7 @@ XiiLangMatrix {
 				})
 				.onClose_({
 					clockArray.do({arg clock; clock.clear });
+					TempoClock.default.removeDependant(this);
 				});
 		
 		drawMatrix = {arg row=0, col=0, wait=1, except=false;
@@ -268,13 +271,15 @@ XiiLangMatrix {
 			//clockArray.postln;
 		};
 	}
+	
+	update {|theChanger, what, moreArgs|
+		if(what == \tempo, {
+			this.setTempo_(theChanger.tempo);	
+		});
+	}
 
 	setTempo_ {arg newtempo;
 		clockArray.do({arg clock; clock.tempo = newtempo });
-	}
-
-	setSyncTempo_ {arg newtempo, time;
-		clockArray.do({arg clock; clock.sync(newtempo, time)  });
 	}
 }
 
