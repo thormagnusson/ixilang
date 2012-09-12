@@ -1,4 +1,4 @@
-XiiLang			a live coding language interpreter	-  version 3 : November 2011
+XiiLang			a live coding language interpreter	-  version 3 : September 2012
 
 http://www.ixi-audio.net
 feedback to: thor[]ixi...
@@ -23,7 +23,7 @@ http://supercollider.sourceforge.net/downloads/ (choose the Universal Binary)
 2) Start SuperCollider.
 3) You will now have a SuperCollider folder within your "~/Library/Application Support/" folder.
 4) Create an "Extensions" folder in there and drop the ixilang classes into that folder.
-5) Drag the sc3-plugins folder into the "Extensions" folder as well.
+5) Drag the sc3-plugins (or SC3plugins) folder into the "Extensions" folder as well.
 6) Quit and start SuperCollider again and boot the server that is "default" (you can choose either).
 7) Type XiiLang() in a new SC document (Apple+N) and evaluate that line (with the cursor in it) with SHIFT+RETURN (buttons pressed in that order)
 8) Now follow the instructions of ixi lang in the XiiLang.html helpfile.
