@@ -22,7 +22,8 @@ XiiLangInstr {
 		// ----------------------------------------------------------------------------------
 
 		synthdesclib = SynthDescLib(project.asSymbol);
-		("ixilang/"++project++"/synthdefs.scd").loadPath;
+		thisProcess.interpreter.executeFile("ixilang/"++project++"/synthdefs.scd");
+		// was - > ("ixilang/"++project++"/synthdefs.scd").loadPath;
 
 
 	
@@ -37,6 +38,7 @@ XiiLangInstr {
 			//samplePaths = samplePaths.reject({ |path| path.basename.splitext[1] == "ixi" }); // not including the keymapping files
 			sampleNames = samplePaths.collect({ |path| path.basename.splitext[0]});
 			
+			[\samplenames, sampleNames].postln;
 			if(samplePaths == [], {
 				"-------------------------- NOTE ---------------------------".postln;
 				"ixi lang : No samples were found to map to the keys. You need to put samples into the 'samples' folder of your project. (Default project is called 'default', but create your own project by creating a new folder next to the 'default'folder. \nSee the XiiLang.html help file".postln;
