@@ -61,7 +61,6 @@ TODO: Check the use of String:drop(1) and String:drop(-1)
 /*
 Dependencies:
 TempoClock:sync (by f0)
-cruciallib (loadPath)
 */
 
 // add slide (from Array helpfile)

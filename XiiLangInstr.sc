@@ -22,7 +22,9 @@ XiiLangInstr {
 		// ----------------------------------------------------------------------------------
 
 		synthdesclib = SynthDescLib(project.asSymbol);
-		thisProcess.interpreter.executeFile("ixilang/"++project++"/synthdefs.scd");
+		("ixilang/"++project++"/synthdefs.scd").load; // instead of loadPath
+		
+		// thisProcess.interpreter.executeFile("ixilang/"++project++"/synthdefs.scd");
 		// was - > ("ixilang/"++project++"/synthdefs.scd").loadPath;
 
 
