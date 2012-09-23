@@ -592,7 +592,8 @@ XiiLang {
 				this.getMethodsList;		
 			}
 			{"help"}{
-				XiiLang.openHelpFile;		
+				//XiiLang.openHelpFile;	 // ixi lang doesn't have the new helpfile format
+				(XiiLang.filenameSymbol.asString.dirname++"/XiiLang.html").openTextFile;
 			}
 			{"tonality"}{
 				var doc;

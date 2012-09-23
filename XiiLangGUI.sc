@@ -67,7 +67,7 @@ XiiLangGUI  {
 				});
 			})
 			.font_(Font("Helvetica", 11));
-
+		
 		keyboard = MIDIKeyboard(win, Rect(190, 135, 280, 60), 3, 48)
 			.keyDownAction_({arg note;
 				key = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"][note%12];
@@ -99,7 +99,10 @@ XiiLangGUI  {
 		
 		Button(win, Rect(334, 250, 65, 20))
 			.states_([["help", Color.black, Color.gray]])
-			.action_({ XiiLang.openHelpFile })
+			.action_({
+				// XiiLang.openHelpFile // ixi lang does not have the new helpfile format
+				(XiiLang.filenameSymbol.asString.dirname++"/XiiLang.html").openTextFile;
+			})
 			.font_(Font("Helvetica", 11));
 
 		Button(win, Rect(406, 250, 65, 20))
@@ -126,7 +129,7 @@ XiiLangGUI  {
 			var ixiLangInstr;
 		
 		synthdesclib = SynthDescLib(projectname.asSymbol);
-		("ixilang/"++projectname++"/synthdefs.scd").loadPath;
+		("ixilang/"++projectname++"/synthdefs.scd").load;
 		SynthDescLib.read;
 		synthdefnames = SynthDescLib.getLib(projectname.asSymbol).synthDescs.keys.asArray;
 			if(Object.readArchive(projectpath++"/keyMapping.ixi").isNil, {
