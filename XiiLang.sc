@@ -269,7 +269,7 @@ XiiLang {
 		});	
 	}
 	
-	// the interpreter of thie ixi lang - here operators are overwritten
+	// the interpreter of thie ixi lang
 	opInterpreter {arg string;
 		var oldop, operator; // the various operators of the language
 		var methodFound = false;
@@ -1290,9 +1290,10 @@ XiiLang {
 		argDict[\timestretch] = 1;
 		argDict[\transposition] = 0;
 		argDict[\silences] = 0;
+		argDict[\repeats] = inf;
 		
 		postfixstring.do({arg char, i;
-			var timestretch, transposition, silences;
+			var timestretch, transposition, silences, repeats;
 			if( (char==$*) || (char==$/), {
 				timestretch = "";
 				block{|break|
@@ -1323,6 +1324,15 @@ XiiLang {
 					});
 				};
 				argDict[\silences] = silences.asInteger;
+			});
+			if( char==$@, {
+				repeats = "";
+				block{|break|
+					postfixstring[i+1..postfixstring.size-1].do({arg item; 
+						if(item.isAlphaNum, {repeats = repeats ++ item }, {break.value});
+					});
+				};
+				argDict[\repeats] = repeats.asInteger;
 			});
 		});
 		
@@ -1382,7 +1392,7 @@ XiiLang {
 	parseScoreMode0 {arg string; 
 		var agent, pureagent, score, splitloc, endchar, agentstring, silenceicon, silences, scorestring, timestretch=1, postfixargs;
 		var durarr, notearr, sustainarr, spacecount, instrarr, instrstring, quantphase, empty, outbus;
-		var attacksymbols, attackstartloc, attackendloc, attackstring, attackarr, panarr, transposition;
+		var attacksymbols, attackstartloc, attackendloc, attackstring, attackarr, panarr, transposition, repeats;
 		var startWempty = false;
 		var newInstrFlag = false;
 		var postfixArgDict;
@@ -1410,6 +1420,7 @@ XiiLang {
 		silences = postfixArgDict.silences;
 		panarr = postfixArgDict.panarr;
 		transposition = postfixArgDict.transposition;
+		repeats = postfixArgDict.repeats;
 		notearr = [60+transposition];
 		
 		score = score[0..endchar-1]; // get rid of the function marker
@@ -1470,7 +1481,7 @@ XiiLang {
 
 		{doc.stringColor_(oncolor, doc.selectionStart, doc.selectionSize)}.defer(0.1);  // if code is green (sleeping)
 		"------    ixi lang: Created Percussive Agent : ".post; pureagent.postln; agentDict[agent].postln;
-		this.playScoreMode0(agent, notearr, durarr, instrarr, sustainarr, attackarr, panarr, quantphase, newInstrFlag, morphmode); 
+		this.playScoreMode0(agent, notearr, durarr, instrarr, sustainarr, attackarr, panarr, quantphase, newInstrFlag, morphmode, repeats); 
 		// this has to be below the playscore method
 		agentDict[agent][1].playstate = true;
 	}	
@@ -1479,7 +1490,7 @@ XiiLang {
 	parseScoreMode1 {arg string;
 		var agent, pureagent, score, scorestartloc, splitloc, endchar, agentstring, instrument, instrstring, timestretch=1, transposition=0;
 		var prestring, silenceicon, silences, postfixargs, newInstrFlag = false;
-		var durarr, sustainarr, spacecount, notearr, notestring, quantphase, empty, outbus;
+		var durarr, sustainarr, spacecount, notearr, notestring, quantphase, empty, outbus, repeats;
 		var sustainstartloc, sustainendloc, sustainstring;
 		var attacksymbols, attackstartloc, attackendloc, attackstring, attackarr, panarr;
 		var startWempty = false;
@@ -1512,6 +1523,8 @@ XiiLang {
 		timestretch = postfixArgDict.timestretch;
 		silences = postfixArgDict.silences;
 		transposition = postfixArgDict.transposition;
+		repeats = postfixArgDict.repeats;
+
 		panarr = postfixArgDict.panarr;
 		
 		channelicon = score.find("c");
@@ -1588,7 +1601,7 @@ XiiLang {
 
 		{doc.stringColor_(oncolor, doc.selectionStart, doc.selectionSize)}.defer(0.1);  // if code is green (sleeping)
 		"------    ixi lang: Created Melodic Agent : ".post; pureagent.postln; agentDict[agent].postln;
-		this.playScoreMode1(agent, notearr, durarr, sustainarr, attackarr, panarr, instrument, quantphase, newInstrFlag, midichannel); 
+		this.playScoreMode1(agent, notearr, durarr, sustainarr, attackarr, panarr, instrument, quantphase, newInstrFlag, midichannel, repeats); 
 		// this has to be below the playscore method
 		agentDict[agent][1].playstate = true;
 	}	
@@ -1597,7 +1610,7 @@ XiiLang {
 	parseScoreMode2 {arg string;
 		var agent, pureagent, score, scorestartloc, splitloc, endchar, agentstring, instrument, instrstring, timestretch=1;
 		var prestring, silenceicon, silences, postfixargs, panarr, newInstrFlag;
-		var durarr, pitch, spacecount, amparr, ampstring, quantphase, empty, outbus;
+		var durarr, pitch, spacecount, amparr, ampstring, quantphase, empty, outbus, repeats;
 		var startWempty = false;
 		var postfixArgDict;
 
@@ -1623,6 +1636,7 @@ XiiLang {
 		silences = postfixArgDict.silences;
 		panarr = postfixArgDict.panarr;
 		pitch = 60 + postfixArgDict.transposition;
+		repeats = postfixArgDict.repeats;
 
 		score = score[0..endchar-1]; // get rid of the function marker
 
@@ -1684,7 +1698,7 @@ XiiLang {
 
 		{doc.stringColor_(oncolor, doc.selectionStart, doc.selectionSize)}.defer(0.1); // if code is green (sleeping)
 		"------    ixi lang: Created Concrete Agent : ".post; pureagent.postln; agentDict[agent].postln;
-		this.playScoreMode2(agent, pitch, amparr, durarr, panarr, instrument, quantphase, newInstrFlag); 
+		this.playScoreMode2(agent, pitch, amparr, durarr, panarr, instrument, quantphase, newInstrFlag, repeats); 
 		// this has to be below the playscore method
 		agentDict[agent][1].playstate = true; // EXPERIMENTAL: to be used in snapshots
 	}	
@@ -1725,24 +1739,28 @@ XiiLang {
 		});
 	}	
 
-	playScoreMode0 {arg agent, notearr, durarr, instrarr, sustainarr, attackarr, panarr, quantphase, newInstrFlag, morphmode;
+	playScoreMode0 {arg agent, notearr, durarr, instrarr, sustainarr, attackarr, panarr, quantphase, newInstrFlag, morphmode, repeats;
 		var loop;
 		if(morphmode.isNil, {
 			// ------------ play function --------------
-			if(proxyspace[agent].isNeutral, { // check if the object exists alreay
+			if(proxyspace[agent].isNeutral || (repeats != inf), { // check if the object exists alreay
+					"DEFAULT AAA : and the repeats are: ".post; repeats.postln;
+				proxyspace[agent].free; // needed because of repeats (free proxyspace timing)
+				10.do({arg i; proxyspace[agent][i+1] =  nil }); // oh dear. Proxyspace forces this, as one might want to put an effect again on a repeat pat
+				agentDict[agent][0].clear; // clear the effect references
 				Pdef(agent, Pbind(
 							\instrument, Pseq(instrarr, inf), 
 							\midinote, Pseq(notearr, inf), 
-							\dur, Pseq(durarr, inf),
+							\dur, Pseq(durarr, repeats),
 							\amp, Pseq(attackarr*agentDict[agent][1].amp, inf),
 							\sustain, Pseq(sustainarr, inf),
 							\pan, Pseq(panarr, inf)
 				));
-				proxyspace[agent].quant = [durarr.sum, quantphase, 0, 1];
+				{proxyspace[agent].quant = [durarr.sum, quantphase, 0, 1];
 				proxyspace[agent] = Pdef(agent);
-				proxyspace[agent].play;
+				proxyspace[agent].play;}.defer(0.5);
 			},{
-				if(newInstrFlag, { // only if instrument was {, where Pmono bufferplayer synthdef needs to be shut down
+				if(newInstrFlag, { // only if instrument was {, where Pmono bufferplayer synthdef needs to be shut down (similar to above, but no freeing of effects)
 					proxyspace[agent].free; // needed in order to swap instrument in Pmono
 					Pdef(agent, Pbind(
 								\instrument, Pseq(instrarr, inf), 
@@ -1751,20 +1769,22 @@ XiiLang {
 								\amp, Pseq(attackarr*agentDict[agent][1].amp, inf),
 								\sustain, Pseq(sustainarr, inf),
 								\pan, Pseq(panarr, inf)
-					)).quant = [durarr.sum, quantphase, 0, 1];
+					)).quant = [durarr.sum, quantphase];
 					{ proxyspace[agent].play }.defer(0.5); // defer needed as the free above and play immediately doesn't work
-				}, {	// default behavior
+				}, {	
+					// default behavior
+					"DEFAULT BBB : and the repeats are: ".post; repeats.postln;
 					Pdef(agent, Pbind(
 								\instrument, Pseq(instrarr, inf), 
 								\midinote, Pseq(notearr, inf), 
-								\dur, Pseq(durarr, inf),
+								\dur, Pseq(durarr, repeats),
 								\amp, Pseq(attackarr*agentDict[agent][1].amp, inf),
 								\sustain, Pseq(sustainarr, inf),
 								\pan, Pseq(panarr, inf)
-					)).quant = [durarr.sum, quantphase, 0, 1];
+					)).quant = [durarr.sum, quantphase];
 						//proxyspace[agent].play; // this would build up synths on server on commands such as yoyo agent
 					if(agentDict[agent][1].playstate == false, {
-						proxyspace[agent].play; // this would build up synths on server on commands such as yoyo agent
+						proxyspace[agent].play; //
 					});
 				});
 			});
@@ -1773,30 +1793,34 @@ XiiLang {
 			// ------------ play function --------------
 			instrarr = instrarr.collect({arg instrname; 
 				if(ixiInstr.returnBufferDict[instrname.asSymbol].isNil, {
-					ixiInstr.returnBufferDict.choose; // if there is a synthesis synth
+					ixiInstr.returnBufferDict.choose; // if there is a synthesis synth, we have to ignore and we choose ANY buffer instead
 				}, {
 					ixiInstr.returnBufferDict[instrname.asSymbol];
 				}) 
 			});
-			if(proxyspace[agent].isNeutral, { // check if the object exists alreay
+			if(proxyspace[agent].isNeutral || (repeats != inf), { // check if the object exists alreay
+				"DEFAULT ZZZ : and the repeats are: ".post; repeats.postln;
+				proxyspace[agent].free; // needed because of repeats (free proxyspace timing)
+				10.do({arg i; proxyspace[agent][i+1] =  nil }); // oh dear. Proxyspace forces this, as one might want to put an effect again on a repeat pat
+				agentDict[agent][0].clear; // clear the effect references
 				Pdef(agent, Pbind(
 							\instrument, morphmode.asSymbol, 
 							\loop, loop,
 							\buf1, Pseq(instrarr, inf),
 							\buf2, Pseq(instrarr.rotate(-1), inf),
 							\midinote, Pseq(notearr, inf), 
-							\dur, Pseq(durarr, inf),
+							\dur, Pseq(durarr, repeats),
 							\amp, Pseq(attackarr*agentDict[agent][1].amp, inf),
 							\morphtime, Pseq(durarr/TempoClock.default.tempo, inf),
 							//\sustain, Pseq(sustainarr, inf),
 							\panFrom, Pseq(panarr, inf),
 							\panTo, Pseq(panarr.rotate(-1), inf)
 				));
-				proxyspace[agent].quant = [durarr.sum, quantphase, 0, 1];
+				{proxyspace[agent].quant = [durarr.sum, quantphase, 0, 1];
 				proxyspace[agent] = Pdef(agent);
-				proxyspace[agent].play;
+				proxyspace[agent].play;}.defer(0.5);
 			},{
-				if(newInstrFlag, { // only if instrument was {, where Pmono bufferplayer synthdef needs to be shut down
+				if(newInstrFlag, { // only if instrument was {, where Pmono bufferplayer synthdef needs to be shut down (similar to above, but no freeing of effects)
 					proxyspace[agent].free; // needed in order to swap instrument in Pmono
 					Pdef(agent, Pbind(
 							\instrument, morphmode.asSymbol, 
@@ -1814,6 +1838,7 @@ XiiLang {
 					)).quant = [durarr.sum, quantphase, 0, 1];
 					{ proxyspace[agent].play }.defer(0.5); // defer needed as the free above and play immediately doesn't work
 				}, {	// default behavior
+					"DEFAULT XXX : and the repeats are: ".post; inf.postln;
 					Pdef(agent, Pbind(
 							\instrument, morphmode.asSymbol, 
 							\loop, loop,
@@ -1836,27 +1861,30 @@ XiiLang {
 		});
 	}
 	
-	playScoreMode1 {arg agent, notearr, durarr, sustainarr, attackarr, panarr, instrument, quantphase, newInstrFlag, midichannel=0;
+	playScoreMode1 {arg agent, notearr, durarr, sustainarr, attackarr, panarr, instrument, quantphase, newInstrFlag, midichannel=0, repeats;
 		if(instrument.asString=="midi", { eventtype = \midi }, { eventtype = \note });
 		
 		// ------------ play function --------------
-		if(proxyspace[agent].isNeutral, { // check if the object exists alreay
+		if(proxyspace[agent].isNeutral || (repeats != inf), { // check if the object exists alreay
+			proxyspace[agent].free; // needed because of repeats (free proxyspace timing)
+			10.do({arg i; proxyspace[agent][i+1] =  nil }); // oh dear. Proxyspace forces this, as one might want to put an effect again on a repeat pat
+			agentDict[agent][0].clear; // clear the effect references
 			Pdef(agent, Pbind(
 						\instrument, instrument,
 						\type, eventtype,
 						\midiout, midiclient,
 						\chan, midichannel,
 						\midinote, Pseq(notearr, inf), 
-						\dur, Pseq(durarr, inf),
+						\dur, Pseq(durarr, repeats),
 						\sustain, Pseq(sustainarr, inf),
 						\amp, Pseq(attackarr*agentDict[agent][1].amp, inf),
 						\pan, Pseq(panarr, inf)
 			));
-			proxyspace[agent].quant = [durarr.sum, quantphase, 0, 1];
+			{proxyspace[agent].quant = [durarr.sum, quantphase, 0, 1];
 			proxyspace[agent] = Pdef(agent);
-			proxyspace[agent].play;
+			proxyspace[agent].play;}.defer(0.5);
 		},{
-			if(newInstrFlag, { // only if instrument was {, where Pmono bufferplayer synthdef needs to be shut down
+			if(newInstrFlag, { // only if instrument was {, where Pmono bufferplayer synthdef needs to be shut down (similar to above, but no freeing of effects)
 				proxyspace[agent].free; // needed in order to swap instrument in Pmono
 				Pdef(agent, Pbind(
 						\instrument, instrument,
@@ -1870,7 +1898,8 @@ XiiLang {
 						\pan, Pseq(panarr, inf)
 				)).quant = [durarr.sum, quantphase, 0, 1];
 				{ proxyspace[agent].play }.defer(0.5); // defer needed as the free above and play immediately doesn't work
-			}, { // default behavior
+			}, { 
+				// default behavior
 				Pdef(agent, Pbind(
 						\instrument, instrument,
 						\type, eventtype,
@@ -1890,24 +1919,29 @@ XiiLang {
 		});
 	}
 
-	playScoreMode2 {arg agent, pitch, amparr, durarr, panarr, instrument, quantphase, newInstrFlag;
+	playScoreMode2 {arg agent, pitch, amparr, durarr, panarr, instrument, quantphase, newInstrFlag, repeats;
 		// ------------ play function --------------
-		if(proxyspace[agent].isNeutral, { // check if the object exists alreay
-			Pdefn((agent++"durarray").asSymbol, Pseq(durarr, inf));
-			Pdefn((agent++"amparray").asSymbol, Pseq(amparr, inf));
+		if(proxyspace[agent].isNeutral || (repeats != inf), { // check if the object exists alreay
+			proxyspace[agent].free; // needed because of repeats (free proxyspace timing)
+			10.do({arg i; proxyspace[agent][i+1] =  nil }); // oh dear. Proxyspace forces this, as one might want to put an effect again on a repeat pat
+			agentDict[agent][0].clear; // clear the effect references
+			Pdefn((agent++"durarray").asSymbol, Pseq(durarr, repeats));
+			Pdefn((agent++"amparray").asSymbol, Pseq(amparr, repeats));
 			Pdef(agent, Pmono(instrument,
 						\dur, Pdefn((agent++"durarray").asSymbol),
 						\freq, pitch.midicps,
 						\noteamp, Pdefn((agent++"amparray").asSymbol),
 						\pan, Pseq(panarr, inf)
 			));
+			{
 			proxyspace[agent].quant = [durarr.sum, quantphase, 0, 1];
 			proxyspace[agent] = Pdef(agent);
 			proxyspace[agent].play;
+			}.defer(0.5);
 		},{
 			Pdefn((agent++"durarray").asSymbol, Pseq(durarr, inf)).quant = [durarr.sum, quantphase, 0, 1];
 			Pdefn((agent++"amparray").asSymbol, Pseq(amparr, inf)).quant = [durarr.sum, quantphase, 0, 1];
-			if(newInstrFlag, {
+			//if(newInstrFlag, { // removed temp for repeat functionality
 				proxyspace[agent].free; // needed in order to swap instrument in Pmono
 				Pdef(agent, Pmono(instrument,
 							\dur, Pdefn((agent++"durarray").asSymbol),
@@ -1915,8 +1949,10 @@ XiiLang {
 							\noteamp, Pdefn((agent++"amparray").asSymbol),
 							\pan, Pseq(panarr, inf)
 				));
-				{ proxyspace[agent].play }.defer(0.5); // defer needed as the free above and play immediately doesn't work
-			});
+				{ 			
+				proxyspace[agent] = Pdef(agent);
+				proxyspace[agent].play }.defer(0.5); // defer needed as the free above and play immediately doesn't work
+			//});
 		});
 		Pdef(agent).set(\amp, agentDict[agent][1].amp); // proxyspace quirk: amp set from outside
 	}
