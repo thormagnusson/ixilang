@@ -159,7 +159,7 @@ XiiLang {
 			proxyspace = ProxySpace.new.know_(true);
 			scoreArray = [];
 		});
-		englishCommands = ["group", "sequence", "future", "snapshot", "->", "))", "((", "|", "[", "{", ")", 
+		englishCommands = ["group", "sequence", "future", "snapshot", "->", "))", "((", "|", "[", "{", "~", ")", 
 				"$", ">>", "<<", "tempo", "scale", "scalepush", "tuning", "tuningpush", "remind", "help", 
 				"tonality", "instr", "tonic", "grid", "kill", "doze", "perk", "nap", "shake", "swap", "replace", ">shift", 
 				"<shift", "invert", "expand", "revert", "up", "down", "yoyo", "order", "dict", "store", "load", 
@@ -355,7 +355,7 @@ XiiLang {
 			{"->"}{
 				var mode;
 				mode = block{|break| 
-					["|", "[", "{", ")", "$"].do({arg op, i;						var c = string.find(op);
+					["|", "[", "{", ")", "$", "~"].do({arg op, i;						var c = string.find(op);
 						if(c.isNil.not, {break.value(i)}); 
 					});
 				};
@@ -364,7 +364,8 @@ XiiLang {
 					{1} { this.parseScoreMode1(string) }
 					{2} { this.parseScoreMode2(string) }
 					{3} { this.parseChord(string, \c) }
-					{4} { this.parseChord(string, \n) };
+					{4} { this.parseChord(string, \n) }
+					{5} { this.createMetaAgent(string) };
 			}
 			{"future"}{
 				// future 8:4 >> swap thor // every 8 SECONDS the action is performed (here 4 times)
@@ -1223,8 +1224,8 @@ XiiLang {
 					agentname = keyagentname.asString;
 					pureagentname = agentname[1..agentname.size-1];
 	
-					// --  0)  Check if the agent is playing or not in that snapshot
-					if(agentDictItem[1].playstate == true, {
+					// --  0)  Check if the agent is playing or not in that snapshot (and not play agents which have ended)
+					if((agentDictItem[1].playstate == true) && (agentDictItem[1].scorestring.includes($@) == false), {
 						// --  1)  Find the agent in the doc
 						allreturns = doc.string.findAll("\n");
 						// the following checks if it's exactly the same agent name (and not confusing joe and joel)
@@ -1738,6 +1739,41 @@ XiiLang {
 			});
 		});
 	}	
+
+	createMetaAgent {arg string;
+		var splitloc, patternstring, chord, agentname;
+		var agentarray, tempstring;
+	[\string, string].postln;
+	//	string = string[0..string.size-1].tr($ , \); // get rid of spaces 
+		splitloc = string.find("->");
+		agentname = string[0..splitloc-1]; // get the name of the var
+		patternstring = string[splitloc+3..string.size-2].tr($ , $-);
+		agentarray = [];
+		tempstring = "";
+		patternstring.do({arg char; 
+			if((char != $-) && (char != $~), {
+				tempstring = tempstring ++ char;
+			}, {
+				if(tempstring.size > 0, {
+					agentarray = agentarray.add(tempstring);
+					tempstring = "";
+				});
+			});
+		});
+
+		"META AGENT CREATED!  NAME: ".post; agentname.postln;
+		"Score: ".post; patternstring.postln;
+		[\agentarray, agentarray].postln;
+		
+		(agentarray.size-2).do({arg i;
+			this.opInterpreter( agentDict[(docnum.asString++agentarray[i*2].asString).asSymbol][1].scorestring.tr($",\ ) ++ "@" ++ agentarray[(i*2)+1] );
+			[\command, agentDict[(docnum.asString++agentarray[i*2].asString).asSymbol][1].scorestring.tr($",\ ) ++ "@" ++ agentarray[(i*2)+1]].postln;
+			// ARGH! THis plays at the same time.
+			// HOw to create the sequence?
+
+		});	
+				
+	} 
 
 	playScoreMode0 {arg agent, notearr, durarr, instrarr, sustainarr, attackarr, panarr, quantphase, newInstrFlag, morphmode, repeats;
 		var loop;
