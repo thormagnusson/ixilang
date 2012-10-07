@@ -81,7 +81,7 @@ TempoClock:sync (by f0)
 XiiLang {	
 	classvar globaldocnum;
 	var <>doc, docnum, doccolor, oncolor, activecolor, offcolor, deadcolor, proxyspace, groups, score;
-	var agentDict, instrDict, ixiInstr, effectDict, varDict, snapshotDict, scoreArray;
+	var agentDict, instrDict, ixiInstr, effectDict, varDict, snapshotDict, scoreArray, metaAgentDict;
 	var scale, tuning, chosenscale, tonic;
 	var midiclient, eventtype, suicidefork;
 	var langCommands, englishCommands, language, english;
@@ -119,6 +119,7 @@ XiiLang {
 		
 		if(dicts.isNil, {
 			agentDict = IdentityDictionary.new; // dicts are sent from "load"
+			metaAgentDict = (); // 
 			varDict = IdentityDictionary.new;
 			snapshotDict = IdentityDictionary.new; // dicts are sent from "load"
 			groups = ();
@@ -154,6 +155,7 @@ XiiLang {
 			this.makeEffectDict;
 			groups = ();
 			agentDict = IdentityDictionary.new;
+			metaAgentDict = ();
 			//varDict = IdentityDictionary.new; // I might uncomment this line
 			snapshotDict = IdentityDictionary.new;
 			proxyspace = ProxySpace.new.know_(true);
@@ -314,6 +316,10 @@ XiiLang {
 
 				"-- proxyspace : ".postln;
 				Post << proxyspace; "\n".postln;
+
+				"-- metaAgentDict : ".postln;
+				Post << metaAgentDict; "\n".postln;
+				
 				
 		//		"-- scoreArray : ".postln;
 		//		Post << scoreArray; "\n".postln;
@@ -1179,6 +1185,7 @@ XiiLang {
 		[\agent, agent].postln;
 		proxyspace[agent].clear;
 		agentDict[agent] = nil;
+		metaAgentDict[agent] = nil;
 		[\proxyspace, proxyspace].postln;
 		[\agentDict, agentDict].postln;
 
@@ -1616,9 +1623,8 @@ XiiLang {
 
 		{doc.stringColor_(oncolor, doc.selectionStart, doc.selectionSize)}.defer(0.1);  // if code is green (sleeping)
 		"------    ixi lang: Created Melodic Agent : ".post; pureagent.postln; agentDict[agent].postln;
-		this.playScoreMode1(agent, notearr, durarr, sustainarr, attackarr, panarr, instrument, quantphase, newInstrFlag, midichannel, repeats, return); 
+		^this.playScoreMode1(agent, notearr, durarr, sustainarr, attackarr, panarr, instrument, quantphase, newInstrFlag, midichannel, repeats, return); 
 		// this has to be below the playscore method
-		agentDict[agent][1].playstate = true;
 	}	
 
 	// CONCRETE MODE
@@ -1713,9 +1719,8 @@ XiiLang {
 
 		{doc.stringColor_(oncolor, doc.selectionStart, doc.selectionSize)}.defer(0.1); // if code is green (sleeping)
 		"------    ixi lang: Created Concrete Agent : ".post; pureagent.postln; agentDict[agent].postln;
-		this.playScoreMode2(agent, pitch, amparr, durarr, panarr, instrument, quantphase, newInstrFlag, repeats, return); 
+		^this.playScoreMode2(agent, pitch, amparr, durarr, panarr, instrument, quantphase, newInstrFlag, repeats, return); 
 		// this has to be below the playscore method
-		agentDict[agent][1].playstate = true; // EXPERIMENTAL: to be used in snapshots
 	}	
 	
 	parseChord {arg string, mode;
@@ -1756,7 +1761,7 @@ XiiLang {
 
 	createMetaAgent {arg string;
 		var splitloc, patternstring, chord, agentname, agent;
-		var agentarray, agentArrayCopy, tempstring, seq, quant;
+		var agentarray, tempstring, seq, quant; // agentArrayCopy
 		var repeats = inf;
 		var stringstart, stringend;
 		var thisline;
@@ -1784,9 +1789,23 @@ XiiLang {
 		"META AGENT CREATED!  NAME: ".post; agentname.postln;
 		"Score: ".post; patternstring.postln;
 		[\agentarray, agentarray].postln;
-		agentArrayCopy = agentarray.copy;
-		//quant = agentDict[(docnum.asString++agentArrayCopy[0].asString).asSymbol][1].durarr.sum;
-		quant = 1;
+		//agentArrayCopy = agentarray.copy;
+		//quant = 0;
+		
+		if(agentDict[(docnum.asString++agentarray[0].asString).asSymbol][1].mode == 3, {
+			"QUANT ZERO".postln;
+			//quant = 1;
+			quant = metaAgentDict.quant;
+		}, {
+			"QUANT DICT".postln;
+	//		quant = 0;
+			quant = agentDict[(docnum.asString++agentarray[0].asString).asSymbol][1].durarr.sum;
+		});
+		
+		[\quant, quant].postln;
+		
+		// metaAgentDict = ();
+		// 
 		seq = [];
 		(agentarray.size/2).do({arg i;
 			var agentname = (docnum.asString++agentarray[i*2].asString).asSymbol;
@@ -1803,7 +1822,9 @@ XiiLang {
 					[\defSOURCE, Pdef(agentname).source].postln;
 					Pdef(agentname).source.repeats = agentarray[(i*2)+1];
 					Pdef(agentname);
+					//Pdef(agentname).quant = [metaAgentDict.quant, 0, 0, 1]; // DONT DO THE QUANT HERE !!!
 				}, {
+					
 					// returning a Pdef
 				this.opInterpreter( agentDict[agentname][1].scorestring.tr($",\ ), true );
 				});
@@ -1817,10 +1838,10 @@ XiiLang {
 			[\agentarray0, agentarray[i*2]].postln;
 
 		});
-		[\agentarray0, agentArrayCopy[0]].postln;
-		[\agent, (docnum.asString++agentArrayCopy[0].asString).asSymbol].postln;
+//		[\agentarray0, agentArrayCopy[0]].postln;
+//		[\agent, (docnum.asString++agentArrayCopy[0].asString).asSymbol].postln;
 		
-		[\quant, quant].postln;
+		[\quant_______, quant].postln;
 		[\seqOO, seq].postln;
 		
 		
@@ -1838,14 +1859,23 @@ XiiLang {
 			// 2) the Pdef will change and thus automatically within the metaAgent.
 			// 3) need to be able to put @ after a metaagent, so they can be fractalized
 			
+			// ALSO, check timing (if it keeps in sync with the first pattern of a meta pattern)
+			
 					// -- create a new agent if needed 
 		if(agentDict[agent].isNil, {
 			agentDict[agent] = [(), ().add(\amp->0.5), []];
 		}); // 1st = effectRegistryDict, 2nd = scoreInfoDict, 3rd = placeholder for a routine
-				
+	[\metaAgentDict, metaAgentDict].postln;
+		if(metaAgentDict.quant.isNil, {
+			metaAgentDict.add(\quant -> quant);
+		});
+		if(metaAgentDict[agent].isNil, {
+			metaAgentDict[agent] = ().add(\quant -> quant);
+		}); // 1st = effectRegistryDict, 2nd = scoreInfoDict, 3rd = placeholder for a routine
+		
 		agentDict[agent][1].mode = 3;
 		agentDict[agent][1].score = score;
-		agentDict[agent][1].durarr = agentDict[(docnum.asString++agentArrayCopy[0].asString).asSymbol][1].durarr;
+		agentDict[agent][1].durarr = agentDict[(docnum.asString++agentarray[0].asString).asSymbol][1].durarr;
 	//	agentDict[agent][1].scorestring = scorestring.asCompileString;
 		agentDict[agent][1].instrument = "metatrack";
 		agentDict[agent][1].playstate = true;
@@ -1853,12 +1883,13 @@ XiiLang {
 		"Score string: ".postln;
 		agentDict[agent][1].scorestring.postln;
 
-				Pdef(agent, Pseq(seq, repeats)).quant = [quant, 0, 0, 1];
-				
-				{
-					//proxyspace[agent].quant = [quant, 0, 0, 1];
-				proxyspace[agent] = Pdef(agent);
-				proxyspace[agent].play;}.defer(0.5);
+		Pdef(agent, Pseq(seq, repeats)); //.quant = [quant, 0];
+		
+		//{
+		proxyspace[agent].quant = [quant, 0];
+		proxyspace[agent] = Pdef(agent);
+		proxyspace[agent].play;
+		//}.defer(0.5);
 
 
 
@@ -2005,7 +2036,9 @@ XiiLang {
 		if(return, {^pdef});
 	}
 	
-	playScoreMode1 {arg agent, notearr, durarr, sustainarr, attackarr, panarr, instrument, quantphase, newInstrFlag, midichannel=0, repeats;
+	playScoreMode1 {arg agent, notearr, durarr, sustainarr, attackarr, panarr, instrument, quantphase, newInstrFlag, midichannel=0, repeats, return;
+		var pdef;
+		agentDict[agent][1].playstate = true;
 		if(instrument.asString=="midi", { eventtype = \midi }, { eventtype = \note });
 		
 		// ------------ play function --------------
@@ -2013,7 +2046,7 @@ XiiLang {
 			proxyspace[agent].free; // needed because of repeats (free proxyspace timing)
 			10.do({arg i; proxyspace[agent][i+1] =  nil }); // oh dear. Proxyspace forces this, as one might want to put an effect again on a repeat pat
 			agentDict[agent][0].clear; // clear the effect references
-			Pdef(agent, Pbind(
+			pdef = Pdef(agent, Pbind(
 						\instrument, instrument,
 						\type, eventtype,
 						\midiout, midiclient,
@@ -2024,13 +2057,15 @@ XiiLang {
 						\amp, Pseq(attackarr*agentDict[agent][1].amp, inf),
 						\pan, Pseq(panarr, inf)
 			));
+			if(return.not, {
 			{proxyspace[agent].quant = [durarr.sum, quantphase, 0, 1];
 			proxyspace[agent] = Pdef(agent);
 			proxyspace[agent].play;}.defer(0.5);
+			});
 		},{
 			if(newInstrFlag, { // only if instrument was {, where Pmono bufferplayer synthdef needs to be shut down (similar to above, but no freeing of effects)
 				proxyspace[agent].free; // needed in order to swap instrument in Pmono
-				Pdef(agent, Pbind(
+				pdef = Pdef(agent, Pbind(
 						\instrument, instrument,
 						\type, eventtype,
 						\midiout, midiclient,
@@ -2041,10 +2076,12 @@ XiiLang {
 						\amp, Pseq(attackarr*agentDict[agent][1].amp, inf),
 						\pan, Pseq(panarr, inf)
 				)).quant = [durarr.sum, quantphase, 0, 1];
+				if(return.not, {
 				{ proxyspace[agent].play }.defer(0.5); // defer needed as the free above and play immediately doesn't work
+				});
 			}, { 
 				// default behavior
-				Pdef(agent, Pbind(
+				pdef = Pdef(agent, Pbind(
 						\instrument, instrument,
 						\type, eventtype,
 						\midiout, midiclient,
@@ -2056,14 +2093,20 @@ XiiLang {
 						\pan, Pseq(panarr, inf)
 				)).quant = [durarr.sum, quantphase, 0, 1];
 					//proxyspace[agent].play; // this would build up synths on server on commands such as yoyo agent
+				if(return.not, {
+					
 				if(agentDict[agent][1].playstate == false, {
 					proxyspace[agent].play; // this would build up synths on server on commands such as yoyo agent
 				});
+				});
 			});
 		});
+		if(return, {^pdef});
 	}
 
-	playScoreMode2 {arg agent, pitch, amparr, durarr, panarr, instrument, quantphase, newInstrFlag, repeats;
+	playScoreMode2 {arg agent, pitch, amparr, durarr, panarr, instrument, quantphase, newInstrFlag, repeats, return;
+		var pdef;
+		agentDict[agent][1].playstate = true; // EXPERIMENTAL: to be used in snapshots
 		// ------------ play function --------------
 		if(proxyspace[agent].isNeutral || (repeats != inf), { // check if the object exists alreay
 			proxyspace[agent].free; // needed because of repeats (free proxyspace timing)
@@ -2077,11 +2120,13 @@ XiiLang {
 						\noteamp, Pdefn((agent++"amparray").asSymbol),
 						\pan, Pseq(panarr, inf)
 			));
+				if(return.not, {
 			{
 			proxyspace[agent].quant = [durarr.sum, quantphase, 0, 1];
 			proxyspace[agent] = Pdef(agent);
 			proxyspace[agent].play;
 			}.defer(0.5);
+				});
 		},{
 			Pdefn((agent++"durarray").asSymbol, Pseq(durarr, inf)).quant = [durarr.sum, quantphase, 0, 1];
 			Pdefn((agent++"amparray").asSymbol, Pseq(amparr, inf)).quant = [durarr.sum, quantphase, 0, 1];
@@ -2093,12 +2138,17 @@ XiiLang {
 							\noteamp, Pdefn((agent++"amparray").asSymbol),
 							\pan, Pseq(panarr, inf)
 				));
+					if(return.not, {
+			
 				{ 			
 				proxyspace[agent] = Pdef(agent);
 				proxyspace[agent].play }.defer(0.5); // defer needed as the free above and play immediately doesn't work
+					});
 			//});
 		});
 		Pdef(agent).set(\amp, agentDict[agent][1].amp); // proxyspace quirk: amp set from outside
+		if(return, {^pdef});
+
 	}
 
 	initEffect {arg string;
