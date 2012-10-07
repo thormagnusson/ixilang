@@ -44,6 +44,15 @@ TODO: Check the use of String:drop(1) and String:drop(-1)
 // gui method for getting the gui
 // bugfix: kill kills routines as well
 // added a "replace" method that replaces items in scores with new values
+// added @ (times) postfix arg (@2) will play the score twice
+// added metaagents (~ ag1 2 ag2 1 ~) will play agent1 twice and agent2 once
+// changed @ to % in morph mode
+// added support for BenoitLib networked clocks (Thanks Patrick B)
+// multichannel support thanks to John Thompson
+
+// tap timing?
+// record into buffers?
+
 
 // FIXED BUG: snapshots do not perk up agents that have been dozed
 // FIXED BUG: Snapshots do not recall the effect state
@@ -1927,7 +1936,7 @@ XiiLang {
 					pdef = Pdef(agent, Pbind(
 								\instrument, Pseq(instrarr, inf), 
 								\midinote, Pseq(notearr, inf), 
-								\dur, Pseq(durarr, inf),
+								\dur, Pseq(durarr, repeats),
 								\amp, Pseq(attackarr*agentDict[agent][1].amp, inf),
 								\sustain, Pseq(sustainarr, inf),
 								\pan, Pseq(panarr, inf)
@@ -1956,7 +1965,7 @@ XiiLang {
 				});
 			});
 		}, {
-			if(morphmode.contains("@"), { morphmode = morphmode.tr($@, \); loop = true }, { loop = false }); // check if there is a loop arg or not
+			if(morphmode.contains("%"), { morphmode = morphmode.tr($%, \); loop = true }, { loop = false }); // check if there is a loop arg or not
 			// ------------ play function --------------
 			instrarr = instrarr.collect({arg instrname; 
 				if(ixiInstr.returnBufferDict[instrname.asSymbol].isNil, {
@@ -1998,7 +2007,7 @@ XiiLang {
 							\buf1, Pseq(instrarr, inf),
 							\buf2, Pseq(instrarr.rotate(-1), inf),
 							\midinote, Pseq(notearr, inf), 
-							\dur, Pseq(durarr, inf),
+							\dur, Pseq(durarr, repeats),
 							\amp, Pseq(attackarr*agentDict[agent][1].amp, inf),
 							\morphtime, Pseq(durarr/TempoClock.default.tempo, inf),
 							//\sustain, Pseq(sustainarr, inf),
@@ -2017,7 +2026,7 @@ XiiLang {
 							\buf1, Pseq(instrarr, inf),
 							\buf2, Pseq(instrarr.rotate(-1), inf),
 							\midinote, Pseq(notearr, inf), 
-							\dur, Pseq(durarr, inf),
+							\dur, Pseq(durarr, repeats),
 							\amp, Pseq(attackarr*agentDict[agent][1].amp, inf),
 							\morphtime, Pseq(durarr/TempoClock.default.tempo, inf),
 							//\sustain, Pseq(sustainarr, inf),
@@ -2071,7 +2080,7 @@ XiiLang {
 						\midiout, midiclient,
 						\chan, midichannel,
 						\midinote, Pseq(notearr, inf), 
-						\dur, Pseq(durarr, inf),
+						\dur, Pseq(durarr, repeats),
 						\sustain, Pseq(sustainarr, inf),
 						\amp, Pseq(attackarr*agentDict[agent][1].amp, inf),
 						\pan, Pseq(panarr, inf)
@@ -2087,7 +2096,7 @@ XiiLang {
 						\midiout, midiclient,
 						\chan, midichannel,
 						\midinote, Pseq(notearr, inf), 
-						\dur, Pseq(durarr, inf),
+						\dur, Pseq(durarr, repeats),
 						\sustain, Pseq(sustainarr, inf),
 						\amp, Pseq(attackarr*agentDict[agent][1].amp, inf),
 						\pan, Pseq(panarr, inf)
@@ -2114,7 +2123,7 @@ XiiLang {
 			agentDict[agent][0].clear; // clear the effect references
 			Pdefn((agent++"durarray").asSymbol, Pseq(durarr, repeats));
 			Pdefn((agent++"amparray").asSymbol, Pseq(amparr, repeats));
-			Pdef(agent, Pmono(instrument,
+			pdef = Pdef(agent, Pmono(instrument,
 						\dur, Pdefn((agent++"durarray").asSymbol),
 						\freq, pitch.midicps,
 						\noteamp, Pdefn((agent++"amparray").asSymbol),
@@ -2128,11 +2137,11 @@ XiiLang {
 			}.defer(0.5);
 				});
 		},{
-			Pdefn((agent++"durarray").asSymbol, Pseq(durarr, inf)).quant = [durarr.sum, quantphase, 0, 1];
-			Pdefn((agent++"amparray").asSymbol, Pseq(amparr, inf)).quant = [durarr.sum, quantphase, 0, 1];
+			Pdefn((agent++"durarray").asSymbol, Pseq(durarr, repeats)).quant = [durarr.sum, quantphase, 0, 1];
+			Pdefn((agent++"amparray").asSymbol, Pseq(amparr, repeats)).quant = [durarr.sum, quantphase, 0, 1];
 			//if(newInstrFlag, { // removed temp for repeat functionality
 				proxyspace[agent].free; // needed in order to swap instrument in Pmono
-				Pdef(agent, Pmono(instrument,
+				pdef = Pdef(agent, Pmono(instrument,
 							\dur, Pdefn((agent++"durarray").asSymbol),
 							\freq, pitch.midicps,
 							\noteamp, Pdefn((agent++"amparray").asSymbol),
@@ -2398,6 +2407,7 @@ XiiLang {
 				scorerange = [];
 				scorerange = scorerange.add(thisline.find("{"));
 				scorerange = scorerange.add(thisline.find("}"));
+				argsuffix = thisline[scorerange[1]+1..thisline.size-1]; // if arguments are added
 				scoremode = 2;
 			});
 			
@@ -2410,7 +2420,7 @@ XiiLang {
 			if(modearray[scoremode], { // if this scoremode supports the operation (no need to yoyo a melodic score for example)
 				
 				score = thisline[scorerange[0]+1..scorerange[1]-1];
-				scorestringsuffix = switch(scoremode) {0}{"|"++argsuffix}{1}{"]"++argsuffix}{2}{"}"};
+				scorestringsuffix = switch(scoremode) {0}{"|"++argsuffix}{1}{"]"++argsuffix}{2}{"}"++argsuffix};
 		\thor1.postln;
 				// -------- put it back in place ----------
 				modstring = thisline[0..scorerange[0]]++newscore++scorestringsuffix;
