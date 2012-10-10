@@ -885,6 +885,13 @@ Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) 
 			Out.ar(out, Pan2.ar(SinOsc.ar(freq), pan, env * amp));
 		}).add(\xiilang);
 
+
+		SynthDef(\XiiRecordBuf, {arg inbus = 8, bufnum = 0;
+			var input;
+			input = In.ar(inbus, 1);
+			RecordBuf.ar(input, bufnum);
+		}).add(\xiilang);
+
 		//{SynthDescLib.all[\xiilang].read; SynthDescLib.read}.defer(2);
 
 		//^this.makeInstrDict; // changed such that the class returns its instance (not the dict)
@@ -911,10 +918,91 @@ Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) 
 		
 		"The keys of your keyboard are mapped to the following samples :".postln;
 		Post << this.getSamplesSynthdefs;
-		
+		if(sampleNames.size == 0, {
+			"There were no samples in your samples folder, please put some there!".postln;
+		});
 		^instrDict;		
 	
 	}
+	
+	createRecorderDoc {arg caller; // doccolor, oncolor, inbus=8;
+		var doc, buffer, duration, recsynth, recording = false;
+		if(("ixilang/"++project++"/livesamples").pathMatch==[], {
+			("mkdir -p" + ("ixilang/"++project++"/livesamples")).unixCmd; // create the samples folder
+			"ixi-lang NOTE: a live samples folder was not found for saving scores - It was created".postln;
+		});	
+		"CREATING RECORDER".postln;
+		doc = Document.new;		
+		buffer = Buffer.alloc(Server.default, Server.default.sampleRate * 10.0, 1);
+		doc.bounds_(Rect(20,230, 500, 400));
+		doc.background_(caller.doccolor);
+		doc.stringColor_(caller.oncolor);
+		doc.font_(Font("Monaco",20));
+		doc.promptToSave_(false);		
+		doc.string_("Press any key to record its sound : \n\n");
+		doc.keyDownAction_({|doc, char, mod, unicode, keycode| 
+			// record into buffer
+			if(recording == false, {
+				recsynth = Synth(\XiiRecordBuf, [\inbus, caller.inbus, \bufnum, buffer.bufnum]);
+				duration = Main.elapsedTime;
+				recording = true;
+				"STARTING RECORDING".postln;
+			});
+		});
+		doc.keyUpAction_({|doc, char, mod, unicode, keycode | 
+			var tempbuf, cond;
+			if((mod == 8388864).not, {
+				doc.string_(doc.string++"\n\nSound recorded into the key! \n\n Bye bye!");
+				// save it to a file
+				duration = Main.elapsedTime - duration;
+				[\duration, duration].postln;
+				cond = Condition.new;
+				Routine.run {
+					recsynth.free; // stop recording
+					tempbuf = Buffer.alloc(Server.default, duration * Server.default.sampleRate, 1);
+					Server.default.sync(cond);
+					buffer.copyData(tempbuf, 0, 0,  duration * Server.default.sampleRate);
+					Server.default.sync(cond);
+					tempbuf.write(("ixilang/"++project++"/livesamples/"++char++".aif"), "aiff", "int16");
+					"WRITING BUFFER".postln;
+					this.makeSynthDef(tempbuf, char);
+					caller.updateInstrDict(char);
+				
+				//	instrDict[char.asSymbol] = char.asSymbol; // instrDict[\a] = \a
+				};
+				doc.keyDownAction_({nil});
+				{doc.close}.defer(2);
+			});
+		});
+		
+	}
+	
+	makeSynthDef { arg buffer, char;
+		SynthDef(char.asSymbol, {arg out=0, freq=261.63, amp=0.3, pan=0, noteamp=1, sustain=0.4;
+			var player, signal;
+			bufferPool = bufferPool.add(buffer);
+			// morpher instruments won't be stereo, so I just read one channel
+			//bufferDict[sampleNames.wrapAt(i).asSymbol] = Buffer.readChannel(Server.default, filepath, channels: [0]);
+			player = Select.ar(noteamp,
+				[ // playMode 2 - the sample player mode
+				LoopBuf.ar(1, buffer, (freq.cpsmidi-60).midiratio, 1, 0, 0, 44100*60*10) 
+				* EnvGen.ar(Env.linen(0.0001, 60*60, 0.0001))
+				, // playMode 1 - the rhythmic mode
+				PlayBuf.ar(1, buffer, (freq.cpsmidi-60).midiratio) 
+				* EnvGen.ar(Env.perc(0.01, sustain))
+				]);
+			
+			// I use DetectSilence rather than doneAction in Env.perc, as a doneAction in Env.perc
+			// would also be running (in Select) thus killing the synth even in {} mode
+			// I therefore add 0.02 so the 
+			DetectSilence.ar(player, 0.001, 0.5, 2);
+			//signal = player * amp * Lag.kr(noteamp, dur); // works better without lag
+			signal = player * amp * noteamp;
+			Out.ar(out, Pan2.ar(signal, pan));
+		}).add;
+		
+	}
+	
 	
 	getSamplesSynthdefs {
 		var string, sortedkeys, sortedvals;
@@ -952,7 +1040,10 @@ Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) 
 	returnBufferDict {
 		^bufferDict;	
 	}
-
+	
+	returnInstrDict {
+		^instrDict;
+	}
 }
 
 		
