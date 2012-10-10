@@ -1,7 +1,8 @@
-XiiLang			a live coding language interpreter	-  version 3 : September 2012
+XiiLang			a live coding language interpreter	-  version 4 : October 2012
 
 http://www.ixi-audio.net
 feedback to: thor[]ixi...
+http://www.twitter.com/thormagnusson (for news on updates and releases)
 
 The ixi lang live coding environment is a simple visual system presenting a high entry-level control over synth definitions and samples in SuperCollider. The core idea is to represent events in a spatial layout, thus merging musical code and musical scores. The score is active, i.e., if a method is performed upon the score, it changes in real time.
 
@@ -16,7 +17,7 @@ http://supercollider.sourceforge.net/downloads/
 ixi lang is here:
 https://github.com/ixiaudio/ixilang
 
-You need the sc3-plugins from here:
+You need the SC3plugins from here:
 http://supercollider.sourceforge.net/downloads/ (choose the Universal Binary)
 
 And finally the ixiViews classes (for the MIDIKeyboard)
@@ -27,7 +28,7 @@ https://github.com/ixi-thor/ixiViews
 2) Start SuperCollider.
 3) You will now have a SuperCollider folder within your "~/Library/Application Support/" folder.
 4) Create an "Extensions" folder in there and drop the ixilang classes into that folder.
-5) Drag the sc3-plugins (or SC3plugins) folder into the "Extensions" folder as well.
+5) Drag the SC3plugins folder into the "Extensions" folder as well.
 6) Put the ixiView classes also into your "Extensions" folder.
 7) Quit and start SuperCollider again and boot the server that is "default" (you can choose either).
 8) Type XiiLang() in a new SC document (Apple+N) and evaluate that line (with the cursor in it) with SHIFT+RETURN (buttons pressed in that order)
