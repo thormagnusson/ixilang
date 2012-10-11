@@ -92,8 +92,8 @@ XiiLang {
 	var midiclient, <inbus, eventtype, suicidefork;
 	var langCommands, englishCommands, language, english;
 	var matrixArray, initargs; // matrix vars
-	var projectname, key;
-	var randomseed;
+	var projectname, key, randomseed;
+	var time, tempo, tapping = false, tapcount = 0;
 	var thisversion = 4;
 	
 	*new { arg project="default", keyarg="C", txt=false, newdoc=false, language, dicts, score;
@@ -240,9 +240,6 @@ XiiLang {
 		doc.promptToSave_(false);		
 		doc.keyDownAction_({|doc, char, mod, unicode, keycode | 
 			var linenr, string;
-			if((mod == 8388864) && (unicode == 3), {
-				ixiInstr.createRecorderDoc(this);
-			});
 			// evaluating code (the next line will use .isAlt, when that is available 
 			if((mod & 524288 == 524288) && ((keycode==124)||(keycode==123)||(keycode==125)||(keycode==126)), { // alt + left or up or right or down arrow keys
 				linenr = doc.string[..doc.selectionStart-1].split($\n).size;
@@ -254,6 +251,26 @@ XiiLang {
 					this.opInterpreter(string);
 				});				
 			});
+			// create a live sampler doc (fn+Enter)
+			if((mod == 8388864) && (unicode == 3), {
+				ixiInstr.createRecorderDoc(this);
+			});
+			// tempo tap function (ctrl+, for starting and ctrl+. for stopping (the < and > keys))
+			if(((mod == 262145)||(mod==262401)) && (unicode == 44), {
+				if(tapping == false, {
+					time = Main.elapsedTime;
+					tapping = true;	
+				});
+				tapcount = tapcount + 1;
+			});
+			if(((mod == 262145)||(mod==262401)) && (unicode == 46), {
+				time = Main.elapsedTime - time;
+				tempo = tapcount / time;
+				tapping = false;
+				tapcount = 0;
+				"Tempo : set to % BPM\n".postf(tempo*60);
+				TempoClock.default.tempo = tempo;
+			}); 
 		});
 		doc.keyUpAction_({|doc, char, mod, unicode, keycode | 
 			if(mod == 8388864, {
