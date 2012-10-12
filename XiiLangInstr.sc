@@ -6,17 +6,18 @@ XiiLangInstr {
 	var sampleNames, samplePaths, nrOfSampleSynthDefs;
 	var defaultsynthdesclib, synthdesclib;
 	var bufferPool, bufferDict;
+	var numChan;
 	
-	*new {| project, loadsamples=true |
-		^super.new.initXiiLangInstr(project, loadsamples);
+	*new {| project, loadsamples=true, numChannels |
+		^super.new.initXiiLangInstr(project, loadsamples, numChannels);
 		}
 		
-	initXiiLangInstr {| argproject, loadsamples |	
+	initXiiLangInstr {| argproject, loadsamples, numChannels |
 		project = argproject;
 		defaultsynthdesclib = SynthDescLib(\xiilang);
 		bufferPool = []; // here in order to free buffers when doc is closed
 		bufferDict = (); // used for morphing synths
-			
+		numChan = numChannels;
 		// ----------------------------------------------------------------------------------
 		// --------------------------- unique project synthdefs  ----------------------------
 		// ----------------------------------------------------------------------------------
@@ -140,7 +141,7 @@ XiiLangInstr {
 						DetectSilence.ar(player, 0.001, 0.5, 2);
 						//signal = player * amp * Lag.kr(noteamp, dur); // works better without lag
 						signal = player * amp * noteamp;
-						Out.ar(out, Pan2.ar(signal, pan));
+						Out.ar(out, PanAz.ar(numChan, signal, pan, orientation: 0));
 				}).add;
 			});
 	
@@ -214,7 +215,7 @@ XiiLangInstr {
 			chainA = FFT(LocalBuf(2048), inA);
 			chainB = FFT(LocalBuf(2048), inB);
 			chain = PV_Morph(chainA, chainB, EnvGen.ar(Env.new([0, 1], [morphtime+0.1])) ); 
-			Out.ar(out,  Pan2.ar(IFFT(chain), EnvGen.ar(Env.new([panFrom, panTo], [morphtime+0.3]), t_trig, doneAction:2)) * amp);
+			Out.ar(out,  PanAz.ar(numChan, IFFT(chain), EnvGen.ar(Env.new([panFrom, panTo], [morphtime+0.3]), t_trig, doneAction:2), orientation: 0) * amp);
 		}).add;
 
 		SynthDef(\fade, { arg out=0, freq=261.63, panFrom=0, panTo=0, amp=0.3, buf1, buf2, dur, morphtime=1, gate=1, t_trig, loop=1;
@@ -224,7 +225,7 @@ XiiLangInstr {
 			chainA = FFT(LocalBuf(2048), inA);
 			chainB = FFT(LocalBuf(2048), inB);
 			chain = PV_XFade(chainA, chainB, EnvGen.ar(Env.new([0, 1], [morphtime+0.1])) ); 
-			Out.ar(out,  Pan2.ar(IFFT(chain), EnvGen.ar(Env.new([panFrom, panTo], [morphtime+0.3]), t_trig, doneAction:2)) * amp);
+			Out.ar(out,  PanAz.ar(numChan, IFFT(chain), EnvGen.ar(Env.new([panFrom, panTo], [morphtime+0.3]), t_trig, doneAction:2), orientation: 0.0) * amp);
 		}).add;
 
 
@@ -235,7 +236,7 @@ XiiLangInstr {
 			chainA = FFT(LocalBuf(2048), inA);
 			chainB = FFT(LocalBuf(2048), inB);
 			chain = PV_SoftWipe(chainA, chainB, EnvGen.ar(Env.new([-0.95, 0.95], [morphtime+0.1])) ); 
-			Out.ar(out,  Pan2.ar(IFFT(chain), EnvGen.ar(Env.new([panFrom, panTo], [morphtime+0.3]), t_trig, doneAction:2)) * amp);
+			Out.ar(out,  PanAz.ar(numChan, IFFT(chain), EnvGen.ar(Env.new([panFrom, panTo], [morphtime+0.3]), t_trig, doneAction:2), orientation: 0.0) * amp);
 		}).add;
 
 		SynthDef(\minus, { arg out=0, freq=261.63, panFrom=0, panTo=0, amp=0.3, buf1, buf2, dur, morphtime=1, gate=1, t_trig, loop=1;
@@ -245,7 +246,7 @@ XiiLangInstr {
 			chainA = FFT(LocalBuf(2048), inA);
 			chainB = FFT(LocalBuf(2048), inB);
 			chain = PV_MagMinus(chainA, chainB, EnvGen.ar(Env.new([0, 1], [morphtime+0.1])) ); 
-			Out.ar(out,  Pan2.ar(IFFT(chain), EnvGen.ar(Env.new([panFrom, panTo], [morphtime+0.3]), t_trig, doneAction:2)) * amp);
+			Out.ar(out,  PanAz.ar(numChan, IFFT(chain), EnvGen.ar(Env.new([panFrom, panTo], [morphtime+0.3]), t_trig, doneAction:2), orientation: 0.0) * amp);
 		}).add;
 
 		SynthDef(\common, { arg out=0, freq=261.63, panFrom=0, panTo=0, amp=0.3, buf1, buf2, dur, morphtime=1, gate=1, t_trig, loop=1;
@@ -256,7 +257,7 @@ XiiLangInstr {
 			chainB = FFT(LocalBuf(2048), inB);
 			chain = PV_CommonMag(chainA, chainB, EnvGen.ar(Env.new([0, 1], [morphtime+0.1])) ); 
 		//	chain = PV_CommonMag(chainA, chainB, 0.1, 0.1); 
-			Out.ar(out,  Pan2.ar(IFFT(chain), EnvGen.ar(Env.new([panFrom, panTo], [morphtime+0.3]), t_trig, doneAction:2)) * amp);
+			Out.ar(out,  PanAz.ar(numChan, IFFT(chain), EnvGen.ar(Env.new([panFrom, panTo], [morphtime+0.3]), t_trig, doneAction:2), orientation: 0.0) * amp);
 		}).add;
 
 		SynthDef(\binwipe, { arg out=0, freq=261.63, panFrom=0, panTo=0, amp=0.3, buf1, buf2, dur, morphtime=1, gate=1, t_trig, loop=1;
@@ -266,7 +267,7 @@ XiiLangInstr {
 			chainA = FFT(LocalBuf(2048), inA);
 			chainB = FFT(LocalBuf(2048), inB);
 			chain = PV_BinWipe(chainA, chainB, EnvGen.ar(Env.new([0, 1], [morphtime+0.1])) ); 
-			Out.ar(out,  Pan2.ar(IFFT(chain), EnvGen.ar(Env.new([panFrom, panTo], [morphtime+0.3]), t_trig, doneAction:2)) * amp);
+			Out.ar(out,  PanAz.ar(numChan, IFFT(chain), EnvGen.ar(Env.new([panFrom, panTo], [morphtime+0.3]), t_trig, doneAction:2), orientation: 0.0) * amp);
 		}).add;
 
 		SynthDef(\copy, { arg out=0, freq=261.63, panFrom=0, panTo=0, amp=0.3, buf1, buf2, dur, morphtime=1, gate=1, t_trig, loop=1;
@@ -276,7 +277,7 @@ XiiLangInstr {
 			chainA = FFT(LocalBuf(2048), inA);
 			chainB = FFT(LocalBuf(2048), inB);
 			chain = PV_CopyPhase(chainA, chainB, EnvGen.ar(Env.new([0, 1], [morphtime+0.1])) ); 
-			Out.ar(out,  Pan2.ar(IFFT(chain), EnvGen.ar(Env.new([panFrom, panTo], [morphtime+0.3]), t_trig, doneAction:2)) * amp);
+			Out.ar(out,  PanAz.ar(numChan, IFFT(chain), EnvGen.ar(Env.new([panFrom, panTo], [morphtime+0.3]), t_trig, doneAction:2), orientation: 0.0) * amp);
 		}).add;
 
 		SynthDef(\mul, { arg out=0, freq=261.63, panFrom=0, panTo=0, amp=0.3, buf1, buf2, dur, morphtime=1, gate=1, t_trig, loop=1;
@@ -286,7 +287,7 @@ XiiLangInstr {
 			chainA = FFT(LocalBuf(2048), inA);
 			chainB = FFT(LocalBuf(2048), inB);
 			chain = PV_MagMul(chainA, chainB ); 
-			Out.ar(out,  Pan2.ar(IFFT(chain)*0.25, EnvGen.ar(Env.new([panFrom, panTo], [morphtime+0.3]), t_trig, doneAction:2)) * amp);
+			Out.ar(out,  PanAz.ar(numChan, IFFT(chain)*0.25, EnvGen.ar(Env.new([panFrom, panTo], [morphtime+0.3]), t_trig, doneAction:2), orientation: 0.0) * amp);
 		}).add;
 
 		SynthDef(\smear, { arg out=0, freq=261.63, panFrom=0, panTo=0, amp=0.3, buf1, buf2, dur, morphtime=1, gate=1, t_trig, loop=1;
@@ -296,7 +297,7 @@ XiiLangInstr {
 			chainA = FFT(LocalBuf(2048), inA);
 			chainB = FFT(LocalBuf(2048), inB);
 			chain = PV_MagSmear(chainA, EnvGen.ar(Env.new([0, 1], [morphtime+0.1]))*20 ); 
-			Out.ar(out,  Pan2.ar(IFFT(chain), EnvGen.ar(Env.new([panFrom, panTo], [morphtime+0.3]), t_trig, doneAction:2)) * amp);
+			Out.ar(out,  PanAz.ar(numChan, IFFT(chain), EnvGen.ar(Env.new([panFrom, panTo], [morphtime+0.3]), t_trig, doneAction:2), orientation: 0.0) * amp);
 		}).add;
 
 		SynthDef(\subtract, { arg out=0, freq=261.63, panFrom=0, panTo=0, amp=0.3, buf1, buf2, dur, morphtime=1, gate=1, t_trig, loop=1;
@@ -306,7 +307,7 @@ XiiLangInstr {
 			chainA = FFT(LocalBuf(2048), inA);
 			chainB = FFT(LocalBuf(2048), inB);
 			chain = PV_MagSubtract(chainA, chainB, -10 ); 
-			Out.ar(out,  Pan2.ar(IFFT(chain), EnvGen.ar(Env.new([panFrom, panTo], [morphtime+0.3]), t_trig, doneAction:2)) * amp);
+			Out.ar(out,  PanAz.ar(numChan, IFFT(chain), EnvGen.ar(Env.new([panFrom, panTo], [morphtime+0.3]), t_trig, doneAction:2), orientation: 0.0) * amp);
 		}).add;
 
 		SynthDef(\rand, { arg out=0, freq=261.63, panFrom=0, panTo=0, amp=0.3, buf1, buf2, dur, morphtime=1, gate=1, t_trig, loop=1;
@@ -316,7 +317,7 @@ XiiLangInstr {
 			chainA = FFT(LocalBuf(2048), inA);
 			chainB = FFT(LocalBuf(2048), inB);
 			chain = PV_RandWipe(chainA, chainB, EnvGen.ar(Env.new([0, 1], [morphtime]), t_trig) ); 
-			Out.ar(out,  Pan2.ar(IFFT(chain), EnvGen.ar(Env.new([panFrom, panTo], [morphtime+0.3]), t_trig, doneAction:2)) * amp);
+			Out.ar(out,  PanAz.ar(numChan, IFFT(chain), EnvGen.ar(Env.new([panFrom, panTo], [morphtime+0.3]), t_trig, doneAction:2), orientation: 0.0) * amp);
 		}).add;
 		
 		SynthDef(\comb, { arg out=0, freq=261.63, panFrom=0, panTo=0, amp=0.3, buf1, buf2, dur, morphtime=1, gate=1, t_trig, loop=1;
@@ -326,7 +327,7 @@ XiiLangInstr {
 			chainA = FFT(LocalBuf(2048), inA);
 			chainB = FFT(LocalBuf(2048), inB);
 			chain = PV_RectComb2(chainA, chainB, 5, EnvGen.ar(Env.new([0, 1], [morphtime]), t_trig)*pi, 0.5); 
-			Out.ar(out,  Pan2.ar(IFFT(chain), EnvGen.ar(Env.new([panFrom, panTo], [morphtime+0.3]), t_trig, doneAction:2)) * amp);
+			Out.ar(out,  PanAz.ar(numChan, IFFT(chain), EnvGen.ar(Env.new([panFrom, panTo], [morphtime+0.3]), t_trig, doneAction:2), orientation: 0.0) * amp);
 		}).add;
 
 		// non-fft synthdef
@@ -336,7 +337,7 @@ XiiLangInstr {
 			inB = PlayBuf.ar(1, buf2, (freq.cpsmidi-60).midiratio, loop: loop) * EnvGen.ar(Env.new([0, 1, 1, 0], [0.1, morphtime, 0.02]), t_trig);
 			chain = 	LPF.ar(inB, EnvGen.ar(Env.new([0.001, 1], [morphtime], 'exponential'), t_trig)*16000)+
 					LPF.ar(inA, EnvGen.ar(Env.new([1, 0.001], [morphtime], 'exponential'), t_trig)*16000); 
-			Out.ar(out,  Pan2.ar(chain, EnvGen.ar(Env.new([panFrom, panTo], [morphtime+0.07]), t_trig, doneAction:2)) * amp);
+			Out.ar(out,  PanAz.ar(numChan, chain, EnvGen.ar(Env.new([panFrom, panTo], [morphtime+0.07]), t_trig, doneAction:2), orientation: 0.0) * amp);
 		}).add;
 
 		SynthDef(\band, { arg out=0, freq=261.63, panFrom=0, panTo=0, morphtime=1, amp=0.3, buf1, buf2, dur, gate=1, t_trig, loop=1;
@@ -345,7 +346,7 @@ XiiLangInstr {
 			inB = PlayBuf.ar(1, buf2, (freq.cpsmidi-60).midiratio, loop: loop) * EnvGen.ar(Env.new([0, 1, 1, 0], [0.1, morphtime, 0.02]), t_trig);
 			chain = 	BPF.ar(inB, EnvGen.ar(Env.new([0.01, 1], [morphtime], 'exponential'), t_trig)*10000)+
 					BPF.ar(inA, EnvGen.ar(Env.new([1, 0.01], [morphtime], 'exponential'), t_trig)*10000); 
-			Out.ar(out,  Pan2.ar(chain, EnvGen.ar(Env.new([panFrom, panTo], [morphtime+0.07]), t_trig, doneAction:2)) * amp);
+			Out.ar(out,  PanAz.ar(numChan, chain, EnvGen.ar(Env.new([panFrom, panTo], [morphtime+0.07]), t_trig, doneAction:2), orientation: 0.0) * amp);
 		}).add;
 		
 
@@ -355,7 +356,7 @@ XiiLangInstr {
 			var x, imp, killenv;
 			killenv = EnvGen.ar(Env.adsr(0.0000001, 1, 0.2), gate, doneAction:2);
 			imp = Impulse.ar(1);
-			x = Pan2.ar(imp * EnvGen.ar(Env.perc(0.0000001, 0.2)), pan) * amp;
+			x = PanAz.ar(2, imp * EnvGen.ar(Env.perc(0.0000001, 0.2)), pan, orientation: 0.0) * amp;
 			Out.ar(out, LeakDC.ar(Limiter.ar(x)));
 		}).add(\xiilang);
 		
@@ -377,7 +378,7 @@ XiiLangInstr {
 			beater_lpf = LPF.ar(in: beater_hpf, freq: lpf_cutoff_contour, mul: 1, add: 0);
 			beater_env = beater_lpf * EnvGen.ar(Env.perc(0.000001, 1), doneAction: 2);
 			kick_mix = Mix.new([drum_env, beater_env]) * 2 * amp;
-			Out.ar(out, Pan2.ar(kick_mix, pan))
+			Out.ar(out, PanAz.ar(numChan, kick_mix, pan, orientation: 0.0))
 		}).add(\xiilang);
 
 		SynthDef(\kick2, {	arg out=0, amp=0.3, sustain=0.26, pan=0;
@@ -394,7 +395,7 @@ XiiLangInstr {
 			son = son * 1.2;
 			son = son.clip2(1);
 			
-			Out.ar(out, Pan2.ar(son * amp));
+			Out.ar(out, PanAz.ar(numChan, son * amp, pan, orientation: 0.0));
 		}).add(\xiilang);
 				
 		SynthDef(\kick3, { arg out=0, amp=0.3, pan=0, dur=0.35, high=150, sustain = 0.4, low=33, phase=1.5;
@@ -430,14 +431,14 @@ XiiLangInstr {
 			snare_brf_4 = BRF.ar(in: snare_brf_3, freq: 2000, mul: snare_env, rq: 0.1);
 			snare_reson = Resonz.ar(snare_brf_4, snare_tightness, mul: snare_level) ;
 			snare_drum_mix = Mix.new([drum_mode_mix, snare_reson]) * amp;
-			Out.ar(out, [snare_drum_mix, snare_drum_mix])
+			Out.ar(out, PanAz.ar(numChan, snare_drum_mix, pan, orientation: 0.0))
 		}).add(\xiilang);
 				
 		SynthDef(\brushsnare, {|out= 0, bpfreq= 5000, amp= 1, pan= 0|
 			var env, noise;
 			env = EnvGen.kr(Env.perc(0.001, 0.1), 1, amp, doneAction:2);
 			noise = BPF.ar(PinkNoise.ar(3), bpfreq * (env*8.5));
-			Out.ar(out, Pan2.ar(noise*env, pan));
+			Out.ar(out, PanAz.ar(numChan, noise*env, pan, orientation: 0.0));
 		}).add(\xiilang);
 		
 		SynthDef(\bar, {arg out = 0, pan=0, freq = 6000, sustain = 0.2, amp=0.3;
@@ -459,7 +460,7 @@ XiiLangInstr {
 			body_env = EnvGen.ar(Env.perc(0.005, sustain, 1, -2), doneAction: 2);
 			body_hpf = HPF.ar(in: root_cymbal, freq: Line.kr(9000, 12000, sustain),mul: body_env, add: 0);
 			cymbal_mix = Mix.new([initial_bpf, body_hpf]) * amp;
-			Out.ar(out, Pan2.ar(cymbal_mix, pan))
+			Out.ar(out, PanAz.ar(numChan, cymbal_mix, pan, orientation: 0.0))
 		}).add(\xiilang);
 
 		SynthDef(\clap, {arg out=0, pan=0, amp=0.3, filterfreq=50, rq=0.01;
@@ -474,7 +475,7 @@ XiiLangInstr {
 			signal = CombC.ar(signal, 0.5, 0.03, 0.031)+CombC.ar(signal, 0.5, 0.03016, 0.06);
 			//signal = Decay2.ar(signal, 0.5);
 			signal = FreeVerb.ar(signal, 0.23, 0.15, 0.2);
-			Out.ar(out, Pan2.ar(signal * amp, pan));
+			Out.ar(out, PanAz.ar(numChan, signal * amp, pan, orientation: 0.0));
 			DetectSilence.ar(signal, doneAction:2);
 		}).add(\xiilang);
 		
@@ -485,7 +486,7 @@ XiiLangInstr {
 			// the other env has problem with gate
 			// (i.e. FAILURE n_set Node not found)
 			sig = WhiteNoise.ar(amp) * EnvGen.ar(Env.perc(0.00001, 0.01));
-			Out.ar(out, Pan2.ar(sig, pan));
+			Out.ar(out, PanAz.ar(numChan, sig, pan, orientation: 0.0));
 		}).add(\xiilang);
 
 //		SynthDef(\impulse, { // no amp atm
@@ -538,7 +539,7 @@ Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) 
 		//Synth(\dubpad, [\freq, 188, \amp, 1])
 		
 		
-		SynthDef(\dubchordpad, {arg out=0, freq=220, gate=1, amp=0.3;
+		SynthDef(\dubchordpad, {arg out=0, freq=220, gate=1, amp=0.3, pan=0;
 			var wave1, wave2, wave3, amps, env;
 			amps = [0.6134, 0.5103, 0.3041, 0.2216, 0.4175, 0.1082, 0.067, 0.0773, 0, 0.01546];
 			wave1 = amps.collect({|amp, i| SinOsc.ar([freq *(i+1), freq *(i+1) +Rand(1, 3.8)], 0, amp*0.1) }).sum;
@@ -591,14 +592,14 @@ Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) 
 			var signal, env;
 			env = EnvGen.ar(Env.perc(0.000001, sustain), doneAction:2);
 			signal = SinOsc.ar(3000).squared;
-			Out.ar(out, Pan2.ar(signal*env, pan, amp));
+			Out.ar(out, PanAz.ar(numChan, signal*env, pan, amp, orientation: 0.0));
 		}).add(\xiilang);
 		
 		SynthDef(\cling2, {arg out=0, amp=0.3, sustain=0.5, pan=0;
 			var signal, env;
 			env = EnvGen.ar(Env.perc(0.000001, sustain), doneAction:2);
 			signal = LFSaw.ar(2000).squared;
-			Out.ar(out, Pan2.ar(signal*env, pan, amp));
+			Out.ar(out, PanAz.ar(numChan, signal*env, pan, amp, orientation: 0.0));
 		}).add(\xiilang);
 
 		SynthDef(\flute, { arg out=0, scl=0.2, freq=440, ipress=0.9, ibreath=0.09, ifeedbk1=0.4, ifeedbk2=0.4, sustain=0.15, gate=1, amp=1, pan=0;
@@ -641,12 +642,12 @@ Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) 
 			fdbckArray = [ aflute1 ];
 			LocalOut.ar( fdbckArray );
 			signalOut = avalue * amp;
-			OffsetOut.ar(out, Pan2.ar(signalOut * kenv2, 0) );
+			OffsetOut.ar(out, PanAz.ar(numChan, signalOut * kenv2, pan, orientation: 0.0) );
 		}).add(\xiilang);
 
 		// ---------------------- synthesized instruments -----------------------------
 		// a crappy synth as to yet
-		SynthDef(\fmsynth, {|out=0, freq=440, carPartial=1, modPartial=1.5, index=13, gate=1, amp=0.3|
+		SynthDef(\fmsynth, {|out=0, freq=440, carPartial=1, modPartial=1.5, index=13, gate=1, amp=0.3, pan=0|
 			var mod, car, env;
 			// modulator frequency
 			mod = SinOsc.ar(freq * modPartial, 0, freq * index );
@@ -654,7 +655,7 @@ Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) 
 			car = SinOsc.ar((freq * carPartial) + mod, 0, amp );
 			// envelope
 			env = EnvGen.kr(Env.adsr, gate, doneAction:2);
-			Out.ar( out, (car * env * amp)!2)
+			Out.ar( out, PanAz.ar(numChan, (car * env * amp)!2, pan, orientation: 0.0))
 		}).add(\xiilang);
 
 
@@ -663,7 +664,7 @@ Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) 
 			env = Env.perc(0.0000001, sustain*2);
 			imp = Impulse.ar(1);
 			imp = Decay2.ar(imp, 0.01, 0.5, MoogFF.ar(VarSaw.ar(freq, 0.8, 0.5), freq*12, 3.6) );
-			x = Pan2.ar(imp * EnvGen.ar(env, doneAction:2), pan) * amp*4;
+			x = PanAz.ar(numChan, imp * EnvGen.ar(env, doneAction:2), pan, orientation: 0.0) * amp*4;
 			Out.ar(out, LeakDC.ar(x));
 		}).add(\xiilang);
 
@@ -713,7 +714,7 @@ Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) 
 		        x = Mix.ar([SinOsc.ar(freq, 0, 0.11), SinOsc.ar(freq*2, 0, 0.09)] ++
 		        				Array.fill(6, {SinOsc.ar(freq*Rand(-5,5).round(0.125), 0, Rand(0.02,0.1))}));
 		        //x = BPF.ar(x, freq, 4.91);
-		        Out.ar(out, x!2*env*amp);
+		        Out.ar(out, PanAz(6, x!2*env*amp, pan, orientation: 0.0));
 		}).add(\xiilang);
 		/*
 		 Synth(\bell, [\freq, 344])
@@ -813,19 +814,19 @@ Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) 
 			signal = Decay2.ar(signal, 0.4, 0.8, signal);
 			signal = Limiter.ar(Resonz.ar(signal, freq, rq*0.5), 0.9);
 			env = EnvGen.kr(Env.perc(0.00001, sustain, amp), doneAction:2);
-			Out.ar(out, Pan2.ar(signal, pan)*env);
+			Out.ar(out, PanAz.ar(numChan, signal, pan, orientation: 0.0)*env);
 		}).add(\xiilang);
 
 		SynthDef(\xylo, { |out=0, freq=440, gate=1, amp=0.3, sustain=0.5, pan=0|
 			var sig = StkBandedWG.ar(freq, instr:1, mul:3);
 			var env = EnvGen.kr(Env.adsr(0.0001, sustain, sustain, 0.3), gate, doneAction:2);
-			Out.ar(out, Pan2.ar(sig, pan, env * amp));
+			Out.ar(out, PanAz.ar(numChan, sig, pan, env * amp, orientation: 0.0));
 		}).add(\xiilang);
 
 		SynthDef(\softwg, { |out=0, freq=440, gate=1, amp=0.3, sustain=0.5, pan=0|
 			var sig = StkBandedWG.ar(freq, instr:1, mul:3);
 			var env = EnvGen.kr(Env.adsr(0.0001, sustain, sustain, 0.3), gate, doneAction:2);
-			Out.ar(out, Pan2.ar(sig, pan, env*amp));
+			Out.ar(out, PanAz.ar(numChan, sig, pan, env*amp, orientation: 0.0));
 		}).add(\xiilang);
 
 		SynthDef(\sines, {arg out=0, freq=440, dur=1, sustain=0.5, amp=0.3, pan=0;
@@ -833,7 +834,7 @@ Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) 
 		        env = EnvGen.kr(Env.perc(0.01, sustain, amp), doneAction:2);
 		        x = Mix.ar(Array.fill(8, {SinOsc.ar(freq*IRand(1,10),0, 0.08)}));
 		        x = LPF.ar(x, 20000);
-		        x = Pan2.ar(x,pan);
+		        x = PanAz.ar(numChan, x,pan, orientation: 0.0);
 		        Out.ar(out, x*env);
 		}).add(\xiilang);
 		
@@ -842,7 +843,7 @@ Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) 
 			   env = EnvGen.kr(Env.adsr(0.0001, sustain, sustain*0.8, 0.3), gate, doneAction:2);
 		        x = Mix.ar([FSinOsc.ar(freq, pi/2, 0.5), Pulse.ar(freq, Rand(0.3,0.5), 0.5)]);
 		        x = LPF.ar(x, 20000);
-		        x = Pan2.ar(x,pan);
+		        x = PanAz.ar(numChan, x,pan, orientation: 0.0);
 		        Out.ar(out, LeakDC.ar(x)*env*amp*0.8);
 		}).add(\xiilang);
 
@@ -851,7 +852,7 @@ Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) 
 			pluck = PinkNoise.ar(Decay.kr(Impulse.kr(0.005), 0.05));
 			period = freq.reciprocal;
 			string = CombL.ar(pluck, period, period, sustain*6);
-			string = LeakDC.ar(LPF.ar(Pan2.ar(string, pan), 12000)) * amp;
+			string = LeakDC.ar(LPF.ar(PanAz.ar(numChan, string, pan, orientation: 0.0), 12000)) * amp;
 			DetectSilence.ar(string, doneAction:2);
 			Out.ar(out, string)
 		}).add(\xiilang);
@@ -860,7 +861,7 @@ Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) 
 		        var x, env;
 		        env = EnvGen.kr(Env.perc(0.001, sustain*1.5), doneAction:2);
 		        x = Resonz.ar(PinkNoise.ar(1), freq*4, 0.005);
-		        x = Pan2.ar(x,pan);
+		        x = PanAz.ar(numChan, x,pan, orientation: 0.0);
 		        Out.ar(out, LeakDC.ar(x)*env*amp*70);
 		}).add(\xiilang);
 		
@@ -868,7 +869,7 @@ Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) 
 		        var x, env;
 		        env = EnvGen.kr(Env.perc(0.01, sustain), doneAction:2);
 		        x = Resonz.ar(Crackle.ar(1.95, 2), freq*4, 0.1);
-		        x = Pan2.ar(x,pan);
+		        x = PanAz.ar(numChan, x,pan, orientation: 0.0);
 		        Out.ar(out, LeakDC.ar(x)*env*amp*8);
 		}).add(\xiilang);
 
@@ -876,13 +877,13 @@ Pdef(\test, Pbind(\instrument, \clap, \midinote, Prand([1, 2, 5, 7, 9, 3], inf) 
 		        var x, env;
 		        env = EnvGen.kr(Env.perc(0.0001, sustain*4), doneAction:2);
 		        x = Decay2.ar(Resonz.ar(Impulse.ar(0.01), freq*4, 0.005), 0.001, sustain*2, 3);
-		        x = Pan2.ar(x,pan);
+		        x = PanAz.ar(numChan, x,pan, orientation: 0.0);
 		        Out.ar(out, LeakDC.ar(x)*env*amp*50);
 		}).add(\xiilang);
 
 		SynthDef(\sine, {arg out=0, gate=1, freq=440, dur=1, sustain=0.5, amp=0.3, pan=0;
 			var env = EnvGen.kr(Env.adsr(0.0001, sustain, sustain/2, 0.3), gate, doneAction:2);
-			Out.ar(out, Pan2.ar(SinOsc.ar(freq), pan, env * amp));
+			Out.ar(out, PanAz.ar(numChan, SinOsc.ar(freq), pan, env * amp, orientation: 0.0));
 		}).add(\xiilang);
 
 

@@ -95,12 +95,13 @@ XiiLang {
 	var projectname, key, randomseed;
 	var time, tempo, tapping = false, tapcount = 0;
 	var thisversion = 4;
-	
-	*new { arg project="default", keyarg="C", txt=false, newdoc=false, language, dicts, score;
-		^super.new.initXiiLang( project, keyarg, txt, newdoc, language, dicts, score);
+	var numChan;
+
+	*new { arg project="default", keyarg="C", txt=false, newdoc=false, language, dicts, score, numChannels=2;
+		^super.new.initXiiLang( project, keyarg, txt, newdoc, language, dicts, score, numChannels);
 	}
 		
-	initXiiLang {arg project, keyarg, txt, newdoc, lang, dicts, score;
+	initXiiLang {arg project, keyarg, txt, newdoc, lang, dicts, score, numChannels;
 		if(score.isNil, {
 			randomseed = 1000000.rand;
 		},{
@@ -114,7 +115,9 @@ XiiLang {
 			globaldocnum = globaldocnum+1;
 		});
 		key = keyarg;
-		initargs = [project, key, txt, newdoc, lang];
+
+		numChan = numChannels;
+		initargs = [project, key, txt, newdoc, lang, numChan];
 		XiiLangSingleton.new(this, globaldocnum);
 		// the number of this document (allows for multiple docs using same variable names)
 		docnum = globaldocnum; // this number is now added in front of all agent names
@@ -123,7 +126,7 @@ XiiLang {
 		tuning = \et12; // default tuning
 		tonic = 60 + [\C, \CS, \D, \DS, \E, \F, \FS, \G, \GS, \A, \AS, \B].indexOf(key.toUpper.asSymbol); // midinote 60 is the default
 		inbus = 8;
-		
+
 		if(dicts.isNil, {
 			agentDict = IdentityDictionary.new; // dicts are sent from "load"
 			metaAgentDict = (); // 
@@ -152,7 +155,7 @@ XiiLang {
 		eventtype = \note;
 		this.makeEffectDict; // in a special method, as it has to be called after every cmd+dot
 		this.envirSetup( txt, newdoc, project );
-		ixiInstr = XiiLangInstr.new(project);
+		ixiInstr = XiiLangInstr.new(project, numChannels: numChan);
 		instrDict = ixiInstr.makeInstrDict;
 		SynthDescLib.read;
 		proxyspace = ProxySpace.new.know_(true);
@@ -990,7 +993,7 @@ XiiLang {
 			{"coder"}{
 				var xiilang, tempstring, scorestring, coderarraysum, quantspaces, quant;
 
-				xiilang = XiiLang.new(initargs[0], initargs[1], initargs[2], true, initargs[4]);
+				xiilang = XiiLang.new(initargs[0], initargs[1], initargs[2], true, initargs[4], numChannels: numChan);
 				xiilang.doc.name_("ixi lang coder");
 				xiilang.doc.keyDownAction_({| thisdoc, char, mod, unicode, keycode | 
 					var linenr, string;
@@ -1140,7 +1143,7 @@ XiiLang {
 				}.fork(TempoClock.new);
 			}
 			{"new"}{
-				XiiLangGUI.new(projectname);
+				XiiLangGUI.new(projectname, numChannels: numChan);
 			}
 			{"gui"}{
 				XiiLangGUI.new(projectname);
@@ -1435,7 +1438,7 @@ XiiLang {
 			panstring = postfixstring[panstartloc+1..panendloc-1];
 		});
 		panstring.do({arg pan; 
-			panarr = panarr.add(pan.asString.asInteger.linlin(1, 9, -1, 1)); // 1 to 9 are mapped to panning of -1.0 to 1.0
+			panarr = panarr.add(pan.asString.asInteger.linlin(1, 9, 0, 2 - (2/numChan))); // 1 to 9 are mapped to panning of 0 - (2 - (2/numChan))
 		 });
 		argDict.add(\panarr -> panarr);
 		^argDict;
@@ -1903,6 +1906,7 @@ XiiLang {
 				));
 				if(playNow, {
 					{proxyspace[agent].quant = [durarr.sum, quantphase, 0, 1];
+					proxyspace[agent].defineBus(numChannels: numChan);
 					proxyspace[agent] = Pdef(agent);
 					proxyspace[agent].play;}.defer(0.5);
 				});
@@ -1966,6 +1970,7 @@ XiiLang {
 				));
 				if(playNow, {
 					{proxyspace[agent].quant = [durarr.sum, quantphase, 0, 1];
+					proxyspace[agent].defineBus(numChannels: numChan);
 					proxyspace[agent] = Pdef(agent);
 					proxyspace[agent].play;}.defer(0.5);
 				});
@@ -2044,6 +2049,7 @@ XiiLang {
 			));
 			if(playNow, {
 				{proxyspace[agent].quant = [durarr.sum, quantphase, 0, 1];
+				proxyspace[agent].defineBus(numChannels: numChan);
 				proxyspace[agent] = Pdef(agent);
 				proxyspace[agent].play;}.defer(0.5);
 			});
@@ -2062,6 +2068,7 @@ XiiLang {
 						\pan, Pseq(panarr, inf)
 				)).quant = [durarr.sum, quantphase, 0, 1];
 				if(playNow, {
+					proxyspace[agent].defineBus(numChannels: numChan);
 					{ proxyspace[agent].play }.defer(0.5); // defer needed as the free above and play immediately doesn't work
 				});
 			}, { 
@@ -2080,6 +2087,7 @@ XiiLang {
 					//proxyspace[agent].play; // this would build up synths on server on commands such as yoyo agent
 				if(playNow, {					
 					if(agentDict[agent][1].playstate == false, {
+						proxyspace[agent].defineBus(numChannels: numChan);
 						proxyspace[agent].play; // this would build up synths on server on commands such as yoyo agent
 					});
 				});
@@ -2112,6 +2120,7 @@ XiiLang {
 			));
 			if(playNow, {
 				{proxyspace[agent].quant = [durarr.sum, quantphase, 0, 1];
+				proxyspace[agent].defineBus(numChannels: numChan);
 				proxyspace[agent] = Pdef(agent);
 				proxyspace[agent].play }.defer(0.5);
 			});
@@ -2127,7 +2136,9 @@ XiiLang {
 							\pan, Pseq(panarr, inf)
 				));
 				if(playNow, {
-					{proxyspace[agent] = Pdef(agent);
+					{
+					proxyspace[agent].defineBus(numChannels: numChan);
+					proxyspace[agent] = Pdef(agent);
 					proxyspace[agent].play }.defer(0.5); // defer needed as the free above and play immediately doesn't work
 				});
 			//});

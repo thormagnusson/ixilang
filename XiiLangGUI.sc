@@ -5,12 +5,13 @@ XiiLangGUI  {
 	var projectview, projectpath, projectsList;
 	var filenames, synthdesclib, synthdefnames, project;
 	var recorder, thisversion;
+	var numChan;
 
-	*new { arg projectnamearg;
-		^super.new.initGUIXii(projectnamearg);
+	*new { arg projectnamearg, numChannels;
+		^super.new.initGUIXii(projectnamearg, numChannels);
 	}
 
-	initGUIXii { arg projectnamearg;
+	initGUIXii { arg projectnamearg, numChannels;
 		var mappingwinfunc;
 		thisversion = 3;
 		this.addixiMenu;
@@ -23,7 +24,8 @@ XiiLangGUI  {
 		filenames = filenames.reject({ |file| file.splitext[1] == "scd" }); // not including the keymapping files
 		filenames = filenames.reject({ |file| file.splitext[1] == "ixi" }); // not including the keymapping files
 		filenames = filenames.collect({arg file; file.splitext[0]});
-	
+		numChan = numChannels;
+
 		key = "C";
 
 		ixilogo = [ // the ixi logo
@@ -140,7 +142,7 @@ XiiLangGUI  {
 				dictFound = true;
 			});
 		
-			ixiLangInstr = XiiLangInstr.new(projectname);
+			ixiLangInstr = XiiLangInstr.new(projectname, true, numChan);
 		
 			column = 0;
 			letters = "AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz";
