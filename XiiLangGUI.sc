@@ -62,7 +62,7 @@ XiiLangGUI  {
 			.states_([["rec", Color.black, Color.red.alpha_(0.2)], ["stop", Color.black, Color.red.alpha_(0.4)]])
 			.action_({arg butt;
 				if(butt.value == 1, {
-					recorder = XiiLangRecord(Server.default, 0, 2, 'aiff', 'int16');
+					recorder = XiiLangRecord(Server.default, 0, numChan, 'aiff', 'int16');
 					recorder.start(projectpath++"/recordings/"++projectname++"_"++Date.getDate.stamp.asString++".aif");
 				}, {
 					recorder.stop;
@@ -83,7 +83,10 @@ XiiLangGUI  {
 		StaticText(win, Rect(190, 210, 50, 16)).string_("key:");
 		keystring = StaticText(win, Rect(220, 210, 50, 16)).string_("C");
 		StaticText(win, Rect(250, 210, 60, 16)).string_("midivalue:");
-		midivalstring = StaticText(win, Rect(320, 210, 50, 16)).string_(60);
+		midivalstring = StaticText(win, Rect(310, 210, 50, 16)).string_(60);
+
+		StaticText(win, Rect(350, 210, 100, 16)).string_("nr of channels:");
+		PopUpMenu(win, Rect(440, 210, 30, 16)).items_({|i| (i+1).asString }!8).value_(1).action_({arg menu; numChan = menu.value+1; });
 		
 		StaticText(win, Rect(190, 10, 350, 120))
 			.string_("Create a folder within the ixilang folder. The name you give \nthat folder becomes the project's name. In there, create a \nsamples folder in which you place some short samples. \nMap the keys on your keyboard to the sample names.\n\nIf you just want to test, without creating a mapping for a new \nproject, click the 'start' button. Have fun!")
@@ -110,7 +113,7 @@ XiiLangGUI  {
 		Button(win, Rect(406, 250, 65, 20))
 			.states_([["start", Color.black, Color.green.alpha_(0.2)]])
 			.action_({ 
-				XiiLang.new(projectname, key, true, true);
+				XiiLang.new(projectname, key, true, true, numChannels=numChan);
 			})
 			.font_(Font("Helvetica", 11));
 

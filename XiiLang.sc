@@ -50,7 +50,7 @@ TODO: Check the use of String:drop(1) and String:drop(-1)
 // changed @ to % in morph mode
 // changed ~ to _ in the (duration postfix arguments - so what was (1~4) becomes (1_4))
 // added support for BenoitLib networked clocks (Thanks Patrick B)
-// multichannel support thanks to John Thompson
+// multichannel support thanks to John Thompson (although still maintainting the stereo ixi lang, for users who use Pan2 in their synthdefs)
 // live recording into buffers (using fn+Enter)
 // tap timing (using ctrl + "," and "." (the "<" and ">" buttons)
 
@@ -260,7 +260,7 @@ XiiLang {
 			});
 			// create a live sampler doc (fn+Enter)
 			if((mod == 8388864) && (unicode == 3), {
-				ixiInstr.createRecorderDoc(this);
+				ixiInstr.createRecorderDoc(this, numChan);
 			});
 			// tempo tap function (ctrl+, for starting and ctrl+. for stopping (the < and > keys))
 			if(((mod == 262145)||(mod==262401)) && (unicode == 44), {
@@ -1150,7 +1150,7 @@ XiiLang {
 				XiiLangGUI.new(projectname, numChannels: numChan);
 			}
 			{"gui"}{
-				XiiLangGUI.new(projectname);
+				XiiLangGUI.new(projectname, numChannels: numChan);
 			}
 			{"savescore"}{
 				var sessionstart, sessionend, session;
@@ -1443,9 +1443,12 @@ XiiLang {
 			panendloc = postfixstring.find(">");
 			panstring = postfixstring[panstartloc+1..panendloc-1];
 		});
-		panstring.do({arg pan; 
-			panarr = panarr.add(pan.asString.asInteger.linlin(1, 9, 0, 2 - (2/numChan))); // 1 to 9 are mapped to panning of 0 - (2 - (2/numChan))
-			//panarr = panarr.add(pan.asString.asInteger.linlin(1, 9, -1, 1)); // 1 to 9 are mapped to panning of -1.0 to 1.0
+		panstring.do({arg pan;
+			if(numChan == 2, { 
+				panarr = panarr.add(pan.asString.asInteger.linlin(1, 9, -1, 1)); // 1 to 9 are mapped to panning of -1.0 to 1.0 (Pan2)
+			}, {
+				panarr = panarr.add(pan.asString.asInteger.linlin(1, 9, 0, 2 - (2/numChan))); // 1 to 9 are mapped to panning of 0 - (2 - (2/numChan)) (PanAz)
+			});
 		 });
 		argDict.add(\panarr -> panarr);
 		^argDict;
