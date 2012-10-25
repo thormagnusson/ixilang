@@ -45,13 +45,16 @@ TODO: Check the use of String:drop(1) and String:drop(-1)
 // bugfix: kill kills routines as well
 // added a "replace" method that replaces items in scores with new values
 // added @ (times) postfix arg (@2) will play the score twice
-// added metaagents (~ ag1 2 ag2 1 ~) will play agent1 twice and agent2 once
+// added metaagents (xx -> ~ agA 2 agB 1 ~) will play agentA twice and agentB once
+// added groups as part of meta agents, so a parallel sequence of a group can be inserted into a meta agent
 // changed @ to % in morph mode
+// changed ~ to _ in the (duration postfix arguments - so what was (1~4) becomes (1_4))
 // added support for BenoitLib networked clocks (Thanks Patrick B)
 // multichannel support thanks to John Thompson
-// live recording into buffers
+// live recording into buffers (using fn+Enter)
+// tap timing (using ctrl + "," and "." (the "<" and ">" buttons)
 
-// tap timing?
+
 
 
 // FIXED BUG: snapshots do not perk up agents that have been dozed
@@ -70,6 +73,7 @@ TODO: Check the use of String:drop(1) and String:drop(-1)
 /*
 Dependencies:
 TempoClock:sync (by f0)
+MIDIClockOut (Crucial Lib -> for slaving other apps to ixi lang)
 */
 
 // add slide (from Array helpfile)
@@ -271,7 +275,7 @@ XiiLang {
 				tempo = tapcount / time;
 				tapping = false;
 				tapcount = 0;
-				"Tempo : set to % BPM\n".postf(tempo*60);
+				" --->   ixi lang Tempo : set to % BPM\n".postf(tempo*60);
 				TempoClock.default.tempo = tempo;
 			}); 
 		});
@@ -476,7 +480,7 @@ XiiLang {
 						argumentarray = [];
 						tempstring = "";
 						argument.do({arg item; 
-							if(item.isAlphaNum || (item == $~), {
+							if(item.isAlphaNum || (item == $_), {
 								tempstring = tempstring ++ item;
 							}, {
 								if(tempstring != "", {argumentarray = argumentarray.add(tempstring)}); // removed .asInteger here  XXX !!! could cause bugs
@@ -1260,9 +1264,10 @@ XiiLang {
 				// stop all agents that are not in the snapshot
 				agentDict.keys.do({arg agent;
 					var allreturns, stringstart, stringend, pureagentname;
+
 					pureagentname = agent.asString;
 					pureagentname = pureagentname[1..pureagentname.size-1];
-					
+
 					if(agentDICT[agent].isNil, {
 						agentDict[agent][1].playstate = false;
 						Pdef(agent).stop; // new
@@ -1281,22 +1286,20 @@ XiiLang {
 					pureagentname = agentname[1..agentname.size-1];
 	
 					// --  0)  Check if the agent is playing or not in that snapshot (and not play agents which have ended)
-					if((agentDictItem[1].playstate == true) && (agentDictItem[1].scorestring.includes($@) == false), {
+					if((agentDictItem[1].playstate == true) , {
 						// --  1)  Find the agent in the doc
 						allreturns = doc.string.findAll("\n");
 						// the following checks if it's exactly the same agent name (and not confusing joe and joel)
 						#stringstart, stringend = this.findStringStartEnd(doc, pureagentname);
-	
 						thisline = doc.string[stringstart..stringend];
-	
 						dictscore = agentDictItem[1].scorestring;
 						dictscore = dictscore.reject({ |c| c.ascii == 34 }); // get rid of quotation marks
-	
+
 						// --  2)  Swap the string in the doc
 						// either with the simple swap
 						doc.string_( dictscore, stringstart, stringend-stringstart); // this one keeps text colour
 						doc.stringColor_(oncolor, stringstart, stringend-stringstart);
-	
+
 						// --  3)  Run the code (parse it) - IF playstate is true (in case it's been dozed)
 						try{ // try, because if loading from "load", then there will be no proxyspace yet
 							if(proxyspace[keyagentname].objects[0].array[0].muteCount == 1, {
@@ -1305,25 +1308,28 @@ XiiLang {
 						};
 	
 						mode = block{|break| 
-							["|", "[", "{", ")"].do({arg op, i;									var c = dictscore.find(op);
+							["|", "[", "{", "~", ")"].do({arg op, i;									var c = dictscore.find(op);
 								if(c.isNil.not, {break.value(i)}); 
 							});
 						};
+
 						switch(mode)
-							{0} { this.parseScoreMode0(dictscore, false) }
-							{1} { this.parseScoreMode1(dictscore, false) }
-							{2} { this.parseScoreMode2(dictscore, false) };
+							{0} { proxyspace[keyagentname].play; this.parseScoreMode0(dictscore, false) }
+							{1} { proxyspace[keyagentname].play; this.parseScoreMode1(dictscore, false) }
+							{2} { proxyspace[keyagentname].play; this.parseScoreMode2(dictscore, false) }
+							{3} { proxyspace[keyagentname].play; this.opInterpreter( dictscore, false ) };
 						//proxyspace[keyagentname].play;
 						scoreArray = scoreArray.add([Main.elapsedTime, dictscore]); 
-	
+
 						// --  4)  Set the effects that were active when the snapshot was taken
 						
 						10.do({arg i; proxyspace[keyagentname][i+1] =  nil }); // remove all effects (10 max) (+1, as 0 is Pdef)
-						
+
 						agentDICT[keyagentname][0].keys.do({arg key, i; 
 							proxyspace[keyagentname][i+1] = \filter -> effectDict[key.asSymbol];
 							scoreArray = scoreArray.add([Main.elapsedTime, pureagentname + ">>" + key]); 
 						});
+
 					}, { // agent is not playing in the snapshot
 						Pdef(keyagentname).stop; // new
 						proxyspace[keyagentname].stop;
@@ -1399,8 +1405,8 @@ XiiLang {
 			sustainstring = "4";
 		}, {
 			sustainstring = postfixstring[sustainstartloc+1..sustainendloc-1];
-			if(sustainstring.contains("~"), {
-				multloc = postfixstring.find("~");
+			if(sustainstring.contains("_"), {
+				multloc = postfixstring.find("_");
 				sustainstring = postfixstring[sustainstartloc+1..multloc-1];
 				multiplication = postfixstring[multloc+1..sustainendloc-1].asFloat;
 			})
@@ -1439,6 +1445,7 @@ XiiLang {
 		});
 		panstring.do({arg pan; 
 			panarr = panarr.add(pan.asString.asInteger.linlin(1, 9, 0, 2 - (2/numChan))); // 1 to 9 are mapped to panning of 0 - (2 - (2/numChan))
+			//panarr = panarr.add(pan.asString.asInteger.linlin(1, 9, -1, 1)); // 1 to 9 are mapped to panning of -1.0 to 1.0
 		 });
 		argDict.add(\panarr -> panarr);
 		^argDict;
@@ -1796,8 +1803,8 @@ XiiLang {
 	}	
 
 	createMetaAgent {arg string;
-		var splitloc, patternstring, chord, agentname, agent, groupitems;
-		var agentarray, tempstring, seq, quant; 
+		var splitloc, patternstring, chord, agentname, agent, groupitems, mode;
+		var agentarray, tempstring, seq, quant, durarr; 
 		var repeats = inf;
 		var stringstart, stringend, postfixargs, postfixArgDict, endchar;
 		var thisline, activeAgentArray;
@@ -1826,41 +1833,71 @@ XiiLang {
 		repeats = postfixArgDict.repeats;
 
 		"META AGENT CREATED!  NAME: ".post; agentname.postln;
-		
-		if(agentDict[(docnum.asString++agentarray[0].asString).asSymbol][1].mode == 3, {
-			quant = metaAgentDict.quant;
-		}, {
-			quant = agentDict[(docnum.asString++agentarray[0].asString).asSymbol][1].durarr.sum;
-		});
 
 		seq = [];
 		activeAgentArray = [];
 		groupitems = [];
+				
 		(agentarray.size/2).do({arg i;
-			var agentname = (docnum.asString++agentarray[i*2].asString).asSymbol;
-			activeAgentArray = activeAgentArray.add(agentname);
+			var subagent = (docnum.asString++agentarray[i*2].asString).asSymbol; // not the new meta agent but its contents
+			// activeAgentArray = activeAgentArray.add(agentname);
+			activeAgentArray = activeAgentArray.add(subagent);
+
+		// what kind of agent is it? a) agent (mode 0-2), b) meta agent (mode 3), c) a group (mode 4)
+			try{
+				switch(agentDict[subagent][1].mode)
+			{0} {quant = agentDict[subagent][1].durarr.sum; mode = 0 }
+			{1} {quant = agentDict[subagent][1].durarr.sum; mode = 1 }
+			{2} {quant = agentDict[subagent][1].durarr.sum; mode = 2 }
+			{3} {quant = metaAgentDict[subagent].quant; mode = 3 } // it's a meta agent (will play sequentially)
+			} {quant = 0; /* TEMP - do I need to set quant? */ mode = 4 }; // it's a group (not meta agent) and will play synchronously)
+
 			groupitems = groupitems.add(agentarray[i*2].asString);
-			this.opInterpreter("@" + agentarray[i*2].asString + agentarray[(i*2)+1], true);
-			proxyspace[agentname].clear(0.01);					seq = seq.add(
-				if(agentDict[agentname][1].mode == 3, {
-					Pdef(agentname).source.repeats = agentarray[(i*2)+1]; // change the repeats argument of the Pseq
-					Pdef(agentname);
-				}, {
-					this.opInterpreter( agentDict[agentname][1].scorestring.tr($",\ ), true );
-				});
+			//this.opInterpreter("@" + agentarray[i*2].asString + agentarray[(i*2)+1], true);
+			proxyspace[subagent].clear(0.01);	
+			seq = seq.add(
+				switch(mode)
+				{0} {
+					durarr = agentDict[subagent][1].durarr;
+					this.opInterpreter("@" + agentarray[i*2].asString + agentarray[(i*2)+1], true);
+					this.opInterpreter( agentDict[subagent][1].scorestring.tr($",\ ), true );
+				}
+				{1} {
+					durarr = agentDict[subagent][1].durarr;
+					this.opInterpreter("@" + agentarray[i*2].asString + agentarray[(i*2)+1], true);
+					this.opInterpreter( agentDict[subagent][1].scorestring.tr($",\ ), true );
+				}
+				{2} {
+					durarr = agentDict[subagent][1].durarr;
+					this.opInterpreter("@" + agentarray[i*2].asString + agentarray[(i*2)+1], true);
+					this.opInterpreter( agentDict[subagent][1].scorestring.tr($",\ ), true );}
+				{3} {
+					durarr = agentDict[subagent][1].durarr;
+					Pdef(subagent).source.repeats = agentarray[(i*2)+1].asInteger; // change the repeats argument of the Pseq
+					Pdef(subagent);
+				}
+				{4} {
+					var durarrReady = false;
+					var groupPpars = [];
+					groups[subagent].do({arg subsubagent;
+						if(durarrReady.not, {durarrReady = true; durarr = agentDict[(docnum.asString++subsubagent).asSymbol][1].durarr });
+						this.opInterpreter("@" + subsubagent + agentarray[(i*2)+1], true);
+						groupPpars = groupPpars.add(this.opInterpreter( agentDict[(docnum.asString++subsubagent).asSymbol][1].scorestring.tr($",\ ), true ));
+					});
+					Pdef(subagent, Ppar(groupPpars, agentarray[(i*2)+1].asInteger)); //.quant = [quant, 0];
+				};
 			);
 		});
 		
 		groups.add(agent -> groupitems);
 
 		// -- set the general quant argument (from the first agent in a metaagent)
-		if(metaAgentDict.quant.isNil, {
-			metaAgentDict.add(\quant -> quant);
-		});
+//		if(metaAgentDict.quant.isNil, {
+//			metaAgentDict.add(\quant -> quant);
+//		});
 
 		// -- create a new agent if needed 
 		if(agentDict[agent].isNil, {
-			[\agent____in_agentDict, agent].postln;
 			agentDict[agent] = [(), ().add(\amp -> 0.5), []];
 		});
 
@@ -1869,8 +1906,10 @@ XiiLang {
 		});
 		
 		agentDict[agent][1].mode = 3;
-		agentDict[agent][1].durarr = agentDict[(docnum.asString++agentarray[0].asString).asSymbol][1].durarr;
+	//	agentDict[agent][1].durarr = agentDict[(docnum.asString++agentarray[0].asString).asSymbol][1].durarr;
+		agentDict[agent][1].durarr = durarr;
 		agentDict[agent][1].instrument = "metatrack";
+		agentDict[agent][1].scorestring = string;
 		agentDict[agent][1].playstate = true;
 		
 		Pdef(agent, Pseq(seq, repeats)); //.quant = [quant, 0];
@@ -1890,6 +1929,13 @@ XiiLang {
 			try{metaagent.agents.do({arg agentindict; if(agentindict == agent, {playNow = false }) })};
 		});
 		
+		// experimental
+		groups.do({arg group;
+			// if the agent is part of a metaAgent it is not played (so we can do "shake ringo", etc. without it being played)
+			try{group.do({arg agentname; "agentName ".post; if((docnum.asString++agentname.asString).asSymbol == agent, { playNow = false }) })};
+		});
+	
+	
 		if(morphmode.isNil, {
 			// ------------ play function --------------
 			if(proxyspace[agent].isNeutral || (repeats != inf), { // check if the object exists already
@@ -2028,7 +2074,12 @@ XiiLang {
 			// if the agent is part of a metaAgent it is not played (so we can do "shake ringo", etc. without it being played)
 			try{metaagent.agents.do({arg agentindict; if(agentindict == agent, {playNow = false }) })};
 		});
-		
+		// experimental
+		groups.do({arg group;
+			// if the agent is part of a metaAgent it is not played (so we can do "shake ringo", etc. without it being played)
+			try{group.do({arg agentname; "agentName ".post; if((docnum.asString++agentname.asString).asSymbol == agent, { playNow = false }) })};
+		});
+
 		if(instrument.asString=="midi", { eventtype = \midi }, { eventtype = \note });
 		
 		// ------------ play function --------------
@@ -2103,6 +2154,11 @@ XiiLang {
 		metaAgentDict.do({arg metaagent;
 			// if the agent is part of a metaAgent it is not played (so we can do "shake ringo", etc. without it being played)
 			try{metaagent.agents.do({arg agentindict; if(agentindict == agent, {playNow = false }) })};
+		});
+		// experimental
+		groups.do({arg group;
+			// if the agent is part of a metaAgent it is not played (so we can do "shake ringo", etc. without it being played)
+			try{group.do({arg agentname; "agentName ".post; if((docnum.asString++agentname.asString).asSymbol == agent, { playNow = false }) })};
 		});
 
 		// ------------ play function --------------
@@ -2360,7 +2416,7 @@ XiiLang {
 				}, { // this is the MAIN method for replacing operators (for all but "-" as seen above)
 					block{|break|
 						thisline[thisline.find(newarg[0])+1..thisline.size-1].do({arg item, i; 
-							if(item.isAlphaNum || (item == $~) || (item == $.), {val = val ++ item }, {end = thisline.find(newarg[0])+1+i; break.value});
+							if(item.isAlphaNum || (item == $_) || (item == $.), {val = val ++ item }, {end = thisline.find(newarg[0])+1+i; break.value});
 						});
 					};
 					
