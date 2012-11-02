@@ -88,6 +88,11 @@ MIDIClockOut (Crucial Lib -> for slaving other apps to ixi lang)
 // TODO: make a note that a particular project does not exist and that the new project was created.
 
 
+
+
+// TODO NOW : fix repeats in groups
+// - make all synthdefs panable (Pan2 & PanAz)
+
 XiiLang {	
 	classvar globaldocnum;
 	var <>doc, docnum, <doccolor, <oncolor, activecolor, offcolor, deadcolor, proxyspace, groups, score;
@@ -360,6 +365,7 @@ XiiLang {
 				Post << groups; "\n".postln;
 				
 				"-- agentDicts : ".postln;
+				Post << agentDict.keys; "\n".postln;
 				Post << agentDict; "\n".postln;
 				
 				"-- snapshotDicts : ".postln;
@@ -1219,15 +1225,59 @@ XiiLang {
 	// method invoked on alt+left arrow, for easy freeing of an agent (line)
 	freeAgent { arg string;
 		var prestring, splitloc, agent, linenr;
+		var recursionfunc;
 		linenr = doc.string[..doc.selectionStart-1].split($\n).size;
 		doc.selectLine(linenr);
 		string = string.tr($ , \);
 		splitloc = string.find("->");
 		agent = string[0..splitloc-1]; // get the name of the agent
 		agent = (docnum.asString++agent).asSymbol;
+		
+		recursionfunc = {arg subagent;
+				if(groups[subagent].isNil.not, {
+					groups[subagent].do({arg agent; "GROUP AGENT recursing : ".post; agent.postln; recursionfunc.value(agent); }); // recursion
+				}, {
+					"IN HERE".postln;
+					subagent.postln;
+					//groups[subagent].postln;
+					agentDict[(docnum.asString++subagent).asSymbol][1].playstate = false;
+					
+//					groups[subagent].do({arg agent; "GROUP AGENT".post; agent.postln; 
+//						agentDict[agent.asSymbol][1].playstate = false; 
+//						//proxyspace[agent.asSymbol].clear;
+//						agentDict[agent.asSymbol][1].postln;
+//					}); // free agent
+				});
+		};
+		// XXX need to create a recursive freeing here !!!!
+		// a group can contain a group, etc.
+		// make a recursive function within this method
+		
+		if(metaAgentDict[agent].isNil.not, {
+			"there is an agent___________ and here are the subagents:".postln;
+			metaAgentDict[agent].agents.postln;
+			metaAgentDict[agent].agents.do({arg subagent;
+				[\subagent, subagent].postln;
+				\deb0.postln;
+				//Post << agentDict;
+				if(groups[subagent].isNil.not, {
+					"DOING RECURSION".postln;
+					recursionfunc.value(subagent);
+				}, {
+					agentDict[subagent][1].playstate = false;
+				});
+				//agentDict.at(subagent.asSymbol).postln;
+				\deb1.postln;
+				// agentDict[subagent.asSymbol][1].playstate = false;
+			});
+		});
+
 		proxyspace[agent].clear;
+		
 		agentDict[agent] = nil;
+
 		metaAgentDict[agent] = nil;
+		
 
 		{doc.stringColor_(deadcolor, doc.selectionStart, doc.selectionSize)}.defer(0.1); // killed code is red
 	}
@@ -1314,10 +1364,10 @@ XiiLang {
 						};
 
 						switch(mode)
-							{0} { proxyspace[keyagentname].play; this.parseScoreMode0(dictscore, false) }
-							{1} { proxyspace[keyagentname].play; this.parseScoreMode1(dictscore, false) }
-							{2} { proxyspace[keyagentname].play; this.parseScoreMode2(dictscore, false) }
-							{3} { proxyspace[keyagentname].play; this.opInterpreter( dictscore, false ) };
+							{0} { proxyspace[keyagentname].play; this.parseScoreMode0(dictscore, false, true) }
+							{1} { proxyspace[keyagentname].play; this.parseScoreMode1(dictscore, false, true) }
+							{2} { proxyspace[keyagentname].play; this.parseScoreMode2(dictscore, false, true) }
+							{3} { proxyspace[keyagentname].play; this.opInterpreter( dictscore, false, true ) };
 						//proxyspace[keyagentname].play;
 						scoreArray = scoreArray.add([Main.elapsedTime, dictscore]); 
 
@@ -1455,7 +1505,7 @@ XiiLang {
 	}
 
 	// PERCUSSIVE MODE
-	parseScoreMode0 {arg string, return; 
+	parseScoreMode0 {arg string, return, snapshot=false; 
 		var agent, pureagent, score, splitloc, endchar, agentstring, silenceicon, silences, scorestring, timestretch=1, postfixargs;
 		var durarr, notearr, sustainarr, spacecount, instrarr, instrstring, quantphase, empty, outbus;
 		var attacksymbols, attackstartloc, attackendloc, attackstring, attackarr, panarr, transposition, repeats;
@@ -1548,11 +1598,11 @@ XiiLang {
 
 		{doc.stringColor_(oncolor, doc.selectionStart, doc.selectionSize)}.defer(0.1);  // if code is green (sleeping)
 		"------    ixi lang: Created Percussive Agent : ".post; pureagent.postln; agentDict[agent].postln;
-		^this.playScoreMode0(agent, notearr, durarr, instrarr, sustainarr, attackarr, panarr, quantphase, newInstrFlag, morphmode, repeats, return); 
+		^this.playScoreMode0(agent, notearr, durarr, instrarr, sustainarr, attackarr, panarr, quantphase, newInstrFlag, morphmode, repeats, return, snapshot); 
 	}	
 	
 	// MELODIC MODE
-	parseScoreMode1 {arg string, return;
+	parseScoreMode1 {arg string, return, snapshot=false;
 		var agent, pureagent, score, scorestartloc, splitloc, endchar, agentstring, instrument, instrstring, timestretch=1, transposition=0;
 		var prestring, silenceicon, silences, postfixargs, newInstrFlag = false;
 		var durarr, sustainarr, spacecount, notearr, notestring, quantphase, empty, outbus, repeats;
@@ -1667,12 +1717,12 @@ XiiLang {
 
 		{doc.stringColor_(oncolor, doc.selectionStart, doc.selectionSize)}.defer(0.1);  // if code is green (sleeping)
 		"------    ixi lang: Created Melodic Agent : ".post; pureagent.postln; agentDict[agent].postln;
-		^this.playScoreMode1(agent, notearr, durarr, sustainarr, attackarr, panarr, instrument, quantphase, newInstrFlag, midichannel, repeats, return); 
+		^this.playScoreMode1(agent, notearr, durarr, sustainarr, attackarr, panarr, instrument, quantphase, newInstrFlag, midichannel, repeats, return, snapshot); 
 		// this has to be below the playscore method
 	}	
 
 	// CONCRETE MODE
-	parseScoreMode2 {arg string, return;
+	parseScoreMode2 {arg string, return, snapshot=false;
 		var agent, pureagent, score, scorestartloc, splitloc, endchar, agentstring, instrument, instrstring, timestretch=1;
 		var prestring, silenceicon, silences, postfixargs, panarr, newInstrFlag;
 		var durarr, pitch, spacecount, amparr, ampstring, quantphase, empty, outbus, repeats;
@@ -1764,7 +1814,7 @@ XiiLang {
 
 		{doc.stringColor_(oncolor, doc.selectionStart, doc.selectionSize)}.defer(0.1); // if code is green (sleeping)
 		"------    ixi lang: Created Concrete Agent : ".post; pureagent.postln; agentDict[agent].postln;
-		^this.playScoreMode2(agent, pitch, amparr, durarr, panarr, instrument, quantphase, newInstrFlag, repeats, return); 
+		^this.playScoreMode2(agent, pitch, amparr, durarr, panarr, instrument, quantphase, newInstrFlag, repeats, return, snapshot); 
 		// this has to be below the playscore method
 	}	
 	
@@ -1874,12 +1924,12 @@ XiiLang {
 					durarr = agentDict[subagent][1].durarr;
 					this.opInterpreter("@" + agentarray[i*2].asString + agentarray[(i*2)+1], true);
 					this.opInterpreter( agentDict[subagent][1].scorestring.tr($",\ ), true );}
-				{3} {
+				{3} { // meta agent 
 					durarr = agentDict[subagent][1].durarr;
 					Pdef(subagent).source.repeats = agentarray[(i*2)+1].asInteger; // change the repeats argument of the Pseq
 					Pdef(subagent);
 				}
-				{4} {
+				{4} { // group (parallel)
 					var durarrReady = false;
 					var groupPpars = [];
 					groups[subagent].do({arg subsubagent;
@@ -1923,21 +1973,25 @@ XiiLang {
 
 	} 
 
-	playScoreMode0 {arg agent, notearr, durarr, instrarr, sustainarr, attackarr, panarr, quantphase, newInstrFlag, morphmode, repeats, return;
+	playScoreMode0 {arg agent, notearr, durarr, instrarr, sustainarr, attackarr, panarr, quantphase, newInstrFlag, morphmode, repeats, return, snapshot;
 		var loop, pdef, playNow;
-		agentDict[agent][1].playstate = true;
 		playNow = return.not; // if returning, then don't play
+		
+		if(snapshot.not, {
 		metaAgentDict.do({arg metaagent;
 			// if the agent is part of a metaAgent it is not played (so we can do "shake ringo", etc. without it being played)
 			try{metaagent.agents.do({arg agentindict; if(agentindict == agent, {playNow = false }) })};
 		});
 		
 		// experimental
-		groups.do({arg group;
-			// if the agent is part of a metaAgent it is not played (so we can do "shake ringo", etc. without it being played)
-			try{group.do({arg agentname; "agentName ".post; if((docnum.asString++agentname.asString).asSymbol == agent, { playNow = false }) })};
+//		groups.do({arg group;
+//			// if the agent is part of a metaAgent it is not played (so we can do "shake ringo", etc. without it being played)
+//			try{group.do({arg agentname; "agentName ".post; if((docnum.asString++agentname.asString).asSymbol == agent, { playNow = false }) })};
+//		});
 		});
-	
+		
+		if(snapshot, { playNow = true });
+	[\playNow, playNow].postln;
 	
 		if(morphmode.isNil, {
 			// ------------ play function --------------
@@ -1984,8 +2038,11 @@ XiiLang {
 								\pan, Pseq(panarr, inf)
 					)).quant = [durarr.sum, quantphase];
 					if(playNow, {
+						"DEFAULT BEHAVOUR ___________".postln;
+						"Play state ".post; agentDict[agent][1].playstate.postln;
+						
 						if(agentDict[agent][1].playstate == false, {
-							proxyspace[agent].play; //
+							proxyspace[agent].play; // this would build up synths on server on commands such as yoyo agent
 						});
 					});
 				});
@@ -2066,23 +2123,26 @@ XiiLang {
 				});
 			});
 		});
+		agentDict[agent][1].playstate = true;
 		if(return, {^pdef});
 	}
 	
-	playScoreMode1 {arg agent, notearr, durarr, sustainarr, attackarr, panarr, instrument, quantphase, newInstrFlag, midichannel=0, repeats, return;
+	playScoreMode1 {arg agent, notearr, durarr, sustainarr, attackarr, panarr, instrument, quantphase, newInstrFlag, midichannel=0, repeats, return, snapshot;
 		var pdef, playNow;
-		agentDict[agent][1].playstate = true;
 		playNow = return.not; // if returning, then don't play
+		if(snapshot.not, {
 		metaAgentDict.do({arg metaagent;
 			// if the agent is part of a metaAgent it is not played (so we can do "shake ringo", etc. without it being played)
 			try{metaagent.agents.do({arg agentindict; if(agentindict == agent, {playNow = false }) })};
 		});
 		// experimental
-		groups.do({arg group;
-			// if the agent is part of a metaAgent it is not played (so we can do "shake ringo", etc. without it being played)
-			try{group.do({arg agentname; "agentName ".post; if((docnum.asString++agentname.asString).asSymbol == agent, { playNow = false }) })};
+//		groups.do({arg group;
+//			// if the agent is part of a metaAgent it is not played (so we can do "shake ringo", etc. without it being played)
+//			try{group.do({arg agentname; "agentName ".post; if((docnum.asString++agentname.asString).asSymbol == agent, { playNow = false }) })};
+//		});
 		});
-
+		if(snapshot, { playNow = true });
+	[\playNow, playNow].postln;
 		if(instrument.asString=="midi", { eventtype = \midi }, { eventtype = \note });
 		
 		// ------------ play function --------------
@@ -2147,22 +2207,29 @@ XiiLang {
 				});
 			});
 		});
+		agentDict[agent][1].playstate = true;
 		if(return, {^pdef});
 	}
 
-	playScoreMode2 {arg agent, pitch, amparr, durarr, panarr, instrument, quantphase, newInstrFlag, repeats, return;
+	playScoreMode2 {arg agent, pitch, amparr, durarr, panarr, instrument, quantphase, newInstrFlag, repeats, return, snapshot;
 		var pdef, playNow;
-		agentDict[agent][1].playstate = true;
 		playNow = return.not; // if returning, then don't play
+		if(snapshot.not, {
 		metaAgentDict.do({arg metaagent;
 			// if the agent is part of a metaAgent it is not played (so we can do "shake ringo", etc. without it being played)
 			try{metaagent.agents.do({arg agentindict; if(agentindict == agent, {playNow = false }) })};
 		});
 		// experimental
-		groups.do({arg group;
-			// if the agent is part of a metaAgent it is not played (so we can do "shake ringo", etc. without it being played)
-			try{group.do({arg agentname; "agentName ".post; if((docnum.asString++agentname.asString).asSymbol == agent, { playNow = false }) })};
+//		groups.do({arg group;
+//			// if the agent is part of a metaAgent it is not played (so we can do "shake ringo", etc. without it being played)
+//			try{group.do({arg agentname; "agentName ".post; if((docnum.asString++agentname.asString).asSymbol == agent, { playNow = false }) })};
+//		});
 		});
+		
+		
+		if(snapshot, { playNow = true });
+		
+			[\playNow, playNow].postln;
 
 		// ------------ play function --------------
 		if(proxyspace[agent].isNeutral || (repeats != inf), { // check if the object exists alreay
@@ -2203,6 +2270,7 @@ XiiLang {
 			//});
 		});
 		Pdef(agent).set(\amp, agentDict[agent][1].amp); // proxyspace quirk: amp set from outside
+		agentDict[agent][1].playstate = true;
 		if(return, {^pdef});
 	}
 
