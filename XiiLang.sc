@@ -44,6 +44,9 @@ TODO: Check the use of String:drop(1) and String:drop(-1)
 // gui method for getting the gui
 // bugfix: kill kills routines as well
 // added a "replace" method that replaces items in scores with new values
+// added an "insert" method that adds items in scores with new values
+// added a "remove" method that removes items in scores
+// added intoxicants for effecting the agents' musical timing ("hash", "beer", "coffee", "LSD", "detox") (this is experimental)
 // added @ (times) postfix arg (@2) will play the score twice
 // added metaagents (xx -> ~ agA 2 agB 1 ~) will play agentA twice and agentB once
 // added groups as part of meta agents, so a parallel sequence of a group can be inserted into a meta agent
@@ -64,6 +67,7 @@ TODO: Check the use of String:drop(1) and String:drop(-1)
 // FIXED BUG: the active agent is found by comparing strings in dict and on doc. (in case of many agents on doc with same name)
 // FIXED BUG: location of cursor when above agent and using future
 // FIXED BUG: nap and perk would not work in concrete mode
+// FIXED BUG: implemented Panning in all synthdefs (was neglected in some)
 
 
 // Add: ptpd support for netclocks
@@ -74,6 +78,7 @@ TODO: Check the use of String:drop(1) and String:drop(-1)
 Dependencies:
 TempoClock:sync (by f0)
 MIDIClockOut (Crucial Lib -> for slaving other apps to ixi lang)
+ixiViews (for MIDIKeyboard in the XiiLangGUI)
 */
 
 // add slide (from Array helpfile)
@@ -90,8 +95,31 @@ MIDIClockOut (Crucial Lib -> for slaving other apps to ixi lang)
 
 
 
-// TODO NOW : fix repeats in groups
+// TODO NOW : fix repeats in groups (DONE, but check)
 // - make all synthdefs panable (Pan2 & PanAz)
+// Freeall bug, recursion not working properly (try this code):
+/*
+XiiLang(txt:true)
+
+ag1 -> |b d cc cb  f  cb|@1
+
+ag2 -> |  c  c       cc |@1
+
+ag3 -> xylo[     1   5 2  1 ]@1
+ag4 -> wood[        211  5  ]@1
+
+shake cc
+
+group gr1 -> ag3 ag4
+
+ma1 -> ~ ag1 1 gr1 1 ~
+
+// when freeing the below, there is an error
+ma2 -> ~ ag1 1 ma1 1 ~
+
+*/
+
+
 
 XiiLang {	
 	classvar globaldocnum;
@@ -182,10 +210,11 @@ XiiLang {
 		});
 		englishCommands = ["group", "sequence", "future", "snapshot", "->", "))", "((", "|", "[", "{", "~", ")", 
 				"$", ">>", "<<", "tempo", "scale", "scalepush", "tuning", "tuningpush", "remind", "help", 
-				"tonality", "instr", "tonic", "grid", "kill", "doze", "perk", "nap", "shake", "swap", "replace", ">shift", 
-				"<shift", "invert", "expand", "revert", "up", "down", "yoyo", "order", "dict", "store", "load", 
-				"midiclients", "midiout", "matrix", "autocode", "coder", "twitter", "+", "-", "*", "/", "!", "^", "(", "<", "@",
-				"hash", "beer", "coffee", "LSD", "detox", "new", "gui", "savescore", "playscore", "suicide", "hotline", "newrec", "input"];  // removed "." XXX
+				"tonality", "instr", "tonic", "grid", "kill", "doze", "perk", "nap", "shake", "swap", "replace", 
+				"insert", "remove", ">shift", "<shift", "invert", "expand", "revert", "up", "down", "yoyo", 
+				"order", "dict", "store", "load", "midiclients", "midiout", "matrix", "autocode", "coder", "twitter", 
+				"+", "-", "*", "/", "!", "^", "(", "<", "@", "hash", "beer", "coffee", "LSD", "detox", "new", "gui", 
+				"savescore", "playscore", "suicide", "hotline", "newrec", "input"];  // removed "." XXX
 		
 		if(lang.isNil, { 
 			english = true; // might not need this;
@@ -883,6 +912,12 @@ XiiLang {
 			{"replace"}{
 				this.parseMethod(string);
 			}
+			{"insert"}{
+				this.parseMethod(string);
+			}
+			{"remove"}{
+				this.parseMethod(string);
+			}
 			{">shift"}{
 				this.parseMethod(string);
 			}
@@ -1235,27 +1270,21 @@ XiiLang {
 		
 		recursionfunc = {arg subagent;
 				if(groups[subagent].isNil.not, {
-					groups[subagent].do({arg agent; "GROUP AGENT recursing : ".post; agent.postln; recursionfunc.value(agent); }); // recursion
+					"---- The subagent is a group. Name : ".post; subagent.postln;
+					groups[subagent].do({arg agent; 
+						"GROUP AGENT recursing : ".post; agent.postln; 
+				 		recursionfunc.value((docnum.asString++agent).asSymbol); // recursion
+					}); 
 				}, {
-					"IN HERE".postln;
-					subagent.postln;
-					//groups[subagent].postln;
-					agentDict[(docnum.asString++subagent).asSymbol][1].playstate = false;
-					
-//					groups[subagent].do({arg agent; "GROUP AGENT".post; agent.postln; 
-//						agentDict[agent.asSymbol][1].playstate = false; 
-//						//proxyspace[agent.asSymbol].clear;
-//						agentDict[agent.asSymbol][1].postln;
-//					}); // free agent
+					"FREEING AGENT : ".post; subagent.postln;
+					proxyspace[subagent.asSymbol].clear;
+					agentDict[subagent.asSymbol][1].playstate = false;
 				});
 		};
-		// XXX need to create a recursive freeing here !!!!
-		// a group can contain a group, etc.
-		// make a recursive function within this method
-		
+
 		if(metaAgentDict[agent].isNil.not, {
-			"there is an agent___________ and here are the subagents:".postln;
-			metaAgentDict[agent].agents.postln;
+			"This is the agent : ".post; agent.post; " ... and here are the subagents:".post; metaAgentDict[agent].agents.postln;
+			
 			metaAgentDict[agent].agents.do({arg subagent;
 				[\subagent, subagent].postln;
 				\deb0.postln;
@@ -1264,6 +1293,8 @@ XiiLang {
 					"DOING RECURSION".postln;
 					recursionfunc.value(subagent);
 				}, {
+					"FREEING AGENT __ : ".post; subagent.postln;
+					proxyspace[subagent].clear;
 					agentDict[subagent][1].playstate = false;
 				});
 				//agentDict.at(subagent.asSymbol).postln;
@@ -1273,11 +1304,8 @@ XiiLang {
 		});
 
 		proxyspace[agent].clear;
-		
 		agentDict[agent] = nil;
-
 		metaAgentDict[agent] = nil;
-		
 
 		{doc.stringColor_(deadcolor, doc.selectionStart, doc.selectionSize)}.defer(0.1); // killed code is red
 	}
@@ -1937,7 +1965,7 @@ XiiLang {
 						this.opInterpreter("@" + subsubagent + agentarray[(i*2)+1], true);
 						groupPpars = groupPpars.add(this.opInterpreter( agentDict[(docnum.asString++subsubagent).asSymbol][1].scorestring.tr($",\ ), true ));
 					});
-					Pdef(subagent, Ppar(groupPpars, agentarray[(i*2)+1].asInteger)); //.quant = [quant, 0];
+					Pdef(subagent, Ppar(groupPpars, 1)); //.quant = [quant, 0];
 				};
 			);
 		});
@@ -2843,6 +2871,27 @@ XiiLang {
 						});
 					}, {
 						score = score.collect({arg char; if(char.isAlphaNum, {9.rand}, {char})});
+					});
+					// -------- put it back in place ----------
+					this.swapString(doc, pureagentname, score, [true, true, true]);
+				}
+				{"insert"} { 
+					var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+					// -------- perform the method -----------
+					if(scoremode == 0, {
+						score = score.collect({arg char; if((char == Char.space) && 0.5.coin, {chars.choose}, {char})});
+					}, {
+						score = score.collect({arg char; if((char == Char.space) && 0.5.coin, {9.rand}, {char})});
+					});
+					// -------- put it back in place ----------
+					this.swapString(doc, pureagentname, score, [true, true, true]);
+				}
+				{"remove"} { 
+					// -------- perform the method -----------
+					if(scoremode == 0, {
+						score = score.collect({arg char; if((char != Char.space) && 0.5.coin, {Char.space}, {char}) });
+					}, {
+						score = score.collect({arg char; if((char != Char.space) && 0.5.coin, {Char.space}, {char}) });
 					});
 					// -------- put it back in place ----------
 					this.swapString(doc, pureagentname, score, [true, true, true]);
