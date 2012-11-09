@@ -835,7 +835,7 @@ XiiLang {
 								agentDict[sequenceagent][1].score = score;
 								agentDict[sequenceagent][1].quantphase = quantphase;
 								doc.string_(doc.string.replace(originalstring, fullscore++"\n"));
-								this.playScoreMode0(sequenceagent, notearr, durarr, instrarr, sustainarr, attackarr, panarr, quantphase, newInstrFlag, agentDict[sequenceagent][1].morphmode, false);
+								this.playScoreMode0(sequenceagent, notearr, durarr, instrarr, sustainarr, attackarr, panarr, quantphase, newInstrFlag, agentDict[sequenceagent][1].morphmode, agentDict[sequenceagent][1].repeats, false);
 						}
 						{1} {
 
@@ -867,7 +867,7 @@ XiiLang {
 								agentDict[sequenceagent][1].quantphase = quantphase;
 							
 								doc.string_(doc.string.replace(originalstring, fullscore++"\n"));
-								this.playScoreMode1(sequenceagent, notearr, durarr, sustainarr, attackarr, panarr, instrument, quantphase, newInstrFlag);
+								this.playScoreMode1(sequenceagent, notearr, durarr, sustainarr, attackarr, panarr, instrument, quantphase, newInstrFlag, agentDict[sequenceagent][1].repeats, false);
 						}
 						{2} {
 							seqagents.do({arg agent, i;
@@ -892,7 +892,7 @@ XiiLang {
 								agentDict[sequenceagent][1].score = score;
 								agentDict[sequenceagent][1].quantphase = quantphase;
 								doc.string_(doc.string.replace(originalstring, fullscore++"\n"));
-								this.playScoreMode2(sequenceagent, amparr, durarr, panarr, instrument, quantphase, newInstrFlag);
+								this.playScoreMode2(sequenceagent, amparr, durarr, panarr, instrument, quantphase, newInstrFlag, agentDict[sequenceagent][1].repeats, false);
 						};
 				});				
 			}
@@ -2397,20 +2397,20 @@ XiiLang {
 		agent = agentstring[0..agentstring.size-1];
 		agent = (docnum.asString++agent).asSymbol;
 		dict = agentDict[agent][1];
-		if(groups.at(agent).isNil.not, { // the "agent" is a group
-			groups.at(agent).do({arg agentx, i;
+		if(groups[agent].isNil.not, { // the "agent" is a group
+			groups[agent].do({arg agentx, i;
 				this.increaseAmp(agentx++"))"); // recursive calling of this same method
 			});
-		}, {				
+		}, {			
 			amp = agentDict[agent][1].amp;
 			amp = (amp + 0.05).clip(0, 2);
 			(" --->    ixi lang : AMP in agent "++agent.asString++" : ").post; amp.postln;
 			agentDict[agent][1].amp = amp;
 			switch(agentDict[agent][1].mode)
 				{0} { this.playScoreMode0(agent, dict.notearr, dict.durarr, dict.instrarr, dict.sustainarr, dict.attackarr, dict.panarr, 
-					dict.quantphase, false, dict.morphmode, dict.repeats, false); }
+					dict.quantphase, false, dict.morphmode, dict.repeats, false, false); }
 				{1} { this.playScoreMode1(agent, dict.notearr, dict.durarr, dict.sustainarr, dict.attackarr, dict.panarr, dict.instrument, 
-					dict.quantphase, false, dict.midichannel, dict.repeats, false); }
+					dict.quantphase, false, dict.midichannel, dict.repeats, false, false); }
 				{2} { Pdef(agent).set(\amp, amp) };
 		});
 	}
@@ -2425,8 +2425,8 @@ XiiLang {
 		agent = agentstring[0..agentstring.size-1];
 		agent = (docnum.asString++agent).asSymbol;
 		dict = agentDict[agent][1];
-		if(groups.at(agent).isNil.not, { // the "agent" is a group
-			groups.at(agent).do({arg agentx, i;
+		if(groups[agent].isNil.not, { // the "agent" is a group
+			groups[agent].do({arg agentx, i;
 				this.decreaseAmp(agentx++"(("); // recursive calling of this same method
 			});
 		}, {
@@ -2436,9 +2436,9 @@ XiiLang {
 			agentDict[agent][1].amp = amp;
 			switch(agentDict[agent][1].mode)
 				{0} { this.playScoreMode0(agent, dict.notearr, dict.durarr, dict.instrarr, dict.sustainarr, dict.attackarr, dict.panarr, 
-					dict.quantphase, false, dict.morphmode, dict.repeats, false); }
+					dict.quantphase, false, dict.morphmode, dict.repeats, false, false); }
 				{1} { this.playScoreMode1(agent, dict.notearr, dict.durarr, dict.sustainarr, dict.attackarr, dict.panarr, dict.instrument, 
-					dict.quantphase, false, dict.midichannel, dict.repeats, false); }
+					dict.quantphase, false, dict.midichannel, dict.repeats, false, false); }
 				{2} { Pdef(agent).set(\amp, amp) };
 		});
 	}
