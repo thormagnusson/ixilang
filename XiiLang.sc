@@ -139,6 +139,8 @@ XiiLang {
 	}
 		
 	initXiiLang {arg project, keyarg, txt, newdoc, lang, dicts, score, numChannels;
+		"project, keyarg, txt, newdoc, lang, dicts, score, numChannels".postln;
+		[project, keyarg, txt, newdoc, lang, dicts, score, numChannels].postln;
 		if(score.isNil, {
 			randomseed = 1000000.rand;
 		},{
@@ -224,6 +226,8 @@ XiiLang {
 			language = XiiLangDicts.getDict(lang.asSymbol);
 			langCommands = XiiLangDicts.getList(lang.asSymbol);
 		});
+		
+		[\langCommands, langCommands].postln;
 		
 		if(score.isNil.not, {
 			this.playScore(score[1]);	
@@ -1270,36 +1274,29 @@ XiiLang {
 		
 		recursionfunc = {arg subagent;
 				if(groups[subagent].isNil.not, {
-					"---- The subagent is a group. Name : ".post; subagent.postln;
+			//		"---- The subagent is a group. Name : ".post; subagent.postln;
 					groups[subagent].do({arg agent; 
-						"GROUP AGENT recursing : ".post; agent.postln; 
+			//			"GROUP AGENT recursing : ".post; agent.postln; 
 				 		recursionfunc.value((docnum.asString++agent).asSymbol); // recursion
 					}); 
 				}, {
-					"FREEING AGENT : ".post; subagent.postln;
+			//		"FREEING AGENT : ".post; subagent.postln;
 					proxyspace[subagent.asSymbol].clear;
 					agentDict[subagent.asSymbol][1].playstate = false;
 				});
 		};
 
 		if(metaAgentDict[agent].isNil.not, {
-			"This is the agent : ".post; agent.post; " ... and here are the subagents:".post; metaAgentDict[agent].agents.postln;
+			// "This is the agent : ".post; agent.post; " ... and here are the subagents:".post; metaAgentDict[agent].agents.postln;
 			
 			metaAgentDict[agent].agents.do({arg subagent;
-				[\subagent, subagent].postln;
-				\deb0.postln;
-				//Post << agentDict;
 				if(groups[subagent].isNil.not, {
-					"DOING RECURSION".postln;
 					recursionfunc.value(subagent);
 				}, {
-					"FREEING AGENT __ : ".post; subagent.postln;
+				//	"FREEING AGENT __ : ".post; subagent.postln;
 					proxyspace[subagent].clear;
 					agentDict[subagent][1].playstate = false;
 				});
-				//agentDict.at(subagent.asSymbol).postln;
-				\deb1.postln;
-				// agentDict[subagent.asSymbol][1].playstate = false;
 			});
 		});
 
@@ -2019,7 +2016,6 @@ XiiLang {
 		});
 		
 		if(snapshot, { playNow = true });
-	[\playNow, playNow].postln;
 	
 		if(morphmode.isNil, {
 			// ------------ play function --------------
@@ -2066,9 +2062,6 @@ XiiLang {
 								\pan, Pseq(panarr, inf)
 					)).quant = [durarr.sum, quantphase];
 					if(playNow, {
-						"DEFAULT BEHAVOUR ___________".postln;
-						"Play state ".post; agentDict[agent][1].playstate.postln;
-						
 						if(agentDict[agent][1].playstate == false, {
 							proxyspace[agent].play; // this would build up synths on server on commands such as yoyo agent
 						});
@@ -2170,7 +2163,6 @@ XiiLang {
 //		});
 		});
 		if(snapshot, { playNow = true });
-	[\playNow, playNow].postln;
 		if(instrument.asString=="midi", { eventtype = \midi }, { eventtype = \note });
 		
 		// ------------ play function --------------
@@ -2257,8 +2249,6 @@ XiiLang {
 		
 		if(snapshot, { playNow = true });
 		
-			[\playNow, playNow].postln;
-
 		// ------------ play function --------------
 		if(proxyspace[agent].isNeutral || (repeats != inf), { // check if the object exists alreay
 			proxyspace[agent].free; // needed because of repeats (free proxyspace timing)
@@ -2710,7 +2700,6 @@ XiiLang {
 						}, { // it is just a nap for n seconds and then reawake
 						 	{
 								napdur = argument.asFloat;
-					 			[\eventplayer, proxyspace[agent].objects[0].array[0]].postln;
 					 			proxyspace[agent].objects[0].array[0].mute;
 								{doc.stringColor_(offcolor, stringstart, stringend-stringstart)}.defer;
 								napdur.wait;
@@ -2756,7 +2745,6 @@ XiiLang {
 			// -------------   Perform methods - the ixi lang verbs
 			switch(method) 
 				{"doze"} {// pause stream
-					[\doze_agent, agent].postln;
 					if(agentDict[agent][1].playstate == true, {
 						agentDict[agent][1].playstate = false;
 						//if(agentDict[agent][1].mode == 2, { // mode 2 would not mute/unmute

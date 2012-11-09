@@ -23,8 +23,8 @@ p.p13 {margin: 0.0px 0.0px 0.0px 57.0px; text-indent: -57.0px; font: 9.0px Monac
 p.p14 {margin: 0.0px 0.0px 0.0px 57.0px; text-indent: -57.0px; font: 9.0px Monaco; color: #606060}
 p.p15 {margin: 0.0px 0.0px 0.0px 57.0px; text-indent: -57.0px; font: 14.0px Helvetica; min-height: 17.0px}
 p.p16 {margin: 0.0px 0.0px 0.0px 57.0px; text-indent: -57.0px; font: 14.0px Helvetica}
-p.p17 {margin: 0.0px 0.0px 0.0px 0.0px; font: 9.0px Monaco}
-p.p18 {margin: 0.0px 0.0px 0.0px 0.0px; font: 14.0px Helvetica; min-height: 17.0px}
+p.p17 {margin: 0.0px 0.0px 0.0px 0.0px; font: 14.0px Helvetica; min-height: 17.0px}
+p.p18 {margin: 0.0px 0.0px 0.0px 0.0px; font: 9.0px Monaco}
 p.p19 {margin: 0.0px 0.0px 0.0px 0.0px; font: 9.0px Monaco; color: #cd1713}
 p.p20 {margin: 0.0px 0.0px 0.0px 0.0px; font: 9.0px Monaco; color: #102ac3; min-height: 12.0px}
 p.p21 {margin: 0.0px 0.0px 0.0px 0.0px; font: 9.0px Monaco; color: #102ac3}
@@ -32,21 +32,22 @@ p.p22 {margin: 0.0px 0.0px 0.0px 0.0px; font: 9.0px Monaco; color: #cd1713; min-
 p.p23 {margin: 0.0px 0.0px 0.0px 0.0px; font: 9.0px Monaco; color: #737373}
 span.s1 {font: 18.0px Helvetica}
 span.s2 {text-decoration: underline ; color: #5d5e7c}
-span.s3 {color: #000000}
-span.s4 {color: #0e17b6}
-span.s5 {font: 14.0px Helvetica}
-span.s6 {font: 12.0px Helvetica}
-span.s7 {text-decoration: underline ; color: #1636ee}
-span.s8 {color: #102ac2}
-span.s9 {color: #cd1713}
-span.s10 {color: #102ac3}
-span.s11 {color: #737373}
+span.s3 {text-decoration: underline ; color: #144fae}
+span.s4 {color: #000000}
+span.s5 {color: #0e17b6}
+span.s6 {font: 14.0px Helvetica}
+span.s7 {font: 12.0px Helvetica}
+span.s8 {text-decoration: underline ; color: #1636ee}
+span.s9 {color: #102ac2}
+span.s10 {color: #cd1713}
+span.s11 {color: #102ac3}
+span.s12 {color: #737373}
 span.Apple-tab-span {white-space:pre}
 </style>
 </head>
 <body>
 <p class="p1"><br></p>
-<p class="p2"><span class="s1"><b>XiiLang<span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span></b></span><b>a live coding language interpreter</b><span class="s1"><b><span class="Apple-tab-span">	</span></b></span>-<span class="Apple-converted-space">  </span><b>version 3 : November 2011</b></p>
+<p class="p2"><span class="s1"><b>XiiLang<span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span></b></span><b>a live coding language interpreter</b><span class="s1"><b><span class="Apple-tab-span">	</span></b></span>-<span class="Apple-converted-space">  </span><b>version 4 : November 2012</b></p>
 <p class="p3"><br></p>
 <p class="p3"><br></p>
 <p class="p2">The ixi lang live coding environment is a simple visual system presenting a high entry-level control over synth definitions and samples in SuperCollider. The core idea is to represent events in a spatial layout, thus merging musical code and musical scores. The score of an ixi lang agent is reactive, i.e., if a method is performed upon the score, it changes in real time.</p>
@@ -56,12 +57,22 @@ span.Apple-tab-span {white-space:pre}
 <p class="p4"><br></p>
 <p class="p2">Further explanation below, but videos can be found on <a href="http://www.vimeo.com/ixi"><span class="s2">www.vimeo.com/ixi</span></a></p>
 <p class="p2">A paper on ixi lang for the 2011 ICMC conference can be found here <a href="http://www.ixi-audio.net/thor"><span class="s2">www.ixi-audio.net/thor</span></a></p>
-<p class="p2">For more information and feedback contact: <a href="mailto:thor@ixi-audio.net"><span class="s2">thor@ixi-audio.net</span></a></p>
+<p class="p2">For more information and feedback contact: <a href="mailto:thor@ixi-audio.net"><span class="s2">thor@ixi-audio.net</span></a><span class="s2"> </span>and updates on ixi lang (+ other stuff) here <a href="http://www.twitter.com/thormagnusson"><span class="s3">http://www.twitter.com/thormagnusson</span></a></p>
 <p class="p4"><br></p>
 <p class="p4"><br></p>
 <p class="p5"><b>Folder structure of ixi lang:</b></p>
 <p class="p4"><br></p>
-<p class="p2">The ixi lang app (or your SuperCollider app) will have a folder called "ixilang" next to it. In there you keep your projects. The project name is the name you give the folder inside ixi lang. Each project can have the following items: colors.ixi (a file storing the color values of your coding envrionment); keyMapping.ixi (a document storing the mapping between keys and samples); recordings folder (where recordings will appear if you use the "rec" button); samples folder (where you keep your short samples that you map to the keys of the keyboard); scores folder (where scores are saved); sessions folder (where environments are stored); and a synthdefs.scd file where you can put synth definitions that will appear in the key mapping GUI).</p>
+<p class="p2">The ixi lang app (or your SuperCollider app) will have a folder called "ixilang" next to it. In there you keep your projects. The project name is the name you give the folder inside the ixilang folder. Each project will have the following items:<span class="Apple-converted-space"> </span></p>
+<p class="p4"><br></p>
+<p class="p2"><span class="Apple-tab-span">	</span>- colors.ixi (a file storing the color values of your coding envrionment);<span class="Apple-converted-space"> </span></p>
+<p class="p2"><span class="Apple-tab-span">	</span>- keyMapping.ixi (a document storing the mapping between keys and samples);<span class="Apple-converted-space"> </span></p>
+<p class="p2"><span class="Apple-tab-span">	</span>- recordings folder (where recordings will appear if you use the "rec" button);<span class="Apple-converted-space"> </span></p>
+<p class="p2"><span class="Apple-tab-span">	</span>- samples folder (where you keep your short samples that you map to the keys of the keyboard);<span class="Apple-converted-space"> </span></p>
+<p class="p2"><span class="Apple-tab-span">	</span>- scores folder (where scores are saved); sessions folder (where environments are stored);<span class="Apple-converted-space"> </span></p>
+<p class="p2"><span class="Apple-tab-span">	</span>- synthdefs.scd file where you can put synth definitions that will appear in the key mapping GUI).</p>
+<p class="p2"><span class="Apple-tab-span">	</span>- livesamples folder (where samples are recorded in a live situation)</p>
+<p class="p4"><br></p>
+<p class="p2">Each project (or do you want to call it a "piece"?) can therefore have its own colour code, samples and key mappings.</p>
 <p class="p4"><br></p>
 <p class="p4"><br></p>
 <p class="p5"><b>Having Problems? Here is a quick troubleshooting:</b></p>
@@ -73,9 +84,11 @@ span.Apple-tab-span {white-space:pre}
 <p class="p4"><br></p>
 <p class="p2">The ixi lang presents three different modes in ixi lang: melodic mode, rhythmic mode and concrète mode.</p>
 <p class="p4"><br></p>
-<p class="p6"><span class="s3">agentname<span class="Apple-converted-space">  </span>-&gt; <span class="Apple-converted-space">  </span>marimba[1<span class="Apple-converted-space">    </span>4<span class="Apple-converted-space">    </span>3<span class="Apple-converted-space">    </span>2<span class="Apple-converted-space">    </span>]<span class="Apple-converted-space">  </span></span>// square brackets indicate melodic score (synthesis or samples)</p>
-<p class="p6"><span class="s3">agentname<span class="Apple-converted-space">  </span>-&gt; <span class="Apple-converted-space">  </span>|o <span class="Apple-converted-space">  </span>x<span class="Apple-converted-space">    </span>o s x <span class="Apple-converted-space">  </span>| <span class="Apple-converted-space">  <span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span></span></span>// the "|" symbol indicates percussive score (samples or synthesis)</p>
-<p class="p6"><span class="s3">agentname<span class="Apple-converted-space">  </span>-&gt; <span class="Apple-converted-space">  </span>sndname{0 <span class="Apple-converted-space">  </span>1 <span class="Apple-converted-space">  </span>2 <span class="Apple-converted-space">  </span>8 <span class="Apple-converted-space">  </span>}<span class="Apple-tab-span">	</span></span>// curly brackets indicate concrète score (samples)</p>
+<p class="p6"><span class="s4">agentname<span class="Apple-converted-space">  </span>-&gt; <span class="Apple-converted-space">  </span>marimba[1<span class="Apple-converted-space">    </span>4<span class="Apple-converted-space">    </span>3<span class="Apple-converted-space">    </span>2<span class="Apple-converted-space">    </span>]<span class="Apple-converted-space">  </span></span>// square brackets indicate melodic score (synthesis or samples)</p>
+<p class="p6"><span class="s4">agentname<span class="Apple-converted-space">  </span>-&gt; <span class="Apple-converted-space">  </span>|o <span class="Apple-converted-space">  </span>x<span class="Apple-converted-space">    </span>o s x <span class="Apple-converted-space">  </span>| <span class="Apple-converted-space">  <span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span></span></span>// the "|" symbol indicates percussive score (samples or synthesis)</p>
+<p class="p6"><span class="s4">agentname<span class="Apple-converted-space">  </span>-&gt; <span class="Apple-converted-space">  </span>sndname{0 <span class="Apple-converted-space">  </span>1 <span class="Apple-converted-space">  </span>2 <span class="Apple-converted-space">  </span>8 <span class="Apple-converted-space">  </span>}<span class="Apple-tab-span">	</span></span>// curly brackets indicate concrète score (samples)</p>
+<p class="p4"><br></p>
+<p class="p2">NOTE: for non-programmers the "|" symbol is a vertical bar, often called a pipe and should not be confused with a lowercase "L". For programmers, it's the symbol you use for OR (or "||").</p>
 <p class="p4"><br></p>
 <p class="p2">In general, when running a command use one space between words. Good practice is the following:</p>
 <p class="p4"><br></p>
@@ -89,10 +102,10 @@ span.Apple-tab-span {white-space:pre}
 <p class="p10"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><b>project name </b>- The name of your project. Represents a folder name. Default value is "default".</p>
 <p class="p10"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><b>key </b>- The key of the session (important if playing with other instrumentalists). Default value is "C".</p>
 <p class="p9"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span></p>
-<p class="p11"><span class="s3"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span></span>// inline example</p>
-<p class="p12"><span class="s3"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span></span>XiiLang<span class="s3">();</span></p>
+<p class="p11"><span class="s4"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span></span>// inline example</p>
+<p class="p12"><span class="s4"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span></span>XiiLang<span class="s4">();</span></p>
 <p class="p13"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>or<span class="Apple-tab-span">	</span></p>
-<p class="p14"><span class="s3"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span></span><span class="s4">XiiLang</span><span class="s3">.new(</span>"yourprojectname"<span class="s3">, </span>"E"<span class="s3">);</span></p>
+<p class="p14"><span class="s4"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span></span><span class="s5">XiiLang</span><span class="s4">.new(</span>"yourprojectname"<span class="s4">, </span>"E"<span class="s4">);</span></p>
 <p class="p15"><br></p>
 <p class="p15"><br></p>
 <p class="p16"><b>Getting help in ixi lang (type command and ixi evaluate):</b></p>
@@ -154,8 +167,8 @@ span.Apple-tab-span {white-space:pre}
 <p class="p8"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>The percussive score can create various types of timbral transitions between the sonic events in<span class="Apple-converted-space"> </span></p>
 <p class="p8"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>the score. The available transitions are: morph, fade, wipe, minus, common, binwipe, copy, mul,<span class="Apple-converted-space"> </span></p>
 <p class="p8"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>subtract, rand, smear, comb, low, band. Those can be used with the sound looping or playing<span class="Apple-converted-space"> </span></p>
-<p class="p8"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>only once, using the @ symbol.<span class="Apple-converted-space"> </span></p>
-<p class="p8"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>(e.g., <span class="Apple-converted-space">  </span>ringo -&gt;<span class="Apple-converted-space">  </span>morph|a <span class="Apple-converted-space">  </span>b <span class="Apple-converted-space">  </span>c <span class="Apple-converted-space">  </span>d <span class="Apple-converted-space">  </span>|<span class="Apple-converted-space">    </span>(not looping)<span class="Apple-converted-space">    </span>or <span class="Apple-converted-space">    </span>ringo -&gt;<span class="Apple-converted-space">  </span>fade@|a <span class="Apple-converted-space">  </span>b <span class="Apple-converted-space">  </span>c <span class="Apple-converted-space">  </span>d <span class="Apple-converted-space">  </span>|)</p>
+<p class="p8"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>only once, using the % symbol.<span class="Apple-converted-space"> </span></p>
+<p class="p8"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>(e.g., <span class="Apple-converted-space">  </span>ringo -&gt;<span class="Apple-converted-space">  </span>morph|a <span class="Apple-converted-space">  </span>b <span class="Apple-converted-space">  </span>c <span class="Apple-converted-space">  </span>d <span class="Apple-converted-space">  </span>|<span class="Apple-converted-space">    </span>(not looping)<span class="Apple-converted-space">    </span>or <span class="Apple-converted-space">    </span>ringo -&gt;<span class="Apple-converted-space">  </span>fade%|a <span class="Apple-converted-space">  </span>b <span class="Apple-converted-space">  </span>c <span class="Apple-converted-space">  </span>d <span class="Apple-converted-space">  </span>|)</p>
 <p class="p9"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span></p>
 <p class="p8"><b><span class="Apple-tab-span">	</span>{ ... }<span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>Concrete score</b>. Here longer samples can be played and their amplitude controlled.</p>
 <p class="p8"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>Spaces (or full stops - new in v3)<span class="Apple-converted-space">  </span>do not represent silence. Additional arguments are<span class="Apple-converted-space"> </span></p>
@@ -164,21 +177,30 @@ span.Apple-tab-span {white-space:pre}
 <p class="p8"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>&lt;&gt; for panning (1 being the left speaker, 5 middle and 9 the right speaker, e.g, &lt;15289&gt;)</p>
 <p class="p15"><br></p>
 <p class="p15"><br></p>
+<p class="p16"><b>Meta agents (new in version 4)</b></p>
+<p class="p15"><br></p>
+<p class="p8"><b><span class="Apple-tab-span">	</span>~ ... ~<span class="Apple-tab-span">	</span>Meta agents</b>. Here agents (and groups or other meta agents) can be sequenced. An argument</p>
+<p class="p8"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>is provided for how many times it is repeated. Example: <span class="Apple-converted-space">  </span>mymeta -&gt; ~ agA 2 agB 4 ~</p>
+<p class="p9"><br></p>
+<p class="p9"><br></p>
+<p class="p9"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span></p>
 <p class="p16"><b>Post-score operators in ixi lang:</b></p>
 <p class="p15"><br></p>
 <p class="p8"><span class="Apple-tab-span">	</span><b>!<span class="Apple-tab-span">	</span></b>Will create a silent part in the score according to the argument given. (e.g., !16 is sixteen silent notes)</p>
 <p class="p9"><span class="Apple-tab-span">	</span></p>
-<p class="p8"><span class="Apple-tab-span">	</span>+<span class="Apple-tab-span">	</span>Transpose the score in MIDI notes. (for example +7 will be a fifth higher than the note written, and -12 will be octave lower).</p>
+<p class="p8"><span class="Apple-tab-span">	</span>+<span class="Apple-tab-span">	</span>Transpose the score in MIDI notes. (for example +7 will be a fifth higher than the note written, and -12 will be an octave lower).</p>
 <p class="p9"><span class="Apple-tab-span">	</span></p>
 <p class="p8"><span class="Apple-tab-span">	</span>*<span class="Apple-converted-space">  <span class="Apple-tab-span">	</span></span>Will multiply the duration of the array (not note lengths in the array).</p>
 <p class="p9"><span class="Apple-tab-span">	</span></p>
 <p class="p8"><span class="Apple-tab-span">	</span>/<span class="Apple-converted-space">  <span class="Apple-tab-span">	</span></span>Will divide the duration of the array (not note lengths in the array).</p>
 <p class="p9"><br></p>
-<p class="p8"><span class="Apple-tab-span">	</span>()<span class="Apple-tab-span">	</span>Arguments in brackets are note sustain. (1 is one beat, 2 is half, 4 quarter and 8 is eight). Can be multiplied with the ~ symbol, so (1~4) is a whole note in a 4/4 time signature.</p>
+<p class="p8"><span class="Apple-tab-span">	</span>()<span class="Apple-tab-span">	</span>Arguments in brackets are note sustain. (1 is one beat, 2 is half, 4 quarter and 8 is eight). Can be multiplied with the _ symbol, so (1_4) is a whole note in a 4/4 time signature.</p>
 <p class="p9"><span class="Apple-tab-span">	</span></p>
 <p class="p8"><span class="Apple-tab-span">	</span>^<span class="Apple-tab-span">	</span>Arguments in caret symbols are accents (9 is highest amplitude, 0 is silence). This is relative to the agent's general amplitude.</p>
 <p class="p15"><br></p>
 <p class="p8"><span class="Apple-tab-span">	</span>&lt;&gt;<span class="Apple-tab-span">	</span>Arguments between arrows are panning (1 is left, 5 is centre, 9 is right ).</p>
+<p class="p15"><br></p>
+<p class="p8"><span class="Apple-tab-span">	</span>@<span class="Apple-tab-span">	</span>Number of times the agent will play. Example: oo -&gt; wood[1 3 2<span class="Apple-converted-space">  </span>4 ]@4</p>
 <p class="p15"><br></p>
 <p class="p15"><br></p>
 <p class="p16"><b>Methods of ixi lang (put in front of agents, as in verb-noun-adjective):</b></p>
@@ -194,8 +216,12 @@ span.Apple-tab-span {white-space:pre}
 <p class="p9"><br></p>
 <p class="p8"><b><span class="Apple-tab-span">	</span>swap<span class="Apple-converted-space">  <span class="Apple-tab-span">	</span></span></b>Swap items in the score of an agent</p>
 <p class="p9"><br></p>
-<p class="p8"><b><span class="Apple-tab-span">	</span>replace<span class="Apple-converted-space">  <span class="Apple-tab-span">	</span></span></b>Insert new items in the score of an agent (in place)</p>
-<p class="p9"><b></b><br></p>
+<p class="p8"><b><span class="Apple-tab-span">	</span>replace<span class="Apple-converted-space">  <span class="Apple-tab-span">	</span></span></b>Replace new items into the score of an agent (in place)</p>
+<p class="p9"><span class="Apple-tab-span">	</span></p>
+<p class="p8"><b><span class="Apple-tab-span">	</span>insert<span class="Apple-converted-space">  <span class="Apple-tab-span">	</span></span></b>Insert new items into the score of an agent (not in place)</p>
+<p class="p9"><span class="Apple-tab-span">	</span></p>
+<p class="p8"><b><span class="Apple-tab-span">	</span>remove<span class="Apple-converted-space">  <span class="Apple-tab-span">	</span></span></b>Remove items from the score of an agent</p>
+<p class="p9"><span class="Apple-tab-span">	</span></p>
 <p class="p8"><b><span class="Apple-tab-span">	</span>&gt;shift <span class="Apple-tab-span">	</span></b>Right shift the score by N number of places (e.g., &gt;shift jimi 6 )</p>
 <p class="p9"><br></p>
 <p class="p8"><b><span class="Apple-tab-span">	</span>&lt;shift <span class="Apple-tab-span">	</span></b>Left shift the score by N number of places (e.g., &lt;shift jimi 6 )</p>
@@ -221,11 +247,11 @@ span.Apple-tab-span {white-space:pre}
 <p class="p8"><span class="Apple-tab-span">	</span><b>NOTE</b> <span class="Apple-tab-span">	</span>The post score operators (above) can also be used in the syntax of these methods<span class="Apple-converted-space"> </span></p>
 <p class="p8"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>(in ixi lang "verbs") for example: <span class="Apple-converted-space">  </span>&lt; ringo 1253742 (which reads like "pan ringo<span class="Apple-converted-space"> </span></p>
 <p class="p8"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>to these locations")</p>
-<p class="p9"><span class="s5"><b><span class="Apple-converted-space"> </span></b></span><span class="Apple-tab-span">	</span></p>
-<p class="p15"><b><span class="Apple-converted-space"> </span></b><span class="s6"><span class="Apple-tab-span">	</span></span></p>
+<p class="p9"><span class="s6"><b><span class="Apple-converted-space"> </span></b></span><span class="Apple-tab-span">	</span></p>
+<p class="p15"><b><span class="Apple-converted-space"> </span></b><span class="s7"><span class="Apple-tab-span">	</span></span></p>
 <p class="p16"><b>Commands in ixi lang:</b></p>
 <p class="p15"><br></p>
-<p class="p8"><span class="Apple-tab-span">	</span><b>tonic<span class="Apple-tab-span">	</span></b>Set the tonic of the performance. (as MIDI note value)</p>
+<p class="p8"><span class="Apple-tab-span">	</span><b>tonic<span class="Apple-tab-span">	</span></b>Set the tonic of the performance (as MIDI note value)</p>
 <p class="p9"><span class="Apple-tab-span">	</span></p>
 <p class="p8"><b><span class="Apple-tab-span">	</span>scale<span class="Apple-converted-space">  <span class="Apple-tab-span">	</span></span></b>Set the scale of the performance (for all agents evaluated after this event)</p>
 <p class="p9"><br></p>
@@ -243,7 +269,7 @@ span.Apple-tab-span {white-space:pre}
 <p class="p9"><br></p>
 <p class="p8"><b><span class="Apple-tab-span">	</span>grid<span class="Apple-converted-space">  <span class="Apple-tab-span">	</span></span></b>Draw a grid with n spaces (e.g., grid 8 )</p>
 <p class="p9"><br></p>
-<p class="p8"><b><span class="Apple-tab-span">	</span>kill<span class="Apple-converted-space">  <span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span></span></b>Stop all sounds in this window</p>
+<p class="p8"><b><span class="Apple-tab-span">	</span>kill<span class="Apple-converted-space">  <span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span></span></b>Stop all sounds and future tasks of this window</p>
 <p class="p9"><span class="Apple-tab-span">	</span></p>
 <p class="p8"><b><span class="Apple-tab-span">	</span>remind<span class="Apple-converted-space">  <span class="Apple-tab-span">	</span></span></b>Get a document listing the functions of ixi lang</p>
 <p class="p9"><span class="Apple-tab-span">	</span></p>
@@ -293,6 +319,7 @@ span.Apple-tab-span {white-space:pre}
 <p class="p15"><br></p>
 <p class="p8"><span class="Apple-tab-span">	</span><b>gui<span class="Apple-tab-span">	</span></b><span class="Apple-tab-span">	</span>Same as new.<span class="Apple-converted-space"> <span class="Apple-tab-span">	</span></span></p>
 <p class="p15"><br></p>
+<p class="p15"><br></p>
 <p class="p16"><b>Available Audio Effects in ixi lang (w/ hardcoded parameters):</b></p>
 <p class="p15"><br></p>
 <p class="p8"><b><span class="Apple-tab-span">	</span>reverb<span class="Apple-tab-span">	</span></b>A decent space reverb<b><span class="Apple-tab-span">	</span></b></p>
@@ -327,9 +354,19 @@ span.Apple-tab-span {white-space:pre}
 <p class="p2">The agent is assigned a score by hitting alt + arrow keys. Any arrow can be used, with ONE exception, where command + left arrow on an agent line will kill that agent (and turn the text red). It will not wake up with a perk command, but has to be reevaluated with commend + right.</p>
 <p class="p15"><br></p>
 <p class="p15"><br></p>
+<p class="p16"><b>Real time recording of sounds into keys</b></p>
+<p class="p15"><br></p>
+<p class="p2">By hitting "fn" and Return, a window opens up that tells you to press any key to record a new sound "into it". You simply hold down the key and it records until you release the key. The sounds will be stored in the "livesamples" folder, so if you want to use them at a later stage, you move them into the samples folder and map them to the key you want.</p>
+<p class="p4"><br></p>
+<p class="p15"><br></p>
+<p class="p16"><b>Tempo tapping</b></p>
+<p class="p15"><br></p>
+<p class="p2">You can set the tempo of ixi lang by tapping on the keyboard. Just hold down ctrl and then start tapping on the "," key until you want to stop and then indicate that with the "." key (on a UK keyboard thesa are also the "&lt;" and "&gt;" keys). The tempo will then be calculated and set.<span class="Apple-converted-space"> </span></p>
+<p class="p4"><br></p>
+<p class="p17"><br></p>
 <p class="p16"><b>On XiiLangInstr</b></p>
 <p class="p15"><br></p>
-<p class="p2"><b>See:</b> <a href="../Core/Object.html"><span class="s7">XiiLangInstr</span></a><b> (highlight and hit alt+y to view)</b></p>
+<p class="p2"><b>See:</b> <a href="../Core/Object.html"><span class="s8">XiiLangInstr</span></a><b> (highlight and hit alt+y to view)</b></p>
 <p class="p15"><br></p>
 <p class="p2">The ixi lang instruments class stores the available instruments. Synthdefs are added when the class is run, but you can use any pattern-ready synth definition you have on your system. Synth Definitions are mapped onto keys on the keyboard, and when the language is run it creates synth definitions with the same names as your samples. This mapping is random unless a special keyMapping.ixi file is present in the sample folder where keys are mapped to the NAME of the sound. Mono and short sounds are ideal.</p>
 <p class="p4"><br></p>
@@ -350,156 +387,156 @@ span.Apple-tab-span {white-space:pre}
 <p class="p4"><br></p>
 <p class="p2">The following variables are available as globals and make it possible to create complex patterns.</p>
 <p class="p3"><br></p>
-<p class="p17"><span class="Apple-tab-span">	</span>~instr = <span class="s8">\string</span>; <span class="Apple-tab-span">	</span>// set the instrument to string</p>
-<p class="p17"><span class="Apple-tab-span">	</span>~note<span class="Apple-converted-space">  </span>= <span class="s8">60</span>;<span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>// the note value of the instrument</p>
-<p class="p17"><span class="Apple-tab-span">	</span>~amp <span class="Apple-converted-space">  </span>= <span class="s8">0.5</span>;<span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>// amplitude</p>
-<p class="p17"><span class="Apple-tab-span">	</span>~wait<span class="Apple-converted-space">  </span>= <span class="s8">0.25</span>;<span class="Apple-tab-span">	</span>// how long the agent waits on this cell</p>
-<p class="p17"><span class="Apple-tab-span">	</span>~nextX = <span class="s8">3</span>;<span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>// which X (horizontal column to enter next)</p>
-<p class="p17"><span class="Apple-tab-span">	</span>~nextY = <span class="s8">1</span>;<span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>// which Y (vertical row to enter next)</p>
-<p class="p18"><br></p>
+<p class="p18"><span class="Apple-tab-span">	</span>~instr = <span class="s9">\string</span>; <span class="Apple-tab-span">	</span>// set the instrument to string</p>
+<p class="p18"><span class="Apple-tab-span">	</span>~note<span class="Apple-converted-space">  </span>= <span class="s9">60</span>;<span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>// the note value of the instrument</p>
+<p class="p18"><span class="Apple-tab-span">	</span>~amp <span class="Apple-converted-space">  </span>= <span class="s9">0.5</span>;<span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>// amplitude</p>
+<p class="p18"><span class="Apple-tab-span">	</span>~wait<span class="Apple-converted-space">  </span>= <span class="s9">0.25</span>;<span class="Apple-tab-span">	</span>// how long the agent waits on this cell</p>
+<p class="p18"><span class="Apple-tab-span">	</span>~nextX = <span class="s9">3</span>;<span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>// which X (horizontal column to enter next)</p>
+<p class="p18"><span class="Apple-tab-span">	</span>~nextY = <span class="s9">1</span>;<span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>// which Y (vertical row to enter next)</p>
+<p class="p17"><br></p>
 <p class="p2">In the sccode: field, this can be coded using the SC lang (the language of SuperCollider):</p>
 <p class="p3"><span class="Apple-tab-span">	</span></p>
-<p class="p17"><span class="Apple-tab-span">	</span>~nextX = <span class="s8">5.rand</span>;<span class="Apple-tab-span">	</span></p>
+<p class="p18"><span class="Apple-tab-span">	</span>~nextX = <span class="s9">5.rand</span>;<span class="Apple-tab-span">	</span></p>
 <p class="p15"><br></p>
 <p class="p2">The Matrix is a bit of a riddle. You have to explore it yourself!</p>
-<p class="p18"><br></p>
+<p class="p17"><br></p>
 <p class="p15"><br></p>
 <p class="p16"><b>Example of a ixi lang session with comments<span class="Apple-converted-space"> </span></b></p>
 <p class="p3"><br></p>
 <p class="p19">// remove comments and run this line in an EMPTY document and the ixi lang interpreter is launched (here you use SHIFT + RETURN)</p>
 <p class="p19">// or better use the demosession.scd file within the ixi lang folder</p>
 <p class="p20"><br></p>
-<p class="p21">XiiLang<span class="s3">(txt:</span>true<span class="s3">)<span class="Apple-converted-space"> <span class="Apple-tab-span">	</span></span></span></p>
+<p class="p21">XiiLang<span class="s4">(txt:</span>true<span class="s4">)<span class="Apple-converted-space"> <span class="Apple-tab-span">	</span></span></span></p>
 <p class="p3"><br></p>
-<p class="p19"><span class="s3">tuning just<span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span></span>// choose a tuning (remember to use the ixi lang evaluation (Alt + right arrow)</p>
-<p class="p19"><span class="s3">scale minor<span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span></span>// set the scale</p>
+<p class="p19"><span class="s4">tuning just<span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span></span>// choose a tuning (remember to use the ixi lang evaluation (Alt + right arrow)</p>
+<p class="p19"><span class="s4">scale minor<span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span></span>// set the scale</p>
 <p class="p3"><br></p>
 <p class="p3"><br></p>
 <p class="p19">// melodic score</p>
-<p class="p19"><span class="s3">jimi <span class="Apple-converted-space">    </span>-&gt; <span class="Apple-converted-space">      </span>string[1 <span class="Apple-converted-space">  </span>2<span class="Apple-converted-space">    </span>6<span class="Apple-converted-space">    </span>2 <span class="Apple-converted-space">  </span>]<span class="Apple-converted-space">  <span class="Apple-tab-span">	</span></span></span>// here we have an agent called jimi, playing four notes</p>
+<p class="p19"><span class="s4">jimi <span class="Apple-converted-space">    </span>-&gt; <span class="Apple-converted-space">      </span>string[1 <span class="Apple-converted-space">  </span>2<span class="Apple-converted-space">    </span>6<span class="Apple-converted-space">    </span>2 <span class="Apple-converted-space">  </span>]<span class="Apple-converted-space">  <span class="Apple-tab-span">	</span></span></span>// here we have an agent called jimi, playing four notes</p>
 <p class="p3"><br></p>
-<p class="p19"><span class="s3">jimi <span class="Apple-converted-space">    </span>-&gt; <span class="Apple-converted-space">      </span>string[1 <span class="Apple-converted-space">  </span>2<span class="Apple-converted-space">    </span>6<span class="Apple-converted-space">    </span>2 <span class="Apple-converted-space">  </span>]+12<span class="Apple-converted-space">  <span class="Apple-tab-span">	</span></span></span>// same as above but transposed up an octave (MIDI notes)</p>
+<p class="p19"><span class="s4">jimi <span class="Apple-converted-space">    </span>-&gt; <span class="Apple-converted-space">      </span>string[1 <span class="Apple-converted-space">  </span>2<span class="Apple-converted-space">    </span>6<span class="Apple-converted-space">    </span>2 <span class="Apple-converted-space">  </span>]+12<span class="Apple-converted-space">  <span class="Apple-tab-span">	</span></span></span>// same as above but transposed up an octave (MIDI notes)</p>
 <p class="p3"><br></p>
-<p class="p19"><span class="s3">jimi <span class="Apple-converted-space">    </span>-&gt; <span class="Apple-converted-space">      </span>string[1 <span class="Apple-converted-space">  </span>2<span class="Apple-converted-space">    </span>6<span class="Apple-converted-space">    </span>2 <span class="Apple-converted-space">  </span>]!16<span class="Apple-converted-space">  <span class="Apple-tab-span">	</span></span></span>// ! 16 makes silence for 16 notes before playing again</p>
+<p class="p19"><span class="s4">jimi <span class="Apple-converted-space">    </span>-&gt; <span class="Apple-converted-space">      </span>string[1 <span class="Apple-converted-space">  </span>2<span class="Apple-converted-space">    </span>6<span class="Apple-converted-space">    </span>2 <span class="Apple-converted-space">  </span>]!16<span class="Apple-converted-space">  <span class="Apple-tab-span">	</span></span></span>// ! 16 makes silence for 16 notes before playing again</p>
 <p class="p3"><br></p>
-<p class="p19"><span class="s3">jimi <span class="Apple-converted-space">    </span>-&gt; <span class="Apple-converted-space">      </span>string[1 <span class="Apple-converted-space">  </span>2<span class="Apple-converted-space">    </span>6<span class="Apple-converted-space">    </span>2 <span class="Apple-converted-space">  </span>]+12!16(12) </span>// this can be combined - and alternating between whole and half notes</p>
+<p class="p19"><span class="s4">jimi <span class="Apple-converted-space">    </span>-&gt; <span class="Apple-converted-space">      </span>string[1 <span class="Apple-converted-space">  </span>2<span class="Apple-converted-space">    </span>6<span class="Apple-converted-space">    </span>2 <span class="Apple-converted-space">  </span>]+12!16(12) </span>// this can be combined - and alternating between whole and half notes</p>
 <p class="p3"><br></p>
-<p class="p19"><span class="s3">jimi <span class="Apple-converted-space">    </span>-&gt; <span class="Apple-converted-space">      </span>string[1 <span class="Apple-converted-space">  </span>2<span class="Apple-converted-space">    </span>6<span class="Apple-converted-space">    </span>2 <span class="Apple-converted-space">  </span>]+12(12~8) </span>//<span class="Apple-converted-space">  </span>alternating between whole and half notes but note sustain is multiplied by 8</p>
+<p class="p19"><span class="s4">jimi <span class="Apple-converted-space">    </span>-&gt; <span class="Apple-converted-space">      </span>string[1 <span class="Apple-converted-space">  </span>2<span class="Apple-converted-space">    </span>6<span class="Apple-converted-space">    </span>2 <span class="Apple-converted-space">  </span>]+12(12~8) </span>//<span class="Apple-converted-space">  </span>alternating between whole and half notes but note sustain is multiplied by 8</p>
 <p class="p3"><br></p>
-<p class="p17">midiclients<span class="Apple-tab-span">	</span>// want to send midi out to another app?</p>
+<p class="p18">midiclients<span class="Apple-tab-span">	</span>// want to send midi out to another app?</p>
 <p class="p3"><br></p>
-<p class="p17">midiout 2<span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>// send out on bus 2</p>
+<p class="p18">midiout 2<span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>// send out on bus 2</p>
 <p class="p3"><br></p>
-<p class="p17">jarret<span class="Apple-converted-space">  <span class="Apple-tab-span">	</span></span>-&gt; <span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>midi[1 <span class="Apple-converted-space">  </span>4 <span class="Apple-converted-space">  </span>2<span class="Apple-converted-space">  </span>1<span class="Apple-converted-space">      </span>]+12<span class="Apple-tab-span">	</span><span class="s9">// sending out midi on channel 1</span></p>
+<p class="p18">jarret<span class="Apple-converted-space">  <span class="Apple-tab-span">	</span></span>-&gt; <span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>midi[1 <span class="Apple-converted-space">  </span>4 <span class="Apple-converted-space">  </span>2<span class="Apple-converted-space">  </span>1<span class="Apple-converted-space">      </span>]+12<span class="Apple-tab-span">	</span><span class="s10">// sending out midi on channel 1</span></p>
 <p class="p3"><br></p>
-<p class="p17">jarret<span class="Apple-converted-space">  <span class="Apple-tab-span">	</span></span>-&gt; <span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>midi[1 <span class="Apple-converted-space">  </span>4 <span class="Apple-converted-space">  </span>2<span class="Apple-converted-space">  </span>1<span class="Apple-converted-space">      </span>]c5 <span class="Apple-tab-span">	</span><span class="s9">// sending out midi info on channel 5</span></p>
+<p class="p18">jarret<span class="Apple-converted-space">  <span class="Apple-tab-span">	</span></span>-&gt; <span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>midi[1 <span class="Apple-converted-space">  </span>4 <span class="Apple-converted-space">  </span>2<span class="Apple-converted-space">  </span>1<span class="Apple-converted-space">      </span>]c5 <span class="Apple-tab-span">	</span><span class="s10">// sending out midi info on channel 5</span></p>
 <p class="p3"><br></p>
-<p class="p19"><span class="s3">a -&gt; (135)<span class="Apple-tab-span">	</span></span>// a chord can be defined in brackets and assigned to a character (one letter only)</p>
+<p class="p19"><span class="s4">a -&gt; (135)<span class="Apple-tab-span">	</span></span>// a chord can be defined in brackets and assigned to a character (one letter only)</p>
 <p class="p3"><br></p>
-<p class="p19"><span class="s3">jarret -&gt; piano[1 <span class="Apple-converted-space">  </span>3 <span class="Apple-converted-space">  </span>5 <span class="Apple-converted-space">      </span>a<span class="Apple-converted-space">        </span>]<span class="Apple-tab-span">	</span></span>// the chord is then played inside the score</p>
+<p class="p19"><span class="s4">jarret -&gt; piano[1 <span class="Apple-converted-space">  </span>3 <span class="Apple-converted-space">  </span>5 <span class="Apple-converted-space">      </span>a<span class="Apple-converted-space">        </span>]<span class="Apple-tab-span">	</span></span>// the chord is then played inside the score</p>
 <p class="p3"><br></p>
-<p class="p19"><span class="s3">a -&gt; $16 <span class="Apple-tab-span">	</span></span>// 16 semitones above the fundamental</p>
+<p class="p19"><span class="s4">a -&gt; $16 <span class="Apple-tab-span">	</span></span>// 16 semitones above the fundamental</p>
 <p class="p3"><br></p>
-<p class="p19"><span class="s3">b -&gt; $24<span class="Apple-tab-span">	</span></span>// two octaves above</p>
+<p class="p19"><span class="s4">b -&gt; $24<span class="Apple-tab-span">	</span></span>// two octaves above</p>
 <p class="p3"><br></p>
-<p class="p19"><span class="s3">c -&gt; (158ab)<span class="Apple-tab-span">	</span></span>// a chord with a tonic, a fifth, an octave, a third, and two octave above</p>
+<p class="p19"><span class="s4">c -&gt; (158ab)<span class="Apple-tab-span">	</span></span>// a chord with a tonic, a fifth, an octave, a third, and two octave above</p>
 <p class="p3"><br></p>
-<p class="p17">bb -&gt; piano[1 2 3 a b c c ]</p>
+<p class="p18">bb -&gt; piano[1 2 3 a b c c ]</p>
 <p class="p3"><br></p>
 <p class="p19">// or as here below, jack a minor chord into a major scale</p>
-<p class="p17">scale major</p>
-<p class="p17">a -&gt; $3</p>
-<p class="p17">c -&gt; (1a5)</p>
-<p class="p17">d -&gt; (135)</p>
-<p class="p17">bb -&gt; piano[1 2 a 3 4 5 <span class="Apple-converted-space">  </span>c <span class="Apple-converted-space">  </span>d <span class="Apple-converted-space">  </span>](1)</p>
+<p class="p18">scale major</p>
+<p class="p18">a -&gt; $3</p>
+<p class="p18">c -&gt; (1a5)</p>
+<p class="p18">d -&gt; (135)</p>
+<p class="p18">bb -&gt; piano[1 2 a 3 4 5 <span class="Apple-converted-space">  </span>c <span class="Apple-converted-space">  </span>d <span class="Apple-converted-space">  </span>](1)</p>
 <p class="p3"><br></p>
 <p class="p3"><br></p>
 <p class="p19">// percussive score</p>
-<p class="p19"><span class="s3">ringo<span class="Apple-converted-space">    </span>-&gt; <span class="Apple-converted-space">            </span>|o <span class="Apple-converted-space">  </span>x<span class="Apple-converted-space">    </span>o<span class="Apple-converted-space">    </span>x <span class="Apple-converted-space">  </span>|<span class="Apple-tab-span">	</span></span>// here o is mapped to a bass drum and x to a snare drum</p>
+<p class="p19"><span class="s4">ringo<span class="Apple-converted-space">    </span>-&gt; <span class="Apple-converted-space">            </span>|o <span class="Apple-converted-space">  </span>x<span class="Apple-converted-space">    </span>o<span class="Apple-converted-space">    </span>x <span class="Apple-converted-space">  </span>|<span class="Apple-tab-span">	</span></span>// here o is mapped to a bass drum and x to a snare drum</p>
 <p class="p3"><br></p>
-<p class="p19"><span class="s3">ringo2 <span class="Apple-converted-space">  </span>-&gt; <span class="Apple-converted-space">            </span>|<span class="Apple-converted-space">      </span>ii <span class="Apple-converted-space">  </span>s<span class="Apple-converted-space">    </span>n | (1148)<span class="Apple-tab-span">	</span></span>// here the notes get durations (two whole notes, a quarter and ab eigth)</p>
+<p class="p19"><span class="s4">ringo2 <span class="Apple-converted-space">  </span>-&gt; <span class="Apple-converted-space">            </span>|<span class="Apple-converted-space">      </span>ii <span class="Apple-converted-space">  </span>s<span class="Apple-converted-space">    </span>n | (1148)<span class="Apple-tab-span">	</span></span>// here the notes get durations (two whole notes, a quarter and ab eigth)</p>
 <p class="p3"><br></p>
-<p class="p19"><span class="s3">ringo3 <span class="Apple-tab-span">	</span>-&gt; <span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>|c c c c |!2^1219^<span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span></span>// expanded by two and the accents are of amplitude 1 2 1 and 9 (relative to general amp)</p>
+<p class="p19"><span class="s4">ringo3 <span class="Apple-tab-span">	</span>-&gt; <span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>|c c c c |!2^1219^<span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span></span>// expanded by two and the accents are of amplitude 1 2 1 and 9 (relative to general amp)</p>
 <p class="p3"><br></p>
-<p class="p17">ringo4 <span class="Apple-converted-space">  </span>-&gt; <span class="Apple-converted-space">            </span>| <span class="Apple-converted-space">      </span>o o d sd <span class="Apple-converted-space">  </span>|!12<span class="Apple-tab-span">	</span><span class="s9">// ! 12 inserts silence for 12 beats</span></p>
+<p class="p18">ringo4 <span class="Apple-converted-space">  </span>-&gt; <span class="Apple-converted-space">            </span>| <span class="Apple-converted-space">      </span>o o d sd <span class="Apple-converted-space">  </span>|!12<span class="Apple-tab-span">	</span><span class="s10">// ! 12 inserts silence for 12 beats</span></p>
 <p class="p3"><br></p>
 <p class="p3"><br></p>
 <p class="p19">// concrète score</p>
-<p class="p17">pierre <span class="Apple-tab-span">	</span>-&gt; <span class="Apple-converted-space">    </span>water{0<span class="Apple-converted-space">        </span>2 <span class="Apple-converted-space">  </span>8 <span class="Apple-converted-space">        </span>4<span class="Apple-converted-space">    </span>1 0 <span class="Apple-converted-space">      </span>}<span class="Apple-tab-span">	</span><span class="s9">// numbers are amplitude</span></p>
+<p class="p18">pierre <span class="Apple-tab-span">	</span>-&gt; <span class="Apple-converted-space">    </span>water{0<span class="Apple-converted-space">        </span>2 <span class="Apple-converted-space">  </span>8 <span class="Apple-converted-space">        </span>4<span class="Apple-converted-space">    </span>1 0 <span class="Apple-converted-space">      </span>}<span class="Apple-tab-span">	</span><span class="s10">// numbers are amplitude</span></p>
 <p class="p3"><br></p>
-<p class="p17">henry <span class="Apple-tab-span">	</span>-&gt; <span class="Apple-converted-space">    </span>water{0<span class="Apple-converted-space">        </span>2 <span class="Apple-converted-space">  </span>8 <span class="Apple-converted-space">        </span>}!14<span class="Apple-tab-span">	</span><span class="s9">// last amp value is extended by 14 beats</span></p>
+<p class="p18">henry <span class="Apple-tab-span">	</span>-&gt; <span class="Apple-converted-space">    </span>water{0<span class="Apple-converted-space">        </span>2 <span class="Apple-converted-space">  </span>8 <span class="Apple-converted-space">        </span>}!14<span class="Apple-tab-span">	</span><span class="s10">// last amp value is extended by 14 beats</span></p>
 <p class="p3"><br></p>
-<p class="p17">schaeffer -&gt;<span class="Apple-converted-space">    </span>water{0<span class="Apple-converted-space">        </span>2 <span class="Apple-converted-space">  </span>8 <span class="Apple-converted-space">        </span>}*4!14<span class="Apple-tab-span">	</span><span class="s9">// duration is multiplied by 4 and same as above</span></p>
+<p class="p18">schaeffer -&gt;<span class="Apple-converted-space">    </span>water{0<span class="Apple-converted-space">        </span>2 <span class="Apple-converted-space">  </span>8 <span class="Apple-converted-space">        </span>}*4!14<span class="Apple-tab-span">	</span><span class="s10">// duration is multiplied by 4 and same as above</span></p>
 <p class="p3"><br></p>
 <p class="p3"><br></p>
 <p class="p3"><br></p>
-<p class="p19"><span class="s3">jimi ))<span class="Apple-converted-space">  <span class="Apple-tab-span">	</span></span></span>// increase the volume of jimi</p>
+<p class="p19"><span class="s4">jimi ))<span class="Apple-converted-space">  <span class="Apple-tab-span">	</span></span></span>// increase the volume of jimi</p>
 <p class="p3"><br></p>
-<p class="p17">jimi &gt;&gt; delay <span class="Apple-tab-span">	</span>// add one effect to jimi's output</p>
+<p class="p18">jimi &gt;&gt; delay <span class="Apple-tab-span">	</span>// add one effect to jimi's output</p>
 <p class="p3"><br></p>
-<p class="p19"><span class="s3">jimi &gt;&gt; distort &gt;&gt; reverb<span class="Apple-converted-space">  </span></span>// put jimi through distortion and reverb effects</p>
+<p class="p19"><span class="s4">jimi &gt;&gt; distort &gt;&gt; reverb<span class="Apple-converted-space">  </span></span>// put jimi through distortion and reverb effects</p>
 <p class="p3"><br></p>
-<p class="p19"><span class="s3">jimi &lt;&lt; distort<span class="Apple-tab-span">	</span></span>// remove distortion but not the reverb effect</p>
+<p class="p19"><span class="s4">jimi &lt;&lt; distort<span class="Apple-tab-span">	</span></span>// remove distortion but not the reverb effect</p>
 <p class="p3"><br></p>
-<p class="p19"><span class="s3">jimi &lt;&lt; <span class="Apple-tab-span">	</span></span>// remove all effects</p>
+<p class="p19"><span class="s4">jimi &lt;&lt; <span class="Apple-tab-span">	</span></span>// remove all effects</p>
 <p class="p3"><br></p>
-<p class="p19"><span class="s3">shake jimi<span class="Apple-converted-space">  <span class="Apple-tab-span">	</span></span></span>// scramble jimi's score</p>
+<p class="p19"><span class="s4">shake jimi<span class="Apple-converted-space">  <span class="Apple-tab-span">	</span></span></span>// scramble jimi's score</p>
 <p class="p3"><br></p>
-<p class="p19"><span class="s3">future 2:4 &gt;&gt; swap jimi <span class="Apple-tab-span">	</span></span>// in 2 seconds time, swap jimi's score. Do this 4 times</p>
+<p class="p19"><span class="s4">future 2:4 &gt;&gt; swap jimi <span class="Apple-tab-span">	</span></span>// in 2 seconds time, swap jimi's score. Do this 4 times</p>
 <p class="p3"><br></p>
-<p class="p19"><span class="s3">future 2b:4 &gt;&gt; swap jimi <span class="Apple-tab-span">	</span></span>// every 2 bars, swap jimi's score. Do this 4 times</p>
+<p class="p19"><span class="s4">future 2b:4 &gt;&gt; swap jimi <span class="Apple-tab-span">	</span></span>// every 2 bars, swap jimi's score. Do this 4 times</p>
 <p class="p3"><br></p>
-<p class="p19"><span class="s3">tempo 60<span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span></span>// set the tempo</p>
+<p class="p19"><span class="s4">tempo 60<span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span></span>// set the tempo</p>
 <p class="p3"><br></p>
-<p class="p19"><span class="s3">tempo 120:10<span class="Apple-tab-span">	</span></span>// set the tempo to 120 in 10 seconds</p>
+<p class="p19"><span class="s4">tempo 120:10<span class="Apple-tab-span">	</span></span>// set the tempo to 120 in 10 seconds</p>
 <p class="p3"><br></p>
-<p class="p17">group funnyband -&gt; ringo jimi <span class="Apple-tab-span">	</span><span class="s9">// create a new group</span></p>
+<p class="p18">group funnyband -&gt; ringo jimi <span class="Apple-tab-span">	</span><span class="s10">// create a new group</span></p>
 <p class="p3"><br></p>
-<p class="p19"><span class="s3">doze band<span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span></span>// make the band stop</p>
+<p class="p19"><span class="s4">doze band<span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span></span>// make the band stop</p>
 <p class="p3"><br></p>
-<p class="p19"><span class="s3">perk band <span class="Apple-tab-span">	</span></span>// restart the bandmembers</p>
+<p class="p19"><span class="s4">perk band <span class="Apple-tab-span">	</span></span>// restart the bandmembers</p>
 <p class="p3"><br></p>
-<p class="p19"><span class="s3">sequence drumbo -&gt; ringo ringo2<span class="Apple-tab-span">	</span></span>// create a new sequence of two sequences</p>
+<p class="p19"><span class="s4">sequence drumbo -&gt; ringo ringo2<span class="Apple-tab-span">	</span></span>// create a new sequence of two sequences</p>
 <p class="p3"><br></p>
-<p class="p19"><span class="s3">snapshot -&gt; one <span class="Apple-tab-span">	</span></span>// take a snapshot of the agent states</p>
+<p class="p19"><span class="s4">snapshot -&gt; one <span class="Apple-tab-span">	</span></span>// take a snapshot of the agent states</p>
 <p class="p3"><br></p>
-<p class="p19"><span class="s3">snapshot one<span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span></span>// recall the snapshot</p>
+<p class="p19"><span class="s4">snapshot one<span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span></span>// recall the snapshot</p>
 <p class="p3"><br></p>
-<p class="p19"><span class="s3">swap jimi<span class="Apple-converted-space">  <span class="Apple-tab-span">	</span></span></span>// swap jimi's score</p>
+<p class="p19"><span class="s4">swap jimi<span class="Apple-converted-space">  <span class="Apple-tab-span">	</span></span></span>// swap jimi's score</p>
 <p class="p22"><br></p>
-<p class="p19"><span class="s3">+ jimi 12 <span class="Apple-tab-span">	</span></span>// add 12 as an argument to the score (transposing octave up)</p>
+<p class="p19"><span class="s4">+ jimi 12 <span class="Apple-tab-span">	</span></span>// add 12 as an argument to the score (transposing octave up)</p>
 <p class="p22"><br></p>
-<p class="p19"><span class="s3">^ jimi 1842 <span class="Apple-tab-span">	</span></span>// setting the amplitude arguments of jimi</p>
+<p class="p19"><span class="s4">^ jimi 1842 <span class="Apple-tab-span">	</span></span>// setting the amplitude arguments of jimi</p>
 <p class="p22"><br></p>
-<p class="p19"><span class="s3">future 2b:12 &gt;&gt; + jimi 7 12 0 <span class="Apple-tab-span">	</span></span>// every 2 bars, transpose jimi's score to the tailing arguments<span class="Apple-converted-space"> </span></p>
+<p class="p19"><span class="s4">future 2b:12 &gt;&gt; + jimi 7 12 0 <span class="Apple-tab-span">	</span></span>// every 2 bars, transpose jimi's score to the tailing arguments<span class="Apple-converted-space"> </span></p>
 <p class="p3"><br></p>
-<p class="p19"><span class="s3">snapshot -&gt; two <span class="Apple-tab-span">	</span></span>// take a snapshot of the agent states</p>
+<p class="p19"><span class="s4">snapshot -&gt; two <span class="Apple-tab-span">	</span></span>// take a snapshot of the agent states</p>
 <p class="p3"><br></p>
-<p class="p19"><span class="s3">snapshot two<span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span></span>// recall the snapshot</p>
+<p class="p19"><span class="s4">snapshot two<span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span></span>// recall the snapshot</p>
 <p class="p3"><br></p>
-<p class="p19"><span class="s3">future 3:12 &gt;&gt; snapshot <span class="Apple-tab-span">	</span></span>// recall a random snapshot every 3 seconds (12 times)</p>
+<p class="p19"><span class="s4">future 3:12 &gt;&gt; snapshot <span class="Apple-tab-span">	</span></span>// recall a random snapshot every 3 seconds (12 times)</p>
 <p class="p3"><br></p>
-<p class="p19"><span class="s3">autocode 4 <span class="Apple-tab-span">	</span></span>// create four lines of automatic code writing</p>
+<p class="p19"><span class="s4">autocode 4 <span class="Apple-tab-span">	</span></span>// create four lines of automatic code writing</p>
 <p class="p3"><br></p>
-<p class="p19"><span class="s3">save mysession <span class="Apple-tab-span">	</span></span>// save a session with a unique name</p>
+<p class="p19"><span class="s4">save mysession <span class="Apple-tab-span">	</span></span>// save a session with a unique name</p>
 <p class="p3"><br></p>
-<p class="p19"><span class="s3">load mysession<span class="Apple-tab-span">	</span></span>// load that session at a later time</p>
+<p class="p19"><span class="s4">load mysession<span class="Apple-tab-span">	</span></span>// load that session at a later time</p>
 <p class="p3"><br></p>
-<p class="p19"><span class="s3">help <span class="Apple-tab-span">	</span></span>// get this file</p>
+<p class="p19"><span class="s4">help <span class="Apple-tab-span">	</span></span>// get this file</p>
 <p class="p3"><br></p>
 <p class="p19">/// Experimental</p>
 <p class="p3"><br></p>
-<p class="p17"><span class="s10">Using</span> ixi lang in normal <span class="s10">SC</span> code:</p>
+<p class="p18"><span class="s11">Using</span> ixi lang in normal <span class="s11">SC</span> code:</p>
 <p class="p3"><br></p>
 <p class="p19">// when creating an agent, the string has to go in</p>
-<p class="p19"><span class="s11">"aa -&gt; xylo[2 3 4 ]"</span><span class="s3">.ixilang(0, newagent:</span><span class="s10">true</span><span class="s3">) </span>// 1st arg: document nr, 2nd arg: new agent</p>
-<p class="p23">"axa -&gt; xylo[2 3 4 8 3 ]"<span class="s3">.ixilang( newagent:</span><span class="s10">true</span><span class="s3">)</span></p>
+<p class="p19"><span class="s12">"aa -&gt; xylo[2 3 4 ]"</span><span class="s4">.ixilang(0, newagent:</span><span class="s11">true</span><span class="s4">) </span>// 1st arg: document nr, 2nd arg: new agent</p>
+<p class="p23">"axa -&gt; xylo[2 3 4 8 3 ]"<span class="s4">.ixilang( newagent:</span><span class="s11">true</span><span class="s4">)</span></p>
 <p class="p3"><br></p>
 <p class="p19">// if doc number is nil, a new window is created.</p>
 <p class="p3"><br></p>
 <p class="p19">// then one can give it any ixi lang action:</p>
-<p class="p17"><span class="s11">"doze axa"</span>.ixilang(0)</p>
-<p class="p17"><span class="s11">"perk axa"</span>.ixilang(0)</p>
+<p class="p18"><span class="s12">"doze axa"</span>.ixilang(0)</p>
+<p class="p18"><span class="s12">"perk axa"</span>.ixilang(0)</p>
 <p class="p3"><br></p>
 <p class="p3"><br></p>
 </body>

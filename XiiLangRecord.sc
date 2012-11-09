@@ -50,16 +50,14 @@ XiiLangRecord {
 		}, { 
 			path = path ? (Date.localtime.stamp ++ ext);
 		});
-		
-		
-		
+
 		bufnum = argBufnum ? server.bufferAllocator.alloc(numChannels);
 		//[\bufnum, bufnum].postln;
 		
 		server.sendMsg("/b_alloc", bufnum, 32768, numChannels,
 			["/b_write", bufnum, path, headerFormat, sampleFormat, 0, 0, 1]
 		);
-		
+
 //		synth = Synth.new("xii-diskout-" ++ numChannels, 
 //					[\i_in, inbus, \i_bufNum, bufnum], 
 //					target: server,
@@ -69,7 +67,7 @@ XiiLangRecord {
 		// thor: changing to the use of RootNode
 		
 		synth = Synth.tail(RootNode(server), "xii-diskout-" ++ numChannels, [\in, inbus, \bufNum, bufnum]);
-		
+
 		
 		isRecording = true;
 		"RECORDING...".postln;
