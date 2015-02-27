@@ -20,7 +20,7 @@ You need the SC3plugins from here:
 http://supercollider.sourceforge.net/downloads/ (choose the Universal Binary)
 
 And finally the ixiViews classes (for the MIDIKeyboard)
-https://github.com/ixi-thor/ixiViews
+https://github.com/thormagnusson/ixiViews
 
 
 1) Put SuperCollider somewhere on your system.
